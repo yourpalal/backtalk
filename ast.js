@@ -35,42 +35,26 @@ AST.fromSource = function(source) {
     grammar.Parser.NumberLiteral = {
         isa: 'NumberLiteral',
         transform: function() { return new AST.Literal(Number(this.textValue));},
-        eval: function() { return Number(this.textValue); }
     };
     grammar.Parser.StringLiteral = {
         isa: 'StringLiteral',
         transform: function() { return new AST.Literal(this.textValue); },
-        eval: function() { return this.elements[1].textValue; }
     };
     grammar.Parser.SumNode = {
         isa: 'SumNode',
         transform: function() {
             return new AST.AddOp(this.ls.transform(), this.rs.transform());
         },
-        eval: function() {
-            if (this.rs.textValue === '') {
-                return this.ls.eval();
-            } else {
-                return this.ls.eval() + this.rs.eval();
-            }
-        }
     };
     grammar.Parser.ProductNode = {
         isa: 'ProductNode',
         transform: function() {
             return new AST.MultOp(this.ls.transform(), this.rs.transform());
         },
-        eval: function() {
-            if (this.rs.textValue === '') {
-                return this.ls.eval();
-            }
-        }
     };
-
     grammar.Parser.ValueNode = {
         isa: 'ValueNode',
         transform: function() { return this.elements[0].transform(); },
-        eval: function() { return this.elements[0].eval(); }
     }
 
     return grammar.parse(source);

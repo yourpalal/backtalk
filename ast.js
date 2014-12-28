@@ -46,6 +46,12 @@ AST.fromSource = function(source) {
             return new AST.AddOp(this.ls.transform(), this.rs.transform());
         },
     };
+    grammar.Parser.SubNode = {
+        isa: 'SumNode',
+        transform: function() {
+            return new AST.SubOp(this.ls.transform(), this.rs.transform());
+        },
+    };
     grammar.Parser.ProductNode = {
         isa: 'ProductNode',
         transform: function() {

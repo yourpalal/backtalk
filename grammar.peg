@@ -1,0 +1,22 @@
+grammar BackTalk
+    expression  <-          sum / sub / prod_quo / literal
+    sum         <-          ls:prod_quo "+" rs:prod_quo <SumNode>
+    sub         <-          ls:prod_quo "-" rs:prod_quo <SubNode>
+
+    prod_quo    <-          product / quotient / value
+    product     <-          ls:value "*" rs:value <ProductNode>
+    quotient    <-          ls:value "/" rs:value <QuotientNode>
+
+    value       <-          number <NumberLiteral> / "(" expression ")" <ValueNode>
+
+
+    literal     <-          number / string
+    string      <-          "\"" [^"]* "\"" <StringLiteral>
+    number      <-          [0-9]+ / ([0-9]+ "." [0-9]+) <NumberLiteral>
+
+    comment     <-          "--" [^\n]* "\n"
+    whitespace  <-          "[^\S\n]*"
+
+    assignment  <-          "with" ref "as" expression    
+    ref         <-          "$" id:[a-zA-z_]+
+

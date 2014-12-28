@@ -40,28 +40,24 @@ AST.fromSource = function(source) {
         isa: 'StringLiteral',
         transform: function() { return new AST.Literal(this.textValue); },
     };
-    grammar.Parser.SumNode = {
-        isa: 'SumNode',
-        transform: function() {
-            return new AST.AddOp(this.ls.transform(), this.rs.transform());
-        },
+    function make_bin_op_parser(name, ast) {
+        grammar.Parser[name] = {
+            isa: name,
+            transform: function() {
+                return new ast(this.ls.transform(), this.rs.transform());
+            }
+        }
     };
-    grammar.Parser.SubNode = {
-        isa: 'SumNode',
-        transform: function() {
-            return new AST.SubOp(this.ls.transform(), this.rs.transform());
-        },
-    };
-    grammar.Parser.ProductNode = {
-        isa: 'ProductNode',
-        transform: function() {
-            return new AST.MultOp(this.ls.transform(), this.rs.transform());
-        },
-    };
+
+    make_bin_op_parser('SumNode', AST.AddOp);
+    make_bin_op_parser('SubNode', AST.SubOp);
+    make_bin_op_parser('ProductNode', AST.MultOp);
+    make_bin_op_parser('QuotientNode', AST.DivideOp);
+
     grammar.Parser.ValueNode = {
         isa: 'ValueNode',
         transform: function() { return this.elements[0].transform(); },
-    }
+    };
 
     return grammar.parse(source);
 };

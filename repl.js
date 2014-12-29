@@ -16,8 +16,12 @@ function loop() {
             process.exit();
         }
 
-        console.log(parser.fromSource(answer));
-        console.log(parser.fromSource(answer).Eval());
+        try {
+            console.log(parser.fromSource(answer));
+            console.log(parser.fromSource(answer).Eval());
+        } catch (e) {
+            console.log(e, Object.keys(e));
+        }
         loop();
     });
 };

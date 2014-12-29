@@ -1,8 +1,6 @@
 'use strict';
 
-var grammar = require('./grammar');
-var AST = require('./ast');
-
+var parser = new (require('./ast').Parser)();
 var readline = require('readline');
 
 var rl = readline.createInterface({
@@ -18,8 +16,8 @@ function loop() {
             process.exit();
         }
 
-        console.log(AST.fromSource(answer).transform());
-        console.log(AST.fromSource(answer).transform().Eval());
+        console.log(parser.fromSource(answer));
+        console.log(parser.fromSource(answer).Eval());
         loop();
     });
 };

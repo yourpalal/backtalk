@@ -31,7 +31,9 @@ AST.Ref = function(name) { this.name = name; };
 AST.Ref.prototype.Eval = function(scope) { return scope.get(this.name); }
 
 
-AST.fromSource = function(source) {
+AST.Parser = function() {
+    this.grammar = grammar;
+
     grammar.Parser.NumberLiteral = {
         isa: 'NumberLiteral',
         transform: function() { return new AST.Literal(Number(this.textValue));},
@@ -58,6 +60,8 @@ AST.fromSource = function(source) {
         isa: 'ValueNode',
         transform: function() { return this.elements[0].transform(); },
     };
+};
 
-    return grammar.parse(source);
+AST.Parser.prototype.fromSource = function(source) {
+    return grammar.parse(source).transform();
 };

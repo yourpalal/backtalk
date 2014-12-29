@@ -42,19 +42,30 @@ AST.Parser = function() {
         isa: 'StringLiteral',
         transform: function() { return new AST.Literal(this.textValue); },
     };
+
+    function bin_op_rs(ast, ls, rights, i) {
+        if (i >= rights.length) {
+            return ls.transform();
+        }
+        var op = rights[i].op.textValue
+            ,rs = rights[i].rs
+        ;
+        return new (ast[op])(ls.transform(), bin_op_rs(ast, rs, rights, i + 1));
+    };
+
     function make_bin_op_parser(name, ast) {
         grammar.Parser[name] = {
             isa: name,
             transform: function() {
-                return new ast(this.ls.transform(), this.rs.transform());
+                // example: 3+4+5+6
+                // ls:3 , elements[1][0] = {op:'+',rs: '4'}
+                return bin_op_rs(ast, this.ls, this.elements[1].elements, 0);
             }
         }
     };
 
-    make_bin_op_parser('SumNode', AST.AddOp);
-    make_bin_op_parser('SubNode', AST.SubOp);
-    make_bin_op_parser('ProductNode', AST.MultOp);
-    make_bin_op_parser('QuotientNode', AST.DivideOp);
+    make_bin_op_parser('SumNode', {'+': AST.AddOp, '-': AST.SubOp});
+    make_bin_op_parser('ProductNode', {'*': AST.MultOp, '/': AST.DivideOp});
 
     grammar.Parser.ValueNode = {
         isa: 'ValueNode',
@@ -63,5 +74,7 @@ AST.Parser = function() {
 };
 
 AST.Parser.prototype.fromSource = function(source) {
-    return grammar.parse(source).transform();
+    var parse_tree = grammar.parse(source);
+    // console.log(parse_tree);
+    return parse_tree.transform();
 };

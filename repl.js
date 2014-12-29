@@ -1,5 +1,9 @@
 'use strict';
 
+var argparser = require('argparser')
+                .nonvals("ast")
+                .parse();
+
 var parser = new (require('./ast').Parser)();
 var readline = require('readline');
 
@@ -17,8 +21,11 @@ function loop() {
         }
 
         try {
-            console.log(parser.fromSource(answer));
-            console.log(parser.fromSource(answer).Eval());
+            var ast = parser.fromSource(answer);
+            if (argparser.opt("ast")) {
+                console.log(ast);
+            }
+            console.log(ast.Eval());
         } catch (e) {
             console.log(e, Object.keys(e));
         }

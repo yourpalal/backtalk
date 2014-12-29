@@ -43,11 +43,16 @@ describe('When doing math', function() {
         bt_eval('1+2-3+72').should.equal(72);
     });
 
+    it('can deal with parens', function() {
+        bt_eval('(3+4)').should.equal(7);
+    });
+
     it('can do mixed operations', function() {
         bt_eval('1.23*2-10').should.equal(1.23*2-10);
         bt_eval('1.23-2*10').should.equal(1.23-2*10);
         bt_eval('1.23-2*10').should.equal(1.23-2*10);
         bt_eval('2-8*3+4').should.equal(2-8*3+4);
         bt_eval('10/2-8*3+4/7-6').should.equal(10/2-8*3+4/7-6);
+        bt_eval('10/(3*2-8)*3+4/7-6').should.equal(10/(3*2-8)*3+4/7-6);
     });
 });

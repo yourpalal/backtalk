@@ -79,7 +79,11 @@ AST.Parser = function() {
 
     grammar.Parser.ValueNode = {
         isa: 'ValueNode',
-        transform: function() { return this.elements[0].transform(); },
+        transform: function() {
+            // x -> elements[0]
+            // ( x ) -> elements[1]
+            return this.elements[Math.floor(this.elements.length/2)].transform();
+        },
     };
 };
 

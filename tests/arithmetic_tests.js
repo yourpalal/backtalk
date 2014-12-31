@@ -22,18 +22,28 @@ describe('When doing math', function() {
         bt_eval('1.23+2').should.equal(3.23);
         bt_eval('1.23+90').should.equal(91.23);
         bt_eval('20+400').should.equal(420);
+        bt_eval('20+400+69').should.equal(489);
     });
 
     it('can do subtraction', function() {
         bt_eval('1.23-2').should.equal(-0.77);
         bt_eval('1.23-90').should.equal(-88.77);
         bt_eval('20-400').should.equal(-380);
+        bt_eval('20-400-5-10-20').should.equal(-415);
+    });
+
+    it('can do division', function() {
+        bt_eval('1.23/2').should.equal(1.23 / 2);
+        bt_eval('1.23/90').should.equal(1.23 / 90);
+        bt_eval('20/400').should.equal(20 / 400);
+        bt_eval('20/400/3.6').should.equal(20 / 400 / 3.6);
     });
 
     it('can do multiplication', function() {
         bt_eval('1.23*2').should.equal(1.23 * 2);
         bt_eval('1.23*90').should.equal(1.23 * 90);
         bt_eval('20*400').should.equal(20 * 400);
+        bt_eval('20*400*3.6').should.equal(20 * 400 * 3.6);
     });
 
     it('can do associative additions', function() {
@@ -45,6 +55,7 @@ describe('When doing math', function() {
 
     it('can deal with parens', function() {
         bt_eval('(3+4)').should.equal(7);
+        bt_eval('(3+4)*(7*23)').should.equal(7*7*23);
     });
 
     it('can do mixed operations', function() {

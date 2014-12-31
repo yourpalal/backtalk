@@ -1,19 +1,20 @@
 grammar BackTalk
     expression  <-          sum / prod_quo / literal
-    sum         <-          ls:prod_quo (op:("+" / "-") rs:prod_quo)+ <SumNode>
+    sum         <-          ls:prod_quo (op:("+" / "-") SPACE rs:prod_quo)+ <SumNode>
 
     prod_quo    <-          product / value
-    product     <-          ls:value (op:("*" / "/") rs:value)+ <ProductNode>
+    product     <-          ls:value (op:("*" / "/") SPACE rs:value)+ <ProductNode>
 
-    value       <-          number / "(" expression ")" <ValueNode>
+    value       <-          number / paren_expr
+    paren_expr  <-          "(" SPACE ex:expression ")" SPACE <ParenNode>
 
 
     literal     <-          number / string
     string      <-          "\"" [^"]* "\"" <StringLiteral>
-    number      <-          [0-9]+ ("." [0-9]+)? <NumberLiteral>
+    number      <-          [0-9]+ ("." [0-9]+)? SPACE <NumberLiteral>
 
     comment     <-          "--" [^\n]* "\n"
-    whitespace  <-          "[^\S\n]*"
+    SPACE       <-          [^\S\n]*
 
     assignment  <-          "with" ref "as" expression    
     ref         <-          "$" id:[a-zA-z_]+

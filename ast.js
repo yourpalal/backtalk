@@ -77,12 +77,10 @@ AST.Parser = function() {
     make_bin_op_parser('SumNode', {'+': AST.AddOp, '-': AST.SubOp});
     make_bin_op_parser('ProductNode', {'*': AST.MultOp, '/': AST.DivideOp});
 
-    grammar.Parser.ValueNode = {
-        isa: 'ValueNode',
+    grammar.Parser.ParenNode = {
+        isa: 'ParenNode',
         transform: function() {
-            // x -> elements[0]
-            // ( x ) -> elements[1]
-            return this.elements[Math.floor(this.elements.length/2)].transform();
+            return this.ex.transform();
         },
     };
 };

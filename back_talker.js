@@ -1,6 +1,7 @@
 'use strict';
 
-var ast = require('./ast');
+var AST = require('./ast'),
+    parser = new AST.Parser();
 
 
 var BackTalker = function() {
@@ -10,8 +11,8 @@ module.exports = BackTalker;
 
 
 BackTalker.eval = function(string, scope) {
-    var parsed = ast.fromSource();
-    return parsed.eval(scope);
+    var parsed = parser.fromSource(string);
+    return parsed.Eval(scope);
 };
 
 

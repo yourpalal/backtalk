@@ -4,7 +4,11 @@ var argparser = require('argparser')
                 .nonvals("ast")
                 .parse();
 
-var parser = new (require('./ast').Parser)();
+var AST = require('./ast'),
+    parser = new AST.Parser();
+
+var BT = require('./back_talker');
+
 var readline = require('readline');
 
 var rl = readline.createInterface({
@@ -12,6 +16,8 @@ var rl = readline.createInterface({
     output: process.stdout
 });
 
+
+var scope = new BT.Scope();
 
 function loop() {
     rl.question('$>: ', function(answer) {
@@ -25,9 +31,13 @@ function loop() {
             if (argparser.opt("ast")) {
                 console.log(ast);
             }
-            console.log(ast.Eval());
+            console.log(ast.Eval(scope));
         } catch (e) {
-            console.log(e, Object.keys(e));
+            if (e instanceof AST.ParseError) {
+                console.log(e);
+            } else {
+                throw e;
+            }
         }
         loop();
     });

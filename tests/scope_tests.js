@@ -28,4 +28,18 @@ describe('BackTalker scopes', function() {
         scope.get("weird").should.equal(5);
     });
 
+    it('can modify scope in BT', function() {
+        BT.eval('with $test as 3', scope);
+        scope.get("test").should.equal(3);
+
+        scope.set("test", 5);
+        BT.eval("$test", scope).should.equal(5);
+    });
+
+    it('can do math with references', function() {
+        BT.eval('with $test as 3', scope);
+        scope.get("test").should.equal(3);
+        
+        BT.eval('$test + 7', scope).should.equal(10);
+    });
 });

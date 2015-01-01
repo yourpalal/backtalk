@@ -85,6 +85,7 @@ AST.Parser = function() {
     };
 };
 
+
 AST.Parser.prototype.fromSource = function(source) {
     var parse_tree = grammar.parse(source);
     // console.log(parse_tree);

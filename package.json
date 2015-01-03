@@ -14,7 +14,8 @@
   "license": "MIT",
   "devDependencies": {
     "mocha": "^2.1.0",
-    "should": "^4.4.2"
+    "should": "^4.4.2",
+    "sinon": "^1.12.2"
   },
   "dependencies": {
     "argparser": "^0.2.2"

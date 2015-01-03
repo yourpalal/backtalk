@@ -18,7 +18,8 @@ var make_ast_node = function(name, ctor) {
     AST[name].prototype.accept = function(visitor) {
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift(this);
-        return (visitor[visitName]).apply(visitor, args);
+        // return (visitor[visitName] || console.log('missing', visitName, 'on', visitor)).apply(visitor, args);
+        return visitor[visitName].apply(visitor, args);
     };
     AST[name].prototype.toString = function() {
         return name + ": " + JSON.stringify(this);
@@ -42,10 +43,39 @@ make_ast_node('DivideOp', function(r) { this.right = r; });
 make_ast_node('MultOp', function(r) { this.right = r; });
 make_ast_node('BinOpNode', function(l, o) {this.left = l; this.ops = o;});
 make_ast_node('Literal', function(val) { this.val = val; });
+make_ast_node('BareWord', function(bare) { this.bare = bare; });
 make_ast_node('UnaryMinus', function(val) { this.val = val; });
 make_ast_node('Ref', function(name) { this.name = name; });
 make_ast_node('RefSet', function(name, val){this.name = name; this.val = val;});
+make_ast_node('FuncCall', function(name, args) {
+    this.name = name;
+    this.args = args;
+});
 
+AST.FuncCallMaker = function() {
+    this.parts = [];
+};
+
+AST.FuncCallMaker.prototype.addPart = function(part) {
+    this.parts.push(part);
+};
+
+AST.FuncCallMaker.prototype.build = function() {
+    var args = [],
+        name = this.parts.map(function(p) {
+            var result = p.accept(AST.FuncCallMaker.NameMaker);
+            if (result === "$") { args.push(p); }
+            return result;
+        }).join(" ");
+    return new AST.FuncCall(name, args);
+};
+
+AST.FuncCallMaker.NameMaker = {
+    visitBareWord: function(bare) { return bare.bare; },
+    visitExpression: function() { return "$"; },
+    visitRef: function() { return "$"; },
+    visitLiteral: function() { return "$"; }
+};
 
 AST.Parser = function() {
     this.grammar = grammar;
@@ -96,7 +126,27 @@ AST.Parser = function() {
         transform: function() {
             return new AST.RefSet(this.ref.id.textValue,
                         this.expression.transform());
-        },
+        }
+    };
+
+    grammar.Parser.BareNode = {
+        isa: 'BareNode',
+        transform: function() {
+            return new AST.BareWord(this.id.textValue);
+        }
+    };
+
+    grammar.Parser.FuncCallNode = {
+        isa: 'FuncCallNode',
+        transform: function() {
+            var builder = new AST.FuncCallMaker();
+            builder.addPart(this.elements[0].transform());
+
+            this.elements[1].elements.map(function(v) {
+                builder.addPart(v.transform());
+            });
+            return builder.build();
+        }
     };
 };
 

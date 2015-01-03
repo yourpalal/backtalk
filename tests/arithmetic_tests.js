@@ -1,5 +1,4 @@
-var parser = new (require('../ast').Parser)()
-    ,should = require('should')
+var  should = require('should')
     ,BT = require('../back_talker')
 ;
 
@@ -11,7 +10,7 @@ describe('When doing math', function() {
     before(function() {
         scope = new BT.Scope();
         var evaluator = new BT.Evaluator(scope);
-        bt_eval = function(s) { return evaluator.eval(parser.fromSource(s)); };
+        bt_eval = function(s) { return evaluator.eval(BT.parse(s)); };
     });
 
     it('can understand integer literals', function() {

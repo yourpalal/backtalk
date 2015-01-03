@@ -1,23 +1,45 @@
+'use strict';
 
+var BackTalker = {
+    AST: require('./ast'),
+    Evaluator: function(scope, context) {
+        this.scope = scope || new BackTalker.Scope();
+        this.context = context || new BackTalker.Context();
+    },
+    Context: function() {
+        this.funcs = {};
+    },
+    Scope: function(parent) {
+        this.parent = parent || null;
+        if (this.parent !== null) {
+            this.names = Object.create(parent.names);
+        } else {
+            this.names = new Object();
+        }
+    },
 
-var AST = require('./ast'),
-    parser = new AST.Parser();
-
-
-var BackTalker = function() {
+    parse: function(source) {
+        this._parser = this._parser || new BackTalker.AST.Parser();
+        return this._parser.fromSource(source);
+    },
+    eval: function(source, scope, context) {
+        var parsed;
+        if (typeof(source) === 'string') {
+            parsed = BackTalker.parse(source);
+        } else {
+            parsed = source; // hopefuly this is the AST
+        }
+        return (new BackTalker.Evaluator(scope, context)).eval(parsed);
+    }
 };
 
-module.exports = BackTalker;
+for (var key in BackTalker) {
+    module.exports[key] = BackTalker[key];
+}
 
-
-BackTalker.Evaluator = function(scope, context) {
-    this.scope = scope || new BackTalker.Scope();
-    this.context = context || new BackTalker.Context();
-
-};
 
 BackTalker.Evaluator.prototype.evalString = function(source) {
-    return this.eval(parser.fromSource(source));
+    return this.eval(BackTalker.parse(source));
 };
 
 BackTalker.Evaluator.prototype.eval = function(node) {
@@ -78,20 +100,6 @@ BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
     }, this));
 };
 
-BackTalker.eval = function(source, scope, context) {
-    var parsed;
-    if (typeof(source) === 'string') {
-        parsed = parser.fromSource(source);
-    } else {
-        parsed = source; // hopefuly this is the AST
-    }
-    return (new BackTalker.Evaluator(scope, context)).eval(parsed);
-};
-
-
-BackTalker.Context = function() {
-    this.funcs = {};
-};
 
 BackTalker.Context.prototype.findFunc = function(name) {
     return this.funcs['0' + name];
@@ -103,14 +111,6 @@ BackTalker.Context.prototype.addFunc = function(deets) {
     }, this);
 };
 
-BackTalker.Scope = function(parent) {
-    this.parent = parent || null;
-    if (this.parent !== null) {
-        this.names = Object.create(parent.names);
-    } else {
-        this.names = new Object();
-    }
-};
 
 
 BackTalker.Scope.prototype.createSubScope = function() {

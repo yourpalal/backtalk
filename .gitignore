@@ -1,3 +1,4 @@
 grammar.js
 node_modules/
+gen/
 *.swp

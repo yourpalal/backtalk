@@ -1,5 +1,4 @@
 var BT = require('../back_talker')
-    ,ast = new (require('../ast').Parser)()
     ,should = require('should')
     ,sinon = require('sinon')
 ;
@@ -15,18 +14,18 @@ describe('BackTalker function calls', function() {
     });
 
     it("syntactically, are comprised of bare words and expressions", function() {
-        ast.fromSource("like this");        
+        BT.parse("like this");        
 
         it("they can include number literals as parameters", function() {
-            ast.fromSource("like this 1");
+            BT.parse("like this 1");
         });
 
         it("they can include strings literals as parameters", function() {
-            ast.fromSource('this is like "great"');
+            BT.parse('this is like "great"');
         });
 
         it("they can include parenthesized function calls as parameters", function() {
-            ast.fromSource("I love this (not)");
+            BT.parse("I love this (not)");
         });
     });
 

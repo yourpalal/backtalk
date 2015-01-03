@@ -3,13 +3,9 @@
 var argparser = require('argparser')
                 .nonvals("ast")
                 .parse();
-
-var AST = require('./ast'),
-    parser = new AST.Parser();
-
 var BT = require('./back_talker');
-
 var readline = require('readline');
+
 
 var rl = readline.createInterface({
     input: process.stdin,
@@ -29,13 +25,13 @@ function loop() {
         }
 
         try {
-            var ast = parser.fromSource(answer);
+            var ast = BT.parse(answer);
             if (argparser.opt("ast")) {
                 console.log(ast, typeof ast);
             }
             console.log(evaluator.eval(ast));
         } catch (e) {
-            if (e instanceof AST.ParseError) {
+            if (e instanceof BT.AST.ParseError) {
                 console.log(e);
             } else {
                 throw e;

@@ -38,8 +38,13 @@ describe('BackTalker scopes', function() {
 
     it('can do math with references', function() {
         BT.eval('with $test as 3', scope);
+        BT.eval('with $a as 7', scope);
         scope.get("test").should.equal(3);
         
         BT.eval('$test + 7', scope).should.equal(10);
+        BT.eval('$test * 7', scope).should.equal(21);
+
+        BT.eval('$test + $a', scope).should.equal(10);
+        BT.eval('$test * $a', scope).should.equal(21);
     });
 });

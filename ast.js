@@ -28,8 +28,8 @@ AST.ParseError.toString = function() {
 
 make_bin_op('AddOp', function(s, left) { return left + this.right.Eval(s); });
 make_bin_op('SubOp', function(s, left) { return left - this.right.Eval(s); });
-make_bin_op('DivideOp', function(s, left) { return left / this.right.Eval(); });
-make_bin_op('MultOp', function(s, left) { return left * this.right.Eval(); });
+make_bin_op('DivideOp', function(s, left) { return left / this.right.Eval(s);});
+make_bin_op('MultOp', function(s, left) { return left * this.right.Eval(s); });
 
 
 AST.BinOpNode = function(left, ops) {
@@ -45,7 +45,7 @@ AST.BinOpNode.prototype.Eval = function(s) {
         left = this.ops[i].Eval(s, left);
     }
     return left; 
-}
+};
 
 AST.Literal = function(val) { this.val = val; };
 AST.Literal.prototype.Eval = function(s) { return this.val; };

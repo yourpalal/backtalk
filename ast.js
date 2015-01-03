@@ -9,14 +9,19 @@ var grammar = require('./grammar');
 
 // All AST parts (except ParseError) implement the visitor pattern with accept()
 // eg. (new AST.RefNode('cool')).visit({
-//          visitRefNode:function(r) {
+//          visitRefNode:function(r, msg) {
 //              console.log('ref nodes are awesome!!!!');
-//      }});
-var make_ast_node = function(name, ctor, eval_method) {
+//      }}, 'my extra argument that goes into msg');
+var make_ast_node = function(name, ctor) {
     AST[name] = ctor;
-    AST[name].prototype.Eval = eval_method;
+    var visitName = "visit" + name;
     AST[name].prototype.accept = function(visitor) {
-        return (visitor["visit" + name])(this);
+        var args = Array.prototype.slice.call(arguments, 1);
+        args.unshift(this);
+        return (visitor[visitName]).apply(visitor, args);
+    };
+    AST[name].prototype.toString = function() {
+        return name + ": " + JSON.stringify(this);
     };
 };
 
@@ -31,50 +36,15 @@ AST.ParseError.toString = function() {
 };
 
 
-make_ast_node('AddOp', function(r) { this.right = r; },
-        function(s, left) { return left + this.right.Eval(s); }
-);
-
-make_ast_node('SubOp', function(r) { this.right = r; },
-        function(s, left) { return left - this.right.Eval(s); });
-
-make_ast_node('DivideOp', function(r) { this.right = r; },
-        function(s, left) { return left / this.right.Eval(s);});
-
-make_ast_node('MultOp', function(r) { this.right = r; },
-        function(s, left) { return left * this.right.Eval(s); });
-
-
-make_ast_node('BinOpNode', function(left, ops) {
-        this.left = left;
-        this.ops = ops;
-    },
-    function(s) {
-        var left = this.left.Eval(s),
-            i = 0;
-
-        for (i = 0; i < this.ops.length; i++) {
-            left = this.ops[i].Eval(s, left);
-        }
-        return left; 
-    });
-
-make_ast_node('Literal', function(val) { this.val = val; },
-                         function(s) { return this.val; });
-
-make_ast_node('UnaryMinus', function(val) { this.val = val; },
-                            function(s) { return -this.val; });
-
-make_ast_node('Ref', function(name) { this.name = name; },
-                     function(scope) { return scope.get(this.name); });
-
-make_ast_node('RefSet',
-    function(name, val) { this.name = name; this.val = val; },
-    function(scope) {
-        var rs = this.val.Eval(scope);
-        scope.set(this.name, rs);
-        return rs;
-    });
+make_ast_node('AddOp', function(r) { this.right = r; });
+make_ast_node('SubOp', function(r) { this.right = r; });
+make_ast_node('DivideOp', function(r) { this.right = r; });
+make_ast_node('MultOp', function(r) { this.right = r; });
+make_ast_node('BinOpNode', function(l, o) {this.left = l; this.ops = o;});
+make_ast_node('Literal', function(val) { this.val = val; });
+make_ast_node('UnaryMinus', function(val) { this.val = val; });
+make_ast_node('Ref', function(name) { this.name = name; });
+make_ast_node('RefSet', function(name, val){this.name = name; this.val = val;});
 
 
 AST.Parser = function() {
@@ -86,7 +56,7 @@ AST.Parser = function() {
     };
     grammar.Parser.StringLiteral = {
         isa: 'StringLiteral',
-        transform: function() { return new AST.Literal(this.textValue); },
+        transform: function() { return new AST.Literal(this.textValue); }
     };
 
     function make_bin_op_parser(name, ops) {

@@ -1,11 +1,19 @@
 var parser = new (require('../ast').Parser)()
     ,should = require('should')
+    ,BT = require('../back_talker')
 ;
 
 
-var bt_eval = function(s) { return parser.fromSource(s).Eval(); };
-
 describe('When doing math', function() {
+    var bt_eval,
+        scope;
+
+    before(function() {
+        scope = new BT.Scope();
+        var evaluator = new BT.Evaluator(scope);
+        bt_eval = function(s) { return evaluator.eval(parser.fromSource(s)); };
+    });
+
     it('can understand integer literals', function() {
         bt_eval('5').should.equal(5);
         bt_eval('0').should.equal(0);

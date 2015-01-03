@@ -17,7 +17,9 @@ var rl = readline.createInterface({
 });
 
 
-var scope = new BT.Scope();
+var scope = new BT.Scope(),
+    evaluator = new BT.Evaluator(scope)
+    ;
 
 function loop() {
     rl.question('$>: ', function(answer) {
@@ -29,9 +31,9 @@ function loop() {
         try {
             var ast = parser.fromSource(answer);
             if (argparser.opt("ast")) {
-                console.log(ast);
+                console.log(ast, typeof ast);
             }
-            console.log(ast.Eval(scope));
+            console.log(evaluator.eval(ast));
         } catch (e) {
             if (e instanceof AST.ParseError) {
                 console.log(e);

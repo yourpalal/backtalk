@@ -14,15 +14,19 @@ var rl = readline.createInterface({
 
 
 var scope = new BT.Scope(),
-    evaluator = new BT.Evaluator(scope)
+    context = new BT.Context(),
+    evaluator = new BT.Evaluator(scope, context),
+    running = true
     ;
+
+context.addFunc({
+    patterns: ['q'],
+    impl: function() { running = false; return 'goodbye!';}
+});
+
 
 function loop() {
     rl.question('$>: ', function(answer) {
-        if (answer == 'q') {
-            rl.close();
-            process.exit();
-        }
 
         try {
             var ast = BT.parse(answer);
@@ -36,6 +40,10 @@ function loop() {
             } else {
                 throw e;
             }
+        }
+        if (!running) {
+            rl.close();
+            process.exit();
         }
         loop();
     });

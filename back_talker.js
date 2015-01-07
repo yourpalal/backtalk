@@ -90,6 +90,14 @@ BackTalker.Evaluator.prototype.visitRefSet = function(node) {
     return rs;
 };
 
+BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
+    var result;
+    node.parts.forEach(function(part) {
+        result = part.accept(this);
+    }, this);
+    return result;
+};
+
 BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
     var f = this.context.findFunc(node.name);
     if ((f || 0) === 0) {

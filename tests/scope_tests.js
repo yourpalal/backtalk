@@ -47,4 +47,9 @@ describe('BackTalker scopes', function() {
         BT.eval('$test + $a', scope).should.equal(10);
         BT.eval('$test * $a', scope).should.equal(21);
     });
+
+    it('can use scope in compound expressions', function() {
+        BT.eval('with $test as 3\n$test + 5', scope).should.equal(8);
+        BT.eval('with $test as 3\n\n$test + 5', scope).should.equal(8);
+    });
 });

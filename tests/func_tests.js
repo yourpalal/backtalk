@@ -51,4 +51,15 @@ describe('BackTalker function calls', function() {
         evaluator.evalString("bake $cake").should.equal("yum!");
         func.calledOnce.should.be.ok;
     });
+    it("can call a function compoundly", function() {
+        var func = sinon.spy(function(a) { return a; });
+        context.addFunc({
+            patterns: ["bake $"],
+            impl: func
+        });
+
+        scope.set("cake", "yum!");
+        evaluator.evalString("bake $cake\nbake $cake").should.equal("yum!");
+        func.calledTwice.should.be.ok;
+    });
 });

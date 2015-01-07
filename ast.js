@@ -47,10 +47,13 @@ make_ast_node('BareWord', function(bare) { this.bare = bare; });
 make_ast_node('UnaryMinus', function(val) { this.val = val; });
 make_ast_node('Ref', function(name) { this.name = name; });
 make_ast_node('RefSet', function(name, val){this.name = name; this.val = val;});
+make_ast_node('CompoundExpression', function(parts) {this.parts = parts;})
+
 make_ast_node('FuncCall', function(name, args) {
     this.name = name;
     this.args = args;
 });
+
 
 AST.FuncCallMaker = function() {
     this.parts = [];
@@ -136,6 +139,16 @@ AST.Parser = function() {
         }
     };
 
+    grammar.Parser.CompoundNode = {
+        isa: 'CompoundNode',
+        transform: function() {
+            var parts = this.rs.elements.map(function(x) {
+                return x.ex.transform();
+            });
+            parts.unshift(this.elements[0].transform());
+            return new AST.CompoundExpression(parts);
+        }
+    };
     grammar.Parser.FuncCallNode = {
         isa: 'FuncCallNode',
         transform: function() {

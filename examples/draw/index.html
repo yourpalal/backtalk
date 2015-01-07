@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+    <style>
+        canvas, textarea {
+            display: block;
+            margin: 0 auto;
+        }
+        canvas {
+            border: thin solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="c">
+    </canvas>
+    <textarea id="t" rows="30" cols="80">
+    </textarea>
+
+    <p id="help">
+    </p>
+
+    <script type="text/javascript" src="../../gen/bt.js"></script>
+    <script type="text/javascript" src="drawlib.js"></script>
+    <script type="text/javascript">
+        var canvas = document.getElementById("c"),
+            c2D = canvas.getContext("2d"),
+            textarea = document.getElementById("t"),
+            help = document.getElementById("help"),
+
+            btContext = new BackTalker.Context(),
+            text = "",
+            drawContext = new Drawing.Context();
+
+            drawContext.register(btContext);
+
+
+            window.setInterval(function() {
+                if (textarea.value == text) { return; }
+                text = textarea.value;
+
+                var scope = new BackTalker.Scope();
+                BackTalker.eval(textarea.value, scope, btContext);
+                requestAnimationFrame(function() {
+                    drawContext.update(canvas, c2D);
+                });
+            }, 1000);
+
+    </script>
+</body>
+</html>

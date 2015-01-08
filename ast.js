@@ -89,7 +89,9 @@ AST.Parser = function() {
     };
     grammar.Parser.StringLiteral = {
         isa: 'StringLiteral',
-        transform: function() { return new AST.Literal(this.textValue); }
+        transform: function() {
+            return new AST.Literal(this.elements[1].textValue);
+        }
     };
 
     function make_bin_op_parser(name, ops) {

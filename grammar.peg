@@ -1,5 +1,5 @@
 grammar BackTalk
-    compound    <-          expression rs:("\n"+ ex:expression)* <CompoundNode>
+    compound    <-          [\s]* ls:expression rs:("\n"+ ex:expression)* <CompoundNode>
     expression  <-          assignment / sum / prod_quo / literal / ref / func_call
     sum         <-          ls:prod_quo (op:("+" / "-") SPACE rs:prod_quo)+ <SumNode>
 

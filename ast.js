@@ -145,7 +145,7 @@ AST.Parser = function() {
             var parts = this.rs.elements.map(function(x) {
                 return x.ex.transform();
             });
-            parts.unshift(this.elements[0].transform());
+            parts.unshift(this.ls.transform());
             return new AST.CompoundExpression(parts);
         }
     };

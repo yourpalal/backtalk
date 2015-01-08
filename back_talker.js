@@ -115,7 +115,45 @@ BackTalker.Context.prototype.findFunc = function(name) {
 
 BackTalker.Context.prototype.addFunc = function(deets) {
     deets.patterns.map(function(pattern) { 
-        this.funcs['0' + pattern] = deets.impl;
+        var pieces = pattern.split(" "),
+            parts = pieces.map(function(piece) {
+                        // match "<bare|words|like|this>"
+                        var match = piece.match(/<(([a-zA-Z]+)(\|[a-zA-Z]+)*)>/);
+                        if (match !== null) {
+                            return match[1].split("|");
+                        } else {
+                            return [piece];
+                        }
+                    });
+
+        // now we have an array of parts, where a normal bare word is a
+        // singleton, and patterns are not. We want to turn that into
+        // a bunch of strings that we will register, and lists of the dynamic
+        // parts for each string
+        var patterns = parts.reduce(function(strings, part) {
+            var dynamic = (part.length > 1),
+                result = [];
+
+            part.forEach(function(bare) {
+                strings.forEach(function(s) {
+                    result.push({
+                        val: s.val.concat(bare),
+                        dyn: dynamic ? s.dyn.concat(bare) : s.dyn
+                    });
+                });
+            });
+
+            return result;
+        }, [{val: [], dyn: []}]);
+
+        // now we can register a wraper for all of the specified functions
+        // that will append the dynamic parts of the pattern as arguments
+        patterns.forEach(function(pattern) {
+            this.funcs['0' + pattern.val.join(" ")] = function() {
+                var args = Array.prototype.slice.call(arguments).concat(pattern.dyn);
+                return deets.impl.apply(null, args);
+            }
+        }, this);
     }, this);
 };
 

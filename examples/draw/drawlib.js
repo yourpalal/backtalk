@@ -27,17 +27,12 @@ Drawing.Context = function() {
 Drawing.Context.prototype.register = function(btcontext) {
     var ctx = this;
 
-    ["small", "big"].map(function(size) {
-        ["red", "yellow", "green", "blue"].map(function(color) {
-            btcontext.addFunc({
-                patterns: [['a',size,color,'circle'].join(" ")],
-                impl: (function() {var s = size, c = color;
-                        return function() {
-                            ctx.gfx.push(new Drawing.Circle(s, c));
-                        };})()
-            });
-        }, this);
-    }, this);
+    btcontext.addFunc({
+        patterns: ['a <small|big> <red|yellow|green|blue> circle'],
+        impl: function(size, colour) {
+            ctx.gfx.push(new Drawing.Circle(size, colour));
+        }
+    });
 };
 
 Drawing.Context.prototype.update = function(canvas, ctx) {

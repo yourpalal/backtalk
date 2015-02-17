@@ -18,9 +18,9 @@ var BackTalker = {
         }
     },
 
-    parse: function(source) {
+    parse: function(source, inspector) {
         this._parser = this._parser || new BackTalker.AST.Parser();
-        return this._parser.fromSource(source);
+        return this._parser.fromSource(source, inspector);
     },
     eval: function(source, scope, context) {
         var parsed;

@@ -13,6 +13,15 @@ var rl = readline.createInterface({
 });
 
 
+var print_parse_tree = function(pt, prefix) {
+    prefix = prefix || "";
+    console.log(prefix + "<" + (pt.isa || "unknown")  + ">" + '"' + pt.textValue + '"');
+
+    pt.elements.forEach(function(e) {
+        print_parse_tree(e, prefix + "  ");
+    });
+};
+
 var scope = new BT.Scope(),
     context = new BT.Context(),
     evaluator = new BT.Evaluator(scope, context),
@@ -29,14 +38,14 @@ function loop() {
     rl.question('$>: ', function(answer) {
 
         try {
-            var ast = BT.parse(answer);
+            var ast = BT.parse(answer, print_parse_tree);
             if (argparser.opt("ast")) {
-                console.log(ast, typeof ast);
+                console.log(ast);
             }
             console.log(evaluator.eval(ast));
         } catch (e) {
             if (e instanceof BT.AST.ParseError) {
-                console.log(e);
+                console.log(e.message);
             } else {
                 throw e;
             }

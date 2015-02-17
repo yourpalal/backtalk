@@ -13,18 +13,18 @@ describe('BackTalker function calls', function() {
         evaluator = new BT.Evaluator(scope, context);
     });
 
-    it("syntactically, are comprised of bare words and expressions", function() {
+    describe("are comprised of bare words and expressions", function() {
         BT.parse("like this");        
 
-        it("they can include number literals as parameters", function() {
+        it("which can include number literals as parameters", function() {
             BT.parse("like this 1");
         });
 
-        it("they can include strings literals as parameters", function() {
+        it("which can include strings literals as parameters", function() {
             BT.parse('this is like "great"');
         });
 
-        it("they can include parenthesized function calls as parameters", function() {
+        it("which can include parenthesized function calls as parameters", function() {
             BT.parse("I love this (not)");
         });
     });

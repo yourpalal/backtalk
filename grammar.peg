@@ -1,24 +1,27 @@
 grammar BackTalk
-    compound    <-          [\s]* ls:expression rs:("\n"+ ex:expression)* <CompoundNode>
-    expression  <-          assignment / sum / prod_quo / literal / ref / func_call
-    sum         <-          ls:prod_quo (op:("+" / "-") SPACE rs:prod_quo)+ <SumNode>
+    compound    <-          ls:line rs:(BLANK+ line)*  <CompoundNode>
+    line        <-          SPACE? ex:expression SPACE? comment? <LineNode>
+    expression  <-          sum / product / number / string / assignment / func_call / paren_expr / ref
 
-    prod_quo    <-          product / value
-    product     <-          ls:value (op:("*" / "/") SPACE rs:value)+ <ProductNode>
+    sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   <SumNode>
 
-    value       <-          number / ref / paren_expr
-    paren_expr  <-          "(" SPACE ex:expression ")" SPACE <ParenNode>
+    prod_quo    <-          product / arith_value <ProdQuoNode>
+    product     <-          ls:arith_value parts:(SPACE? op:("*" / "/") SPACE? rs:arith_value)+ <ProductNode>
+
+    arith_value <-          number / ref / paren_expr <ArithValueNode>
+    paren_expr  <-          "(" SPACE? ex:expression SPACE? ")" <ParenNode>
 
 
-    literal     <-          number / string
-    string      <-          "\"" [^"]* "\"" <StringLiteral>
-    number      <-          [0-9]+ ("." [0-9]+)? SPACE <NumberLiteral>
+    comment     <-          "--" [^\n]* <Comment>
 
-    comment     <-          "--" [^\n]* "\n"
-    SPACE       <-          [^\S\n]*
+    assignment  <-          "with" SPACE ref SPACE "as" SPACE expression <RefSetNode>
 
-    assignment  <-          "with" SPACE ref "as" SPACE expression <RefSetNode>
-    ref         <-          "$" id:[a-zA-z_]+ SPACE <RefNode>
 
     func_call   <-          bare (bare / expression)*  <FuncCallNode>
-    bare        <-          id:[a-zA-z]+ SPACE <BareNode>
+    ref         <-          "$" id:[a-zA-z_]+ <RefNode>
+    bare        <-          [a-zA-z]+ <BareNode>
+
+    BLANK       <-          "\n"+ SPACE?
+    SPACE       <-          [ ]+ <SPACE>
+    string      <-          "\"" [^"]* "\"" <StringLiteral>
+    number      <-          [0-9]+ ("." [0-9]+)? <NumberLiteral>

@@ -77,7 +77,8 @@ AST.FuncCallMaker.NameMaker = {
     visitBareWord: function(bare) { return bare.bare; },
     visitExpression: function() { return "$"; },
     visitRef: function() { return "$"; },
-    visitLiteral: function() { return "$"; }
+    visitLiteral: function() { return "$"; },
+    visitFuncCall: function() { return "$"; }
 };
 
 AST.Parser = function() {
@@ -100,7 +101,7 @@ AST.Parser = function() {
             transform: function() {
                 // example: 3+4+5+6
                 // ls:3 , elements[1][0] = {op:'+',rs: '4'}
-                var rights = this.elements[1].elements.map(function(v) {
+                var rights = this.parts.elements.map(function(v) {
                     return new (ops[v.op.textValue])(v.rs.transform());
                 });
 
@@ -137,17 +138,20 @@ AST.Parser = function() {
     grammar.Parser.BareNode = {
         isa: 'BareNode',
         transform: function() {
-            return new AST.BareWord(this.id.textValue);
+            return new AST.BareWord(this.textValue);
         }
     };
 
     grammar.Parser.CompoundNode = {
         isa: 'CompoundNode',
         transform: function() {
-            var parts = this.rs.elements.map(function(x) {
-                return x.ex.transform();
+            var parts = [];
+            this.rs.elements.forEach(function(x) {
+                parts.push(x.line.ex.transform());
             });
-            parts.unshift(this.ls.transform());
+            if (this.ls.ex) {
+                parts.unshift(this.ls.ex.transform());
+            }
             return new AST.CompoundExpression(parts);
         }
     };
@@ -157,20 +161,26 @@ AST.Parser = function() {
             var builder = new AST.FuncCallMaker();
             builder.addPart(this.elements[0].transform());
 
-            this.elements[1].elements.map(function(v) {
-                builder.addPart(v.transform());
+            this.parts.elements.map(function(v) {
+                builder.addPart(v.elements[1].transform());
             });
             return builder.build();
         }
     };
+
+    'LineNode Expression ProdQuoNode Comment SPACE ArithValueNode'.split(" ").forEach(function(v) {
+        grammar.Parser[v] = {isa: v};
+    });
 };
 
 
-AST.Parser.prototype.fromSource = function(source) {
+AST.Parser.prototype.fromSource = function(source, inspector) {
     var parse_tree;
     try {
-        parse_tree = grammar.parse(source);
-        // console.log(parse_tree);
+        parse_tree = grammar.parse(source.trim());
+        if (inspector) {
+            inspector(parse_tree);
+        }
     } catch (e) {
         throw new AST.ParseError(e);
     }

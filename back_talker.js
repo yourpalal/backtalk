@@ -114,6 +114,11 @@ BackTalker.Context.prototype.findFunc = function(name) {
 };
 
 BackTalker.Context.prototype.addFunc = function(deets) {
+    // deets = {
+    //  patterns: ["bare with $ arguments $", "dynamic <bare|words> $ cool"]
+    //  impl: function(a, b, c) {
+    //  }
+    //}
     deets.patterns.map(function(pattern) { 
         var pieces = pattern.split(" "),
             parts = pieces.map(function(piece) {
@@ -151,8 +156,8 @@ BackTalker.Context.prototype.addFunc = function(deets) {
         patterns.forEach(function(pattern) {
             this.funcs['0' + pattern.val.join(" ")] = function() {
                 var args = Array.prototype.slice.call(arguments).concat(pattern.dyn);
-                return deets.impl.apply(null, args);
-            }
+                return deets.impl.apply(this, args);
+            };
         }, this);
     }, this);
 };

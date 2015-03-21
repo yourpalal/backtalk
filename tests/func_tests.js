@@ -90,4 +90,21 @@ describe('BackTalker function calls', function() {
         evaluator.evalString('bake cake "ok"').should.equal("okcake");
         evaluator.evalString('bake pie "ok"').should.equal("okpie");
     });
+
+    it("is called with 'this' being the backtalker instance", function() {
+        var func = sinon.spy(function() {
+            return this;
+        });
+        context.addFunc({
+            patterns: ["get funky"],
+            impl: func
+        });
+
+
+        var r = evaluator.evalString('get funky');
+
+        r.should.be.an.instanceOf(BT.Evaluator);
+        r.should.have.property('scope');
+        r.should.have.property('context');
+    });
 });

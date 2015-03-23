@@ -23,30 +23,40 @@ EXAMPLE:
 
         -- for a collision handler between ball and paddle
 
-        if $ball is left of $paddle
-        then bounce $ball to the left
-        
-        if $ball is right of $paddle
-        then bounce $ball to the right
+        when $ball hits $paddle:
+            if $ball is left of $paddle:
+                bounce $ball to the left
+            
+            if $ball is right of $paddle:
+                bounce $ball to the right
 
         -- for a collision handler between ball and screen edges
 
-        if $ball is below  $edge
-        then bounce $ball down
+        when $ball hits edge:
+            if $ball is below $edge:
+                bounce $ball down
         
-        if $ball is above $edge
-        then bounce $ball up
+            if $ball is above $edge:
+                bounce $ball up
 
-        if $ball is left of $edge
-        then increase ( left player ) score
+            if $ball is left of $edge:
+                increase ( left player ) score
 
-        if $ball is right of $edge
-        then right ( right player ) score
+            if $ball is right of $edge:
+                increase ( right player ) score
 
 
         -- where ( left player ) is a sub-expression that matches a global
         -- identifier that the player has given an object in their IRE
         -- and ( right player ) is the same idea
+
+## powerful
+
+Composing expressions let uses get fancy!
+
+    a big red circle:
+        a bit left of center
+        10 pixels below center
 
 # technical
 

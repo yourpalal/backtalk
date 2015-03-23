@@ -14,7 +14,7 @@ repl: gen/grammar.js gen/bt_node.js
 	node repl.js
 
 test: gen/grammar.js
-	@NODE_ENV=test ./node_modules/.bin/mocha tests/*.js --reporter $(REPORTER)
+	@NODE_ENV=test ./node_modules/.bin/mocha tests/*.js -u bdd 
 
 
 test-w: gen/grammar.js

@@ -7,6 +7,19 @@ module.exports = AST;
 
 var grammar = require('./grammar');
 
+// call this on a prototype to make it into an AST visitor
+// f is a constructor for the default value for your visitor methods
+//     it gets the name of the thing being visited
+// if f is not supplied, it will default to a no op factory
+AST.makeVisitor = function(p, f) {
+    f = f || function() {return function() {};};
+
+    'HangingCall FuncCall Literal Ref RefNode RefSet Name BareWord DivideOp BinOpNode AddOp MultOp DivideOp Expression CompoundExpression'.split(" ").forEach(function(n) {
+        p['visit' + n] = f(n);
+    });
+};
+
+
 // All AST parts (except ParseError) implement the visitor pattern with accept()
 // eg. (new AST.RefNode('cool')).visit({
 //          visitRefNode:function(r, msg) {
@@ -18,7 +31,7 @@ var make_ast_node = function(name, ctor) {
     AST[name].prototype.accept = function(visitor) {
         var args = Array.prototype.slice.call(arguments, 1);
         args.unshift(this);
-        // return (visitor[visitName] || console.log('missing', visitName, 'on', visitor)).apply(visitor, args);
+        visitor[visitName] || console.log("missing " + visitName);
         return visitor[visitName].apply(visitor, args);
     };
     AST[name].prototype.toString = function() {
@@ -48,6 +61,10 @@ make_ast_node('UnaryMinus', function(val) { this.val = val; });
 make_ast_node('Ref', function(name) { this.name = name; });
 make_ast_node('RefSet', function(name, val){this.name = name; this.val = val;});
 make_ast_node('CompoundExpression', function(parts) {this.parts = parts;})
+make_ast_node('HangingCall', function(name, args) {
+    this.name = name;
+    this.args = args;
+});
 
 make_ast_node('FuncCall', function(name, args) {
     this.name = name;
@@ -63,14 +80,14 @@ AST.FuncCallMaker.prototype.addPart = function(part) {
     this.parts.push(part);
 };
 
-AST.FuncCallMaker.prototype.build = function() {
+AST.FuncCallMaker.prototype.build = function(ctor) {
     var args = [],
         name = this.parts.map(function(p) {
             var result = p.accept(AST.FuncCallMaker.NameMaker);
             if (result === "$") { args.push(p); }
             return result;
         }).join(" ");
-    return new AST.FuncCall(name, args);
+    return new ctor(name, args);
 };
 
 AST.FuncCallMaker.NameMaker = {
@@ -78,7 +95,8 @@ AST.FuncCallMaker.NameMaker = {
     visitExpression: function() { return "$"; },
     visitRef: function() { return "$"; },
     visitLiteral: function() { return "$"; },
-    visitFuncCall: function() { return "$"; }
+    visitFuncCall: function() { return "$"; },
+    visitHangingCall: function() { return "$"; }
 };
 
 AST.Parser = function() {
@@ -142,17 +160,86 @@ AST.Parser = function() {
         }
     };
 
+    // LineCollector collects lines based on indentation into
+    // AST.CompoundExpression instances. As it does this,
+    // hanging calls have their body property set to a CompoundExpression
+    // of the lines in their body.
+    //
+    // Eg.
+    // wow:
+    //   this is cool
+    //   yeah neat
+    //
+    // will go from
+    // CompoundExpression
+    //   HangingCall
+    //   FuncCall
+    //   FuncCall
+    //
+    // to 
+    // CompoundExpression
+    //   HangingCall
+    //     CompoundExpression
+    //       FuncCall
+    //       FuncCall
+    //
+    // LineCollector works by going through the lines of a compound expression
+    // using the visitor pattern to recognize hanging calls. If a hanging call
+    // is found, it makes a new LineCollector to collect lines for that call.
+    //
+    // Useful insight: the stack of LineCollectors creating each other will
+    // mirror the call stack of the program when it is run.
+    function LineCollector(lines, start, indent) {
+        this.lines = lines;
+        this.i = start;
+        this.indent = indent;
+    };
+
+    LineCollector.makeLinePart = function(line) {
+        line = line.line || line; // we may have a LineNode or a (BREAK line)
+        return {
+            indent: line.lead.textValue.length,
+            ex: line.ex.transform()
+        };
+    };
+
+    AST.makeVisitor(LineCollector.prototype, function(name) {
+        // for most things we just want the AST node
+        return function(a) { return a; };
+    });
+
+    LineCollector.prototype.visitHangingCall = function(func) {
+        var c = new LineCollector(this.lines, this.i + 1, this.lines[this.i].indent);
+        func.body = c.collect();
+
+        this.i = c.i - 1;
+            // we start up where the other collector left off
+            // c.i - 1 because the for loop will increment i momentarily
+        return func;
+    };
+
+    LineCollector.prototype.collect = function() {
+        var parts = [];
+
+        for (; this.i < this.lines.length; this.i++) {
+            if (this.lines[this.i].indent < this.indent) {
+                break;
+            }
+
+            parts.push(this.lines[this.i].ex.accept(this));
+        }
+
+        return new AST.CompoundExpression(parts);
+    };
+
     grammar.Parser.CompoundNode = {
         isa: 'CompoundNode',
         transform: function() {
-            var parts = [];
-            this.rs.elements.forEach(function(x) {
-                parts.push(x.line.ex.transform());
-            });
-            if (this.ls.ex) {
-                parts.unshift(this.ls.ex.transform());
-            }
-            return new AST.CompoundExpression(parts);
+            var lines = this.rs.elements.map(LineCollector.makeLinePart);
+            lines.unshift(LineCollector.makeLinePart(this.ls));
+
+            var collector = new LineCollector(lines, 0, 0);
+            return collector.collect();
         }
     };
     grammar.Parser.FuncCallNode = {
@@ -164,7 +251,11 @@ AST.Parser = function() {
             this.parts.elements.map(function(v) {
                 builder.addPart(v.elements[1].transform());
             });
-            return builder.build();
+
+            if (this.colon.textValue === ':') {
+                return builder.build(AST.HangingCall);
+            }
+            return builder.build(AST.FuncCall);
         }
     };
 

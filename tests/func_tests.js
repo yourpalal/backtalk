@@ -107,4 +107,28 @@ describe('BackTalker function calls', function() {
         r.should.have.property('scope');
         r.should.have.property('context');
     });
+
+    it('can create a new context for a block of code', function() {
+        var bodyAST = null,
+            func = sinon.spy(function(body, a) {
+                bodyAST = body;
+
+
+                return a;
+            });
+
+        context.addFunc({
+            patterns: ["on the planet $"],
+            impl: func
+        });
+
+        var code = ['on the planet "sarkon":',
+                    '   with $gravity being 3 -- m/s',
+                    '   I jump -- very high into the air'].join("\n")
+            ,result = evaluator.evalString(code);
+    
+        func.calledOnce.should.be.ok;
+        result.should.equal("sarkon");
+        bodyAST.should.be.an.instanceOf(BT.AST.CompoundExpression);
+    });
 });

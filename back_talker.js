@@ -46,6 +46,14 @@ BackTalker.Evaluator.prototype.eval = function(node) {
     return node.accept(this);
 };
 
+
+BackTalker.AST.makeVisitor(BackTalker.Evaluator.prototype, function(name) {
+    return function() {
+        console.log('BackTalker.Evaluator missing visit' + name, ' !!!!!!!');
+    };
+});
+
+
 BackTalker.Evaluator.prototype.visitBinOpNode = function(node) {
     var left = this.eval(node.left),
             i = 0;
@@ -97,6 +105,23 @@ BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
     }, this);
     return result;
 };
+
+BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
+    var f = this.context.findFunc(node.name)
+        ,args;
+
+    if ((f || 0) === 0) {
+        throw Error("function called but undefined " + node.name);
+    }
+
+    args = node.args.map(function(arg) {
+        return arg.accept(this);
+    }, this);
+
+    args.unshift(node.body);
+    return f.apply(this, args);
+};
+
 
 BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
     var f = this.context.findFunc(node.name);

@@ -2,19 +2,17 @@
 
 var BackTalker = {
     AST: require('./ast'),
-    Evaluator: function(scope, context) {
+    Evaluator: function(scope) {
         this.scope = scope || new BackTalker.Scope();
-        this.context = context || new BackTalker.Context();
-    },
-    Context: function() {
-        this.funcs = {};
     },
     Scope: function(parent) {
         this.parent = parent || null;
         if (this.parent !== null) {
             this.names = Object.create(parent.names);
+            this.funcs = Object.create(parent.funcs);
         } else {
             this.names = new Object();
+            this.funcs = new Object();
         }
     },
 
@@ -22,14 +20,14 @@ var BackTalker = {
         this._parser = this._parser || new BackTalker.AST.Parser();
         return this._parser.fromSource(source, inspector);
     },
-    eval: function(source, scope, context) {
+    eval: function(source, scope) {
         var parsed;
         if (typeof(source) === 'string') {
             parsed = BackTalker.parse(source);
         } else {
             parsed = source; // hopefuly this is the AST
         }
-        return (new BackTalker.Evaluator(scope, context)).eval(parsed);
+        return (new BackTalker.Evaluator(scope)).eval(parsed);
     }
 };
 
@@ -107,7 +105,7 @@ BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
 };
 
 BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
-    var f = this.context.findFunc(node.name)
+    var f = this.scope.findFunc(node.name)
         ,args;
 
     if ((f || 0) === 0) {
@@ -124,7 +122,7 @@ BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
 
 
 BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
-    var f = this.context.findFunc(node.name);
+    var f = this.scope.findFunc(node.name);
     if ((f || 0) === 0) {
         throw Error("function called but undefined " + node.name);
     }
@@ -134,11 +132,11 @@ BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
 };
 
 
-BackTalker.Context.prototype.findFunc = function(name) {
+BackTalker.Scope.prototype.findFunc = function(name) {
     return this.funcs['0' + name];
 };
 
-BackTalker.Context.prototype.addFunc = function(deets) {
+BackTalker.Scope.prototype.addFunc = function(deets) {
     // deets = {
     //  patterns: ["bare with $ arguments $", "dynamic <bare|words> $ cool"]
     //  impl: function(a, b, c) {

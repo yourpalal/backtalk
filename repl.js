@@ -23,12 +23,11 @@ var print_parse_tree = function(pt, prefix) {
 };
 
 var scope = new BT.Scope(),
-    context = new BT.Context(),
-    evaluator = new BT.Evaluator(scope, context),
+    evaluator = new BT.Evaluator(scope),
     running = true
     ;
 
-context.addFunc({
+scope.addFunc({
     patterns: ['q'],
     impl: function() { running = false; return 'goodbye!';}
 });

@@ -5,12 +5,11 @@ var BT = require('../back_talker')
 
 
 describe('BackTalker function calls', function() {
-    var scope, context, evaluator;
+    var scope, evaluator;
 
     before(function() {
         scope = new BT.Scope();
-        context = new BT.Context();
-        evaluator = new BT.Evaluator(scope, context);
+        evaluator = new BT.Evaluator(scope);
     });
 
     describe("are comprised of bare words and expressions", function() {
@@ -31,7 +30,7 @@ describe('BackTalker function calls', function() {
 
     it("can call a function with no arguments", function() {
         var func = sinon.stub().returns("cool");
-        context.addFunc({
+        scope.addFunc({
             patterns: ["no args"],
             impl: func
         });
@@ -42,7 +41,7 @@ describe('BackTalker function calls', function() {
 
     it("can call a function with arguments", function() {
         var func = sinon.spy(function(a) { return a; });
-        context.addFunc({
+        scope.addFunc({
             patterns: ["bake $"],
             impl: func
         });
@@ -54,7 +53,7 @@ describe('BackTalker function calls', function() {
 
     it("can call a function compoundly", function() {
         var func = sinon.spy(function(a) { return a; });
-        context.addFunc({
+        scope.addFunc({
             patterns: ["bake $"],
             impl: func
         });
@@ -66,7 +65,7 @@ describe('BackTalker function calls', function() {
 
     it("can specify bareword patterns, and get the actuals", function() {
         var func = sinon.spy(function(a) { return a; });
-        context.addFunc({
+        scope.addFunc({
             patterns: ["bake <cake|pie>"],
             impl: func
         });
@@ -82,7 +81,7 @@ describe('BackTalker function calls', function() {
 
     it("can specify patterns with arguments", function() {
         var func = sinon.spy(function(a, b) { return a + b; });
-        context.addFunc({
+        scope.addFunc({
             patterns: ["bake <cake|pie> $"],
             impl: func
         });
@@ -95,7 +94,7 @@ describe('BackTalker function calls', function() {
         var func = sinon.spy(function() {
             return this;
         });
-        context.addFunc({
+        scope.addFunc({
             patterns: ["get funky"],
             impl: func
         });
@@ -105,19 +104,17 @@ describe('BackTalker function calls', function() {
 
         r.should.be.an.instanceOf(BT.Evaluator);
         r.should.have.property('scope');
-        r.should.have.property('context');
     });
 
-    it('can create a new context for a block of code', function() {
+    it('can create a new scope for a block of code', function() {
         var bodyAST = null,
             func = sinon.spy(function(body, a) {
                 bodyAST = body;
 
-
                 return a;
             });
 
-        context.addFunc({
+        scope.addFunc({
             patterns: ["on the planet $"],
             impl: func
         });

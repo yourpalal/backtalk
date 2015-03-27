@@ -12,10 +12,18 @@
     </style>
 </head>
 <body>
+<pre style="float:left">
+with $five as 5
+
+a big red circle:
+    a bit left of center
+
+a small yellow circle:
+    at $five pixels right of center
+</pre>
     <canvas id="c">
     </canvas>
-    <textarea id="t" rows="30" cols="80">
-    </textarea>
+    <textarea id="t" rows="30" cols="80"></textarea>
 
     <p id="help">
     </p>
@@ -28,9 +36,11 @@
             textarea = document.getElementById("t"),
             help = document.getElementById("help"),
 
-            btContext = new BackTalker.Context(),
+            btContext = new BackTalker.Scope(),
             text = "",
             drawContext = new Drawing.Context();
+            Drawing.width = canvas.width;
+            Drawing.height = canvas.height;
 
             drawContext.register(btContext);
 
@@ -39,8 +49,7 @@
                 if (textarea.value == text) { return; }
                 text = textarea.value;
 
-                var scope = new BackTalker.Scope();
-                BackTalker.eval(textarea.value, scope, btContext);
+                BackTalker.eval(textarea.value, btContext);
                 requestAnimationFrame(function() {
                     drawContext.update(canvas, c2D);
                 });

@@ -106,6 +106,36 @@ describe('BackTalker function calls', function() {
         r.should.have.property('scope');
     });
 
+    it('can allow for auto-vivified variables', function() {
+        var func = sinon.spy(function(arg) {
+            return arg;
+        });
+
+        scope.addFunc({
+            patterns: ["on the planet $!"],
+            impl: func
+        });
+
+        var result = evaluator.evalString("on the planet $earth");
+        result.should.be.instanceOf(BT.AutoVar);
+        result.name.should.equal("earth");
+        func.calledOnce.should.be.ok;
+
+        evaluator.evalString('on the planet "not earth"').should.equal("not earth");
+        func.calledTwice.should.be.ok;
+    });
+
+    it('can disallow autovivification', function() {
+        scope.addFunc({
+            patterns: ["no"],
+            impl: function() {}
+        });
+
+        should.throws(function() {
+            evaluator.evalString('no $vivification');
+        }, Error);
+    })
+
     it('can create a new scope for a block of code', function() {
         var bodyAST = null,
             gravity = 0,

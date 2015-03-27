@@ -15,7 +15,9 @@ var BackTalker = {
             this.funcs = new Object();
         }
     },
-
+    AutoVar: function(name) {
+        this.name = name;
+    },
     parse: function(source, inspector) {
         this._parser = this._parser || new BackTalker.AST.Parser();
         return this._parser.fromSource(source, inspector);
@@ -109,33 +111,36 @@ BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
     return result;
 };
 
-BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
-    var f = this.scope.findFunc(node.name)
-        ,args, subEval;
+BackTalker.Evaluator.prototype.callFunc = function(subEval, name, args) {
+    var i = 0
+        ,f = this.scope.findFunc(name);
 
     if ((f || 0) === 0) {
-        throw Error("function called but undefined " + node.name);
+        throw Error("function called but undefined " + name);
     }
 
-    args = node.args.map(function(arg) {
+    args = args.map(function(arg) {
         return arg.accept(this);
     }, this);
 
-    subEval = this.makeSubEvaluator();
-    subEval.body = node.body;
+    for (; i < f.vivification.length; i++) {
+        if ((args[i] instanceof BackTalker.AutoVar) && (!f.vivification[i])) {
+            throw Error("undefined variable $" + args[i].name + " used in place of defined variable");
+        }
+    }
 
-    return f.apply(subEval, args);
+    return f.impl.apply(subEval, args);
+};
+
+BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
+    var subEval = this.makeSubEvaluator();
+    subEval.body = node.body;
+    return this.callFunc(subEval, node.name, node.args);
 };
 
 
 BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
-    var f = this.scope.findFunc(node.name);
-    if ((f || 0) === 0) {
-        throw Error("function called but undefined " + node.name);
-    }
-    return f.apply(this, node.args.map(function(arg) {
-        return arg.accept(this);
-    }, this));
+    return this.callFunc(this, node.name, node.args);
 };
 
 
@@ -144,8 +149,14 @@ BackTalker.Scope.prototype.findFunc = function(name) {
 };
 
 BackTalker.Scope.prototype.addFunc = function(deets) {
+    // $ = variable
+    // <bare|words> = bare options
+    // $! = auto-vivifiable variable this is good for placeholders, for instance
+    //          you will get an instance of BackTalker.AutoVar if an argument is
+    //          auto-vivified.
+    //
     // deets = {
-    //  patterns: ["bare with $ arguments $", "dynamic <bare|words> $ cool"]
+    //  patterns: ["bare with $! arguments $", "dynamic with <bare|words> arguments $"]
     //  impl: function(a, b, c) {
     //  }
     //}
@@ -162,7 +173,8 @@ BackTalker.Scope.prototype.addFunc = function(deets) {
                     });
 
         // now we have an array of parts, where a normal bare word is a
-        // singleton, and patterns are not. We want to turn that into
+        // ["singleton"], and ["patterns", "are", "not"].
+        // We want to turn that into
         // a bunch of strings that we will register, and lists of the dynamic
         // parts for each string
         var patterns = parts.reduce(function(strings, part) {
@@ -181,12 +193,25 @@ BackTalker.Scope.prototype.addFunc = function(deets) {
             return result;
         }, [{val: [], dyn: []}]);
 
-        // now we can register a wraper for all of the specified functions
+        // now we can register a wrapper for all of the specified functions
         // that will append the dynamic parts of the pattern as arguments
         patterns.forEach(function(pattern) {
-            this.funcs['0' + pattern.val.join(" ")] = function() {
-                var args = Array.prototype.slice.call(arguments).concat(pattern.dyn);
-                return deets.impl.apply(this, args);
+            var vivifiable = [];
+            pattern.val.forEach(function(piece, i) {
+                if (piece === '$')  {
+                    vivifiable.push(false);
+                } else if (piece === '$!') {
+                    vivifiable.push(true);
+                    pattern.val[i] = '$';
+                }
+            });
+
+            this.funcs['0' + pattern.val.join(" ")] = {
+                vivification: vivifiable,
+                impl: function() {
+                    var args = Array.prototype.slice.call(arguments).concat(pattern.dyn);
+                    return deets.impl.apply(this, args);
+                }
             };
         }, this);
     }, this);
@@ -205,5 +230,5 @@ BackTalker.Scope.prototype.set = function(name, val) {
 
 
 BackTalker.Scope.prototype.get = function(name) {
-    return this.names[name];
+    return this.names[name] || new BackTalker.AutoVar(name);
 };

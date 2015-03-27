@@ -108,10 +108,23 @@ describe('BackTalker function calls', function() {
 
     it('can create a new scope for a block of code', function() {
         var bodyAST = null,
-            func = sinon.spy(function(body, a) {
-                bodyAST = body;
+            gravity = 0,
+            planet = null,
+            func = sinon.spy(function(planet_in) {
+                planet = planet_in;
+                bodyAST = this.body;
 
-                return a;
+                this.scope.addFunc({
+                    patterns: ["I jump"],
+                    impl: function(v, val) {
+                        return "jumped";
+                    }
+                });
+
+                var result = this.eval(this.body);
+                gravity = this.scope.get("gravity");
+
+                return result;
             });
 
         scope.addFunc({
@@ -120,12 +133,16 @@ describe('BackTalker function calls', function() {
         });
 
         var code = ['on the planet "sarkon":',
-                    '   with $gravity being 3 -- m/s',
+                    '   with $gravity as 3 -- m/s/s',
                     '   I jump -- very high into the air'].join("\n")
             ,result = evaluator.evalString(code);
     
         func.calledOnce.should.be.ok;
-        result.should.equal("sarkon");
+
+        result.should.equal("jumped");
+        planet.should.equal("sarkon");
+        gravity.should.equal(3);
+
         bodyAST.should.be.an.instanceOf(BT.AST.CompoundExpression);
     });
 });

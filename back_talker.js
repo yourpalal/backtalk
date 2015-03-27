@@ -41,9 +41,14 @@ BackTalker.Evaluator.prototype.evalString = function(source) {
 };
 
 BackTalker.Evaluator.prototype.eval = function(node) {
+    this.body = node;
     return node.accept(this);
 };
 
+
+BackTalker.Evaluator.prototype.makeSubEvaluator = function() {
+    return new BackTalker.Evaluator(new BackTalker.Scope(this.scope));
+};
 
 BackTalker.AST.makeVisitor(BackTalker.Evaluator.prototype, function(name) {
     return function() {
@@ -106,7 +111,7 @@ BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
 
 BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
     var f = this.scope.findFunc(node.name)
-        ,args;
+        ,args, subEval;
 
     if ((f || 0) === 0) {
         throw Error("function called but undefined " + node.name);
@@ -116,8 +121,10 @@ BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
         return arg.accept(this);
     }, this);
 
-    args.unshift(node.body);
-    return f.apply(this, args);
+    subEval = this.makeSubEvaluator();
+    subEval.body = node.body;
+
+    return f.apply(subEval, args);
 };
 
 

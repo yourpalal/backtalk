@@ -4,6 +4,7 @@ var BackTalker = {
     AST: require('./ast'),
     Evaluator: function(scope) {
         this.scope = scope || new BackTalker.Scope();
+        this.newSubEval = false;
     },
     Scope: function(parent) {
         this.parent = parent || null;
@@ -49,7 +50,9 @@ BackTalker.Evaluator.prototype.eval = function(node) {
 
 
 BackTalker.Evaluator.prototype.makeSubEvaluator = function() {
-    return new BackTalker.Evaluator(new BackTalker.Scope(this.scope));
+    var subEval = new BackTalker.Evaluator(new BackTalker.Scope(this.scope));
+    subEval.newSubEval = true;
+    return subEval;
 };
 
 BackTalker.AST.makeVisitor(BackTalker.Evaluator.prototype, function(name) {
@@ -140,6 +143,7 @@ BackTalker.Evaluator.prototype.visitHangingCall = function(node) {
 
 
 BackTalker.Evaluator.prototype.visitFuncCall = function(node) {
+    this.newSubEval = false;
     return this.callFunc(this, node.name, node.args);
 };
 

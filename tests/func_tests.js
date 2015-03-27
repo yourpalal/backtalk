@@ -136,6 +136,30 @@ describe('BackTalker function calls', function() {
         }, Error);
     })
 
+    it('can tell if it is making a block by checking newSubEval', function() {
+        var newSubEval = false;
+
+        scope.addFunc({
+            patterns: ["cool"],
+            impl: function() {
+                newSubEval = this.newSubEval;
+                if (this.newSubEval) {
+                    return this.eval(this.body);
+                }
+            }
+        });
+
+        evaluator.evalString("cool");
+        newSubEval.should.not.be.ok;
+
+        evaluator.evalString("cool:\n    5").should.equal(5);
+        newSubEval.should.be.ok;
+
+        // newSubEval false when called not with a block
+        evaluator.evalString("cool:\n    cool");
+        newSubEval.should.not.be.ok;
+    });
+
     it('can create a new scope for a block of code', function() {
         var bodyAST = null,
             gravity = 0,

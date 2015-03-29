@@ -22,8 +22,8 @@ var print_parse_tree = function(pt, prefix) {
     });
 };
 
-var scope = new BT.Scope(),
-    evaluator = new BT.Evaluator(scope),
+var evaluator = new BT.Evaluator(scope),
+    scope = evaluator.scope,
     running = true
     ;
 

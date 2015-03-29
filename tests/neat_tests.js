@@ -8,8 +8,8 @@ it('BackTalker can', function() {
     var scope, evaluator;
 
     before(function() {
-        scope = new BT.Scope();
-        evaluator = new BT.Evaluator(scope);
+        evaluator = new BT.Evaluator();
+        scope = evaluator.scope;
     });
 
 

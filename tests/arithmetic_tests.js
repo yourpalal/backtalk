@@ -7,9 +7,9 @@ describe('When doing math', function() {
     var bt_eval,
         scope;
 
-    before(function() {
-        scope = new BT.Scope();
-        var evaluator = new BT.Evaluator(scope);
+    beforeEach(function() {
+        var evaluator = new BT.Evaluator();
+        scope = evaluator.scope;
         bt_eval = function(s) { return evaluator.eval(BT.parse(s)); };
     });
 

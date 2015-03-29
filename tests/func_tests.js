@@ -7,9 +7,9 @@ var BT = require('../back_talker')
 describe('BackTalker function calls', function() {
     var scope, evaluator;
 
-    before(function() {
-        scope = new BT.Scope();
-        evaluator = new BT.Evaluator(scope);
+    beforeEach(function() {
+        evaluator = new BT.Evaluator();
+        scope = evaluator.scope;
     });
 
     describe("are comprised of bare words and expressions", function() {

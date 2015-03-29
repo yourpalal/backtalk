@@ -2,8 +2,9 @@
 
 var BackTalker = {
     AST: require('./ast'),
+    StdLib: require('./standard_lib'),
     Evaluator: function(scope) {
-        this.scope = scope || new BackTalker.Scope();
+        this.scope = scope || BackTalker.StdLib.inScope(new BackTalker.Scope());
         this.newSubEval = false;
     },
     Scope: function(parent) {
@@ -16,8 +17,11 @@ var BackTalker = {
             this.funcs = new Object();
         }
     },
-    AutoVar: function(name) {
+    AutoVar: function(name, scope, value) {
         this.name = name;
+        this.scope = scope;
+        this.value = value;
+        this.defined = (typeof value !== 'undefined');
     },
     parse: function(source, inspector) {
         this._parser = this._parser || new BackTalker.AST.Parser();
@@ -31,6 +35,12 @@ var BackTalker = {
             parsed = source; // hopefuly this is the AST
         }
         return (new BackTalker.Evaluator(scope)).eval(parsed);
+    },
+
+    VIVIFY: {
+        ALWAYS: 1
+        ,NEVER: 0
+        ,AUTO: 2
     }
 };
 
@@ -100,12 +110,6 @@ BackTalker.Evaluator.prototype.visitRef = function(node) {
     return this.scope.get(node.name);
 };
 
-BackTalker.Evaluator.prototype.visitRefSet = function(node) {
-    var rs = node.val.accept(this);
-    this.scope.set(node.name, rs);
-    return rs;
-};
-
 BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
     var result;
     node.parts.forEach(function(part) {
@@ -114,21 +118,61 @@ BackTalker.Evaluator.prototype.visitCompoundExpression = function(node) {
     return result;
 };
 
+// ArgsEvaluator is an AST Visitor that returns AutoVar for all RefNodes
+BackTalker.Evaluator.ArgsEvaluator = function(subEval) {
+    this.subEval = subEval;
+};
+
+BackTalker.AST.makeVisitor(BackTalker.Evaluator.ArgsEvaluator.prototype,
+    function(name) {
+        var name = 'visit' + name;
+        return function(a, b) {
+            return this.subEval[name](a, b);
+        }
+    }
+);
+
+BackTalker.Evaluator.ArgsEvaluator.prototype.visitRef = function(node) {
+    return this.subEval.scope.getVivifiable(node.name);
+};
+
 BackTalker.Evaluator.prototype.callFunc = function(subEval, name, args) {
     var i = 0
-        ,f = this.scope.findFunc(name);
+        ,f = this.scope.findFunc(name)
+        ,argsGetter = new BackTalker.Evaluator.ArgsEvaluator(this);
 
     if ((f || 0) === 0) {
         throw Error("function called but undefined " + name);
     }
 
     args = args.map(function(arg) {
-        return arg.accept(this);
+        return arg.accept(argsGetter);
     }, this);
 
     for (; i < f.vivification.length; i++) {
-        if ((args[i] instanceof BackTalker.AutoVar) && (!f.vivification[i])) {
-            throw Error("undefined variable $" + args[i].name + " used in place of defined variable");
+        var viv = f.vivification[i]
+            ,defined = args[i].defined
+            ,isAuto = (args[i] instanceof BackTalker.AutoVar);
+
+        if (viv === BackTalker.VIVIFY.ALWAYS) {
+            if (isAuto) {
+                continue;
+            } else {
+                throw Error("value used in place of variable in call to '" + name + "'");
+            }
+        }
+
+        if (!isAuto) {
+            continue;
+        }
+
+        if (defined) {
+            args[i] = args[i].value;
+            continue;
+        }
+
+        if (viv === BackTalker.NEVER) {
+            throw Error("undefined variable $" + args[i].name + " used in place of defined variable in call to '" + name + "'");
         }
     }
 
@@ -155,6 +199,7 @@ BackTalker.Scope.prototype.findFunc = function(name) {
 BackTalker.Scope.prototype.addFunc = function(deets) {
     // $ = variable
     // <bare|words> = bare options
+    // $!! = just get the name of the var
     // $! = auto-vivifiable variable this is good for placeholders, for instance
     //          you will get an instance of BackTalker.AutoVar if an argument is
     //          auto-vivified.
@@ -203,9 +248,12 @@ BackTalker.Scope.prototype.addFunc = function(deets) {
             var vivifiable = [];
             pattern.val.forEach(function(piece, i) {
                 if (piece === '$')  {
-                    vivifiable.push(false);
+                    vivifiable.push(BackTalker.VIVIFY.NEVER);
+                } else if (piece === '$!!') {
+                    vivifiable.push(BackTalker.VIVIFY.ALWAYS);
+                    pattern.val[i] = '$';
                 } else if (piece === '$!') {
-                    vivifiable.push(true);
+                    vivifiable.push(BackTalker.VIVIFY.AUTO);
                     pattern.val[i] = '$';
                 }
             });
@@ -234,5 +282,9 @@ BackTalker.Scope.prototype.set = function(name, val) {
 
 
 BackTalker.Scope.prototype.get = function(name) {
-    return this.names[name] || new BackTalker.AutoVar(name);
+    return this.names[name];
+};
+
+BackTalker.Scope.prototype.getVivifiable = function(name) {
+    return new BackTalker.AutoVar(name, this, this.names[name]);
 };

@@ -6,8 +6,8 @@ var BT = require('../back_talker')
 describe('BackTalker scopes', function() {
     var scope;
 
-    before(function() {
-        scope = new BT.Scope();
+    beforeEach(function() {
+        scope = BT.StdLib.inScope(new BT.Scope());
     });
 
     it('can inherit from their parents', function() {
@@ -36,10 +36,19 @@ describe('BackTalker scopes', function() {
         BT.eval("$test", scope).should.equal(5);
     });
 
+    it('can change values', function() {
+        BT.eval('with $test as 3', scope).should.equal(3);
+        scope.get("test").should.equal(3);
+
+        BT.eval('with $test as 5', scope).should.equal(5);
+        scope.get("test").should.equal(5);
+    });
+
     it('can do math with references', function() {
         BT.eval('with $test as 3', scope);
         BT.eval('with $a as 7', scope);
         scope.get("test").should.equal(3);
+        scope.get("a").should.equal(7);
         
         BT.eval('$test + 7', scope).should.equal(10);
         BT.eval('$test * 7', scope).should.equal(21);
@@ -49,6 +58,7 @@ describe('BackTalker scopes', function() {
     });
 
     it('can use scope in compound expressions', function() {
+        BT.eval('with $test as 3\n$test', scope).should.equal(3);
         BT.eval('with $test as 3\n$test + 5', scope).should.equal(8);
         BT.eval('with $test as 3\n\n$test + 5', scope).should.equal(8);
     });

@@ -14,7 +14,7 @@ var grammar = require('./grammar');
 AST.makeVisitor = function(p, f) {
     f = f || function() {return function() {};};
 
-    'HangingCall FuncCall Literal Ref RefNode RefSet Name BareWord DivideOp BinOpNode AddOp MultOp DivideOp Expression CompoundExpression'.split(" ").forEach(function(n) {
+    'HangingCall FuncCall Literal Ref RefNode Name BareWord DivideOp BinOpNode AddOp MultOp DivideOp Expression CompoundExpression'.split(" ").forEach(function(n) {
         p['visit' + n] = f(n);
     });
 };
@@ -59,7 +59,6 @@ make_ast_node('Literal', function(val) { this.val = val; });
 make_ast_node('BareWord', function(bare) { this.bare = bare; });
 make_ast_node('UnaryMinus', function(val) { this.val = val; });
 make_ast_node('Ref', function(name) { this.name = name; });
-make_ast_node('RefSet', function(name, val){this.name = name; this.val = val;});
 make_ast_node('CompoundExpression', function(parts) {this.parts = parts;})
 make_ast_node('HangingCall', function(name, args) {
     this.name = name;
@@ -142,14 +141,6 @@ AST.Parser = function() {
         isa: 'RefNode',
         transform: function() {
             return new AST.Ref(this.id.textValue);
-        }
-    };
-
-    grammar.Parser.RefSetNode = {
-        isa: 'RefSetNode',
-        transform: function() {
-            return new AST.RefSet(this.ref.id.textValue,
-                        this.expression.transform());
         }
     };
 

@@ -1,7 +1,7 @@
 grammar BackTalk
     compound    <-          BLANK* ls:line rs:(BLANK+ line)*  <CompoundNode>
     line        <-          lead:SPACE? ex:expression SPACE? comment? <LineNode>
-    expression  <-          assignment / sum / product / number / string / func_call / paren_expr / ref
+    expression  <-          sum / product / number / string / func_call / paren_expr / ref
 
     sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   <SumNode>
 
@@ -13,8 +13,6 @@ grammar BackTalk
 
 
     comment     <-          "--" [^\n]* <Comment>
-
-    assignment  <-          "with" SPACE ref SPACE "as" SPACE expression <RefSetNode>
 
     func_call   <-          bare parts:(SPACE (ref / bare / sum / product / number / string / paren_expr) )* colon:(SPACE? ":")? <FuncCallNode>
 

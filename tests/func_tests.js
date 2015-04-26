@@ -5,11 +5,18 @@ var BT = require('../back_talker')
 
 
 describe('BackTalker function calls', function() {
-    var scope, evaluator;
+    var scope, evaluator, addSpy;
 
     beforeEach(function() {
         evaluator = new BT.Evaluator();
         scope = evaluator.scope;
+        addSpy = sinon.spy(function() {
+            var result = arguments[0];
+            for (var i = 1; i < arguments.length; i++ ) {
+                result += arguments[i];
+            }
+            return result;
+        });
     });
 
     describe("are comprised of bare words and expressions", function() {
@@ -79,15 +86,30 @@ describe('BackTalker function calls', function() {
         }).should.throw();
     });
 
-    it("can specify patterns with arguments", function() {
-        var func = sinon.spy(function(a, b) { return a + b; });
-        scope.addFunc({
-            patterns: ["bake <cake|pie> $"],
-            impl: func
+    describe("can save you typing with patterns", function() {
+        it("can allow choices of barewords like <foo|bar>", function() {
+            scope.addFunc({
+                patterns: ["bake <cake|pie> $"],
+                impl: addSpy
+            });
+
+            // $-type args are defined first
+            evaluator.evalString('bake cake "?"').should.equal("?cake");
+            evaluator.evalString('bake pie "?"').should.equal("?pie");
         });
 
-        evaluator.evalString('bake cake "ok"').should.equal("okcake");
-        evaluator.evalString('bake pie "ok"').should.equal("okpie");
+        /*
+        it("can allow spaces in <|> like <foo or|foo and>", function() {
+            scope.addFunc({
+                patterns: ["bake <cake and|pie or > $"],
+                impl: addSpy
+            });
+
+            console.log(scope.funcs);
+            evaluator.evalString('bake cake and "pie"').should.equal("cakepieor");
+            evaluator.evalString('bake pie or "cake"').should.equal("cakepieor");
+        });
+        */
     });
 
     it("is called with 'this' being the backtalker instance", function() {

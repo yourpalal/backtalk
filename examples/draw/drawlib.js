@@ -29,11 +29,11 @@ Drawing.Context = function() {
 
 Drawing.makeObjectContext = function(object, scope) {
     scope.addFunc({
-        patterns: ['a <bit|pixel> <left|right> of center',
+        patterns: ['a <bit|pixel> <left of|right of|above|below> center',
                    'at $ <pixel|pixels> <left|right> of center'],
         impl: function() {
             var how, much, lr, what = "center";
-            if (arguments.length == 2) {
+            if (arguments[0] == 'bit' || arguments[0] == 'pixel') {
                 how = arguments[0];
                 much = 1;
                 lr = arguments[1];
@@ -47,7 +47,7 @@ Drawing.makeObjectContext = function(object, scope) {
             if (how === 'bit') { much = 5 }
             if (lr === 'left') { much *= -1 }
             if (what === 'center') { what = Drawing.width / 2; }
-            
+
             object.center[0] = what - much;
         }
     });

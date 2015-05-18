@@ -1,5 +1,7 @@
 'use strict';
 
+var FuncDefParser = require('./functions');
+
 var BackTalker = {
     AST: require('./ast'),
     StdLib: require('./standard_lib'),
@@ -209,57 +211,14 @@ BackTalker.Scope.prototype.addFunc = function(deets) {
     //  impl: function(a, b, c) {
     //  }
     //}
-    deets.patterns.map(function(pattern) { 
-        var pieces = pattern.split(" "),
-            parts = pieces.map(function(piece) {
-                        // match "<bare|words|like|this>"
-                        var match = piece.match(/<(([a-zA-Z]+)(\|[a-zA-Z]+)*)>/);
-                        if (match !== null) {
-                            return match[1].split("|");
-                        } else {
-                            return [piece];
-                        }
-                    });
-
-        // now we have an array of parts, where a normal bare word is a
-        // ["singleton"], and ["patterns", "are", "not"].
-        // We want to turn that into
-        // a bunch of strings that we will register, and lists of the dynamic
-        // parts for each string
-        var patterns = parts.reduce(function(strings, part) {
-            var dynamic = (part.length > 1),
-                result = [];
-
-            part.forEach(function(bare) {
-                strings.forEach(function(s) {
-                    result.push({
-                        val: s.val.concat(bare),
-                        dyn: dynamic ? s.dyn.concat(bare) : s.dyn
-                    });
-                });
-            });
-
-            return result;
-        }, [{val: [], dyn: []}]);
+    deets.patterns.map(function(pattern) {
+        var result = FuncDefParser.FuncDefCollection.fromString(pattern);
 
         // now we can register a wrapper for all of the specified functions
         // that will append the dynamic parts of the pattern as arguments
-        patterns.forEach(function(pattern) {
-            var vivifiable = [];
-            pattern.val.forEach(function(piece, i) {
-                if (piece === '$')  {
-                    vivifiable.push(BackTalker.VIVIFY.NEVER);
-                } else if (piece === '$!!') {
-                    vivifiable.push(BackTalker.VIVIFY.ALWAYS);
-                    pattern.val[i] = '$';
-                } else if (piece === '$!') {
-                    vivifiable.push(BackTalker.VIVIFY.AUTO);
-                    pattern.val[i] = '$';
-                }
-            });
-
-            this.funcs['0' + pattern.val.join(" ")] = {
-                vivification: vivifiable,
+        result.defs.forEach(function(pattern) {
+            this.funcs['0' + pattern.bits.join(" ")] = {
+                vivification: pattern.vivify,
                 impl: function() {
                     var args = Array.prototype.slice.call(arguments).concat(pattern.dyn);
                     return deets.impl.apply(this, args);

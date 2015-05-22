@@ -1,11 +1,11 @@
+///<reference path="./standard_lib.ts" />
+///<reference path="./functions.ts" />
+///<reference path="./ast.ts" />
 'use strict';
 
-var FuncDefParser = require('./functions');
-
-var BackTalker = {
-    AST: require('./ast'),
-    StdLib: require('./standard_lib'),
-    Evaluator: function(scope) {
+var BackTalker : any = {
+    AST : AST,
+    Evaluator: <any>function(scope) {
         this.scope = scope || BackTalker.StdLib.inScope(new BackTalker.Scope());
         this.newSubEval = false;
     },
@@ -45,11 +45,6 @@ var BackTalker = {
         ,AUTO: 2
     }
 };
-
-for (var key in BackTalker) {
-    module.exports[key] = BackTalker[key];
-}
-
 
 BackTalker.Evaluator.prototype.evalString = function(source) {
     return this.eval(BackTalker.parse(source));
@@ -126,7 +121,7 @@ BackTalker.Evaluator.ArgsEvaluator = function(subEval) {
 };
 
 BackTalker.AST.makeVisitor(BackTalker.Evaluator.ArgsEvaluator.prototype,
-    function(name) {
+    function(name : string) {
         var name = 'visit' + name;
         return function(a, b) {
             return this.subEval[name](a, b);
@@ -229,6 +224,8 @@ BackTalker.Scope.prototype.addFunc = function(deets) {
 };
 
 
+
+BackTalker.StdLib = StdLib;
 
 BackTalker.Scope.prototype.createSubScope = function() {
     return new BackTalker.Scope(this);

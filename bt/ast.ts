@@ -1,11 +1,12 @@
+///<reference path="./back_talker.ts"/>
+
 // for use with the PEG grammar (compiled using  http://canopy.jcoglan.com/references.html)
 
-'use strict';
+export var AST: any = function() {};
+console.log(AST);
 
-var AST = {};
-module.exports = AST;
-
-var grammar = require('./grammar');
+///<reference path='./grammar.d.ts'/>
+import grammar = require('grammar')
 
 // call this on a prototype to make it into an AST visitor
 // f is a constructor for the default value for your visitor methods
@@ -167,7 +168,7 @@ AST.Parser = function() {
     //   FuncCall
     //   FuncCall
     //
-    // to 
+    // to
     // CompoundExpression
     //   HangingCall
     //     CompoundExpression
@@ -180,7 +181,7 @@ AST.Parser = function() {
     //
     // Useful insight: the stack of LineCollectors creating each other will
     // mirror the call stack of the program when it is run.
-    function LineCollector(lines, start, indent) {
+    var LineCollector :any = function(lines, start, indent) {
         this.lines = lines;
         this.i = start;
         this.indent = indent;

@@ -1,12 +1,11 @@
-'use strict';
+///<reference path="./back_talker.ts"/>
 
-var BackTalker = require('./back_talker');
+'use strict';
 
 // everything in this file should be pure functional
 // because I want it that way
 
-var FuncDefParser = function() {
-};
+var FuncDefParser : any = function() {};
 
 FuncDefParser.FuncDef = function(bits, dynamic_bits, vivify) {
     this.bits = bits;
@@ -122,5 +121,3 @@ FuncDefParser.Seq.prototype.processor = 'concat';
 FuncDefParser.Var.prototype.processor = 'concat';
 FuncDefParser.Bare.prototype.processor = 'concat';
 FuncDefParser.Choice.prototype.processor = 'fork';
-
-module.exports = FuncDefParser;

@@ -1,123 +1,135 @@
-///<reference path="./back_talker.ts"/>
+/// <reference path="back_talker.ts"/>
 
 'use strict';
 
 // everything in this file should be pure functional
 // because I want it that way
 
-var FuncDefParser : any = function() {};
+module BackTalker {
+  export class FuncDef {
+    constructor(public bits: string[], public dyn, public vivify: Vivify[]) {
+    }
+    isEmpty(): boolean {
+      return (this.bits.length === 0 && this.dyn.length === 0);
+    }
+  }
 
-FuncDefParser.FuncDef = function(bits, dynamic_bits, vivify) {
-    this.bits = bits;
-    this.dyn = dynamic_bits;
-    this.vivify = vivify;
-};
+  export class FuncDefCollection {
+    constructor(public defs: FuncDef[] = null) {
+    }
 
-FuncDefParser.FuncDef.prototype.isEmpty = function() {
-    return (this.bits.length === 0 && this.dyn.length === 0);
-};
+    static fromString(source: string): FuncDefCollection {
+      var collection = new FuncDefCollection();
+      return collection.process(parseFuncDef(source));
+    }
 
+    process(seq: Seq): FuncDefCollection {
+      var next = this;
+      seq.pieces.forEach(function(piece) {
+        if (piece instanceof Choice) {
+          next = next.fork(<Choice>piece);
+        } else {
+          next = next.concat(<SimpleFuncDefPart>piece);
+        }
+      });
 
-FuncDefParser.FuncDefCollection = function(defs) {
-    this.defs = defs || null;
-};
+      return next;
+    }
 
-FuncDefParser.FuncDefCollection.fromString = function(source) {
-    var collection = new FuncDefParser.FuncDefCollection();
-    return collection.process(FuncDefParser.parse(source));
-};
+    concatDynamic(piece: SimpleFuncDefPart): FuncDefCollection {
+      var concatTo = this.defs || [new FuncDef([], [], [])];
+      return new FuncDefCollection(concatTo.map((def: FuncDef) => {
+        return new FuncDef(def.bits.concat(piece.bits),
+          def.dyn.concat(piece.dyn).concat(piece.bits),
+          (def.vivify || []).concat(piece.vivify));
+      }));
+    }
 
-FuncDefParser.FuncDefCollection.prototype.process = function(seq) {
-    var next = this;
-    seq.pieces.forEach(function(piece) {
-      next = next[piece.processor].call(next, piece);
-    });
+    concat(piece: SimpleFuncDefPart) {
+      var concatTo = this.defs || [new FuncDef([], [], [])];
+      return new FuncDefCollection(concatTo.map((def) => {
+        return new FuncDef(def.bits.concat(piece.bits),
+          def.dyn,
+          (def.vivify || []).concat(piece.vivify));
+      }));
+    }
 
-    return next;
-};
+    join(other: FuncDefCollection) {
+      return new FuncDefCollection((this.defs || []).concat(other.defs));
+    }
 
-FuncDefParser.FuncDefCollection.prototype.concatDynamic = function(piece) {
-    var concatTo = this.defs || [new FuncDefParser.FuncDef([], [], [])];
-    return new FuncDefParser.FuncDefCollection(concatTo.map(function(def) {
-        return new FuncDefParser.FuncDef(def.bits.concat(piece.bits),
-                                        def.dyn.concat(piece.dyn).concat(piece.bits),
-                                        (def.vivify || []).concat(piece.vivify));
-    }));
-};
-
-FuncDefParser.FuncDefCollection.prototype.concat = function(piece) {
-    var concatTo = this.defs || [new FuncDefParser.FuncDef([], [])];
-    return new FuncDefParser.FuncDefCollection(concatTo.map(function(def) {
-        return new FuncDefParser.FuncDef(def.bits.concat(piece.bits),
-                                        def.dyn,
-                                        (def.vivify || []).concat(piece.vivify));
-    }));
-};
-
-FuncDefParser.FuncDefCollection.prototype.join = function(other) {
-  return new FuncDefParser.FuncDefCollection((this.defs || []).concat(other.defs))
-};
-
-FuncDefParser.FuncDefCollection.prototype.fork = function(choice) {
-    var original_defs = this,
+    fork(choice: Choice) {
+      var original_defs = this,
         new_defs = this;
 
-    choice.options.forEach(function(option) {
+      choice.options.forEach(function(option) {
         var next_defs = original_defs;
         option.pieces.forEach(function(piece) {
-          next_defs = next_defs.concatDynamic(piece);
+          if (piece instanceof SimpleFuncDefPart) {
+            next_defs = next_defs.concatDynamic(piece);
+          } else {
+            // TODO: fix this
+            console.log('oh no :(')
+          }
         });
         new_defs = new_defs.join(next_defs);
-    }, this);
+      }, this);
 
-    return new_defs;
-};
-
-FuncDefParser.parse = function(pattern) {
-    var pieces = pattern.match(/<[a-zA-Z |]+>|[a-zA-Z]+|\$\!?\!?/g)
-        .map(function(piece) {
-            if (piece.indexOf('<') == 0) {
-                return new FuncDefParser.Choice(piece);
-            } else if (piece.charAt(0) === '$') {
-                return new FuncDefParser.Var(piece);
-            } else {
-                return new FuncDefParser.Bare(piece);
-            }
-        });
-    return new FuncDefParser.Seq(pieces);
-};
-
-FuncDefParser.Seq = function(pieces) {
-    this.pieces = pieces;
-    this.vivify = pieces.map(function(a) { return a.vivify; });
-};
-
-FuncDefParser.Var = function(raw) {
-    this.bits = ['$'];
-    this.dyn = [];
-
-    if (raw === '$')  {
-      this.vivify = [BackTalker.VIVIFY.NEVER];
-    } else if (raw === '$!!') {
-      this.vivify = [BackTalker.VIVIFY.ALWAYS];
-    } else if (raw === '$!') {
-      this.vivify = [BackTalker.VIVIFY.AUTO];
+      return new_defs;
     }
-};
+  }
 
-FuncDefParser.Choice = function(raw) {
-    this.options = raw.substr(1, raw.length - 2).split('|');
-    this.options = this.options.map(FuncDefParser.parse);
-};
+  type FuncDefPart = SimpleFuncDefPart | Choice | Seq;
 
-FuncDefParser.Bare = function(raw) {
-    this.word = raw;
-    this.bits = [raw];
-    this.dyn = [];
-    this.vivify = [];
-};
+  function parseFuncDef(pattern: string): Seq {
+    var pieces = pattern.match(/<[a-zA-Z |]+>|[a-zA-Z]+|\$\!?\!?/g)
+      .map((piece) => {
+      if (piece.indexOf('<') == 0) {
+        return new Choice(piece);
+      } else if (piece.charAt(0) === '$') {
+        return SimpleFuncDefPart.makeVar(piece);
+      } else {
+        return SimpleFuncDefPart.makeBare(piece);
+      }
+    });
+    return new Seq(pieces);
+  };
 
-FuncDefParser.Seq.prototype.processor = 'concat';
-FuncDefParser.Var.prototype.processor = 'concat';
-FuncDefParser.Bare.prototype.processor = 'concat';
-FuncDefParser.Choice.prototype.processor = 'fork';
+  class Seq {
+    constructor(public pieces: (Choice | SimpleFuncDefPart)[]) {
+    }
+  }
+
+  class SimpleFuncDefPart {
+    constructor(public bits: string[], public dyn: string[], public vivify: Vivify[]) {
+    }
+
+    static makeVar(raw: string): SimpleFuncDefPart {
+      var vivify: Vivify[];
+
+      if (raw === '$') {
+        vivify = [Vivify.NEVER];
+      } else if (raw === '$!!') {
+        vivify = [Vivify.ALWAYS];
+      } else if (raw === '$!') {
+        vivify = [Vivify.AUTO];
+      }
+
+      return new SimpleFuncDefPart(['$'], [], vivify);
+    }
+
+    static makeBare(raw: string): SimpleFuncDefPart {
+      return new SimpleFuncDefPart([raw], [], [])
+    }
+  }
+
+  class Choice {
+    options: Seq[]
+
+    constructor(raw: string) {
+      var bits = raw.substr(1, raw.length - 2).split('|');
+      this.options = bits.map(parseFuncDef);
+    }
+  }
+
+}

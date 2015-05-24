@@ -16,7 +16,7 @@ var project = typescript.createProject({
 });
 
 gulp.task('scripts', function() {
-    var tsResult = gulp.src(['bt/back_talker.ts'])
+    var tsResult = gulp.src(['bt/**.ts'])
             .pipe(sourcemaps.init())
             .pipe(typescript(project));
 
@@ -27,7 +27,7 @@ gulp.task('scripts', function() {
 });
 
 gulp.task('watch', ['scripts'], function() {
-    gulp.watch('app/**.ts', ['scripts']);
+    gulp.watch('bt/**.ts', ['scripts']);
 });
 
 gulp.task('default', ['watch']);

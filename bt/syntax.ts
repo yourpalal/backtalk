@@ -10,7 +10,7 @@ module BackTalker {
 
   var _parser: Syntax.Parser;
 
-  export function parse(source: string, inspector?: (any) => void) {
+  export function parse(source: string, inspector?: (p: grammar.ParserNode) => void) {
     _parser = _parser || new Syntax.Parser();
     return _parser.fromSource(source, inspector);
   }
@@ -172,19 +172,19 @@ module BackTalker {
         this.parts.push(part)
       }
 
-      build(ctor) {
-        var args = [],
+      build(): { name: string; args: Syntax.Visitable[] } {
+        var args: Syntax.Visitable[] = [],
           name = this.parts.map(function(p) {
-            var result = p.accept(new FuncCallNameMaker());
+            var result = <string>p.accept(new FuncCallNameMaker());
             if (result === "$") { args.push(p); }
             return result;
           }).join(" ");
-        return new ctor(name, args);
+        return { name: name, args: args };
       }
     }
 
     export class Parser {
-      fromSource = function(source: string, inspector?: (any) => void) {
+      fromSource = function(source: string, inspector?: (p: grammar.ParserNode) => void) {
         var parse_tree;
         try {
           parse_tree = grammar.parse(source.trim());
@@ -269,10 +269,11 @@ module BackTalker {
               builder.addPart(v.elements[1].transform());
             });
 
+            var callParts = builder.build();
             if (this.colon.textValue === ':') {
-              return builder.build(HangingCall);
+              return new HangingCall(callParts.name, callParts.args);
             }
-            return builder.build(FuncCall);
+            return new FuncCall(callParts.name, callParts.args);
           }
         };
 

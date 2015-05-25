@@ -4,13 +4,15 @@
 // for use with the PEG grammar (compiled using  http://canopy.jcoglan.com/references.html)
 
 // TODO: this breaks things :'(
-// import grammar = require('grammar');
+// import grammar = require("grammar");
 
 module BackTalker {
 
-  export function parse(source, inspector) {
-    this._parser = this._parser || new Syntax.Parser();
-    return this._parser.fromSource(source, inspector);
+  var _parser: Syntax.Parser;
+
+  export function parse(source: string, inspector?: (any) => void) {
+    _parser = _parser || new Syntax.Parser();
+    return _parser.fromSource(source, inspector);
   }
 
   export module Syntax {
@@ -31,103 +33,127 @@ module BackTalker {
     }
 
     export interface Visitor {
-      visitAddOp(AddOp): any;
-      visitSubOp(SubOp): any;
-      visitDivideOp(DivideOp): any;
-      visitMultOp(MultOp): any;
-      visitBinOpNode(BinOpNode): any;
-      visitLiteral(Literal): any;
-      visitBareWord(BareWord): any;
-      visitUnaryMinus(UnaryMinus): any;
-      visitRef(Ref): any;
-      visitCompoundExpression(CompoundExpression): any;
-      visitHangingCall(HangingCall): any;
-      visitFuncCall(FuncCall): any;
+      visitAddOp(AddOp, ...args: any[]): any;
+      visitSubOp(SubOp, ...args: any[]): any;
+      visitDivideOp(DivideOp, ...args: any[]): any;
+      visitMultOp(MultOp, ...args: any[]): any;
+      visitBinOpNode(BinOpNode, ...args: any[]): any;
+      visitLiteral(Literal, ...args: any[]): any;
+      visitBareWord(BareWord, ...args: any[]): any;
+      visitUnaryMinus(UnaryMinus, ...args: any[]): any;
+      visitRef(Ref, ...args: any[]): any;
+      visitCompoundExpression(CompoundExpression, ...args: any[]): any;
+      visitHangingCall(HangingCall, ...args: any[]): any;
+      visitFuncCall(FuncCall, ...args: any[]): any;
     }
 
     export class BaseVisitor implements Visitor {
-      visitAddOp(AddOp): any { throw new Error("visitAddOp not implemented"); }
-      visitSubOp(SubOp): any { throw new Error("visitSubOp not implemented"); }
-      visitDivideOp(DivideOp): any { throw new Error("visitDivideOp not implemented"); }
-      visitMultOp(MultOp): any { throw new Error("visitMultOp not implemented"); }
-      visitBinOpNode(BinOpNode): any { throw new Error("visitBinOpNode not implemented"); }
-      visitLiteral(Literal): any { throw new Error("visitLiteral not implemented"); }
-      visitBareWord(BareWord): any { throw new Error("visitBareWord not implemented"); }
-      visitUnaryMinus(UnaryMinus): any { throw new Error("visitUnaryMinus not implemented"); }
-      visitRef(Ref): any { throw new Error("visitRef not implemented"); }
-      visitCompoundExpression(CompoundExpression): any { throw new Error("visitCompoundExpression not implemented"); }
-      visitHangingCall(HangingCall): any { throw new Error("visitHangingCall not implemented"); }
-      visitFuncCall(FuncCall): any { throw new Error("visitFuncCall not implemented"); }
+      visitAddOp(AddOp, ...args: any[]): any { throw new Error("visitAddOp not implemented"); }
+      visitSubOp(SubOp, ...args: any[]): any { throw new Error("visitSubOp not implemented"); }
+      visitDivideOp(DivideOp, ...args: any[]): any { throw new Error("visitDivideOp not implemented"); }
+      visitMultOp(MultOp, ...args: any[]): any { throw new Error("visitMultOp not implemented"); }
+      visitBinOpNode(BinOpNode, ...args: any[]): any { throw new Error("visitBinOpNode not implemented"); }
+      visitLiteral(Literal, ...args: any[]): any { throw new Error("visitLiteral not implemented"); }
+      visitBareWord(BareWord, ...args: any[]): any { throw new Error("visitBareWord not implemented"); }
+      visitUnaryMinus(UnaryMinus, ...args: any[]): any { throw new Error("visitUnaryMinus not implemented"); }
+      visitRef(Ref, ...args: any[]): any { throw new Error("visitRef not implemented"); }
+      visitCompoundExpression(CompoundExpression, ...args: any[]): any { throw new Error("visitCompoundExpression not implemented"); }
+      visitHangingCall(HangingCall, ...args: any[]): any { throw new Error("visitHangingCall not implemented"); }
+      visitFuncCall(FuncCall, ...args: any[]): any { throw new Error("visitFuncCall not implemented"); }
     }
 
     export interface Visitable {
-      accept(Visitor): any
+      accept(Visitor, ...args: any[]): any
     }
 
     export class AddOp implements Visitable {
       constructor(public right: any) { }
-      accept(visitor: Visitor): any { return visitor.visitAddOp(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitAddOp.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class SubOp implements Visitable {
       constructor(public right: any) { }
-      accept(visitor: Visitor): any { return visitor.visitSubOp(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitSubOp.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class DivideOp implements Visitable {
       constructor(public right: any) { }
-      accept(visitor: Visitor): any { return visitor.visitDivideOp(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitDivideOp.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class MultOp implements Visitable {
       constructor(public right: any) { }
-      accept(visitor: Visitor): any { return visitor.visitMultOp(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitMultOp.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class BinOpNode implements Visitable {
       constructor(public left: any, public ops: any) { }
-      accept(visitor: Visitor): any { return visitor.visitBinOpNode(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitBinOpNode.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class Literal implements Visitable {
       constructor(public val: any) { }
-      accept(visitor: Visitor): any { return visitor.visitLiteral(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitLiteral.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class BareWord implements Visitable {
-      constructor(public val: any) { }
-      accept(visitor: Visitor): any { return visitor.visitBareWord(this); }
+      constructor(public bare: string) { }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitBareWord.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class UnaryMinus implements Visitable {
       constructor(public val: any) { }
-      accept(visitor: Visitor): any { return visitor.visitUnaryMinus(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitUnaryMinus.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class Ref implements Visitable {
       constructor(public name: any) { }
-      accept(visitor: Visitor): any { return visitor.visitRef(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitRef.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class CompoundExpression implements Visitable {
       constructor(public parts: any) { }
-      accept(visitor: Visitor): any { return visitor.visitCompoundExpression(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitCompoundExpression.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class HangingCall implements Visitable {
       public body: CompoundExpression;
 
       constructor(public name: any, public args: any) { }
-      accept(visitor: Visitor): any { return visitor.visitHangingCall(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitHangingCall.apply(visitor, [visitor].concat(args));
+      }
     }
 
     export class FuncCall implements Visitable {
       constructor(public name: any, public args: any) { }
-      accept(visitor: Visitor): any { return visitor.visitFuncCall(this); }
+      accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitFuncCall.apply(visitor, [visitor].concat(args));
+      }
     }
 
-    export class FuncCallNameMaker extends BaseVisitor {
-      visitBareWord(bare) { return bare.bare; }
+    class FuncCallNameMaker extends BaseVisitor {
+      visitBareWord(bare: BareWord) { return bare.bare; }
       visitExpression() { return "$"; }
       visitRef() { return "$"; }
       visitLiteral() { return "$"; }
@@ -136,13 +162,13 @@ module BackTalker {
     }
 
     export class FuncCallMaker {
-      public parts: any;
+      public parts: Syntax.Visitable[];
 
       constructor() {
         this.parts = [];
       }
 
-      addPart(part) {
+      addPart(part: Syntax.Visitable) {
         this.parts.push(part)
       }
 
@@ -158,7 +184,7 @@ module BackTalker {
     }
 
     export class Parser {
-      fromSource = function(source: string, inspector) {
+      fromSource = function(source: string, inspector?: (any) => void) {
         var parse_tree;
         try {
           parse_tree = grammar.parse(source.trim());
@@ -168,7 +194,7 @@ module BackTalker {
         } catch (e) {
           throw new ParseError(e);
         }
-        return parse_tree.transform();
+        return <Syntax.Visitable>parse_tree.transform();
       };
 
       constructor() {

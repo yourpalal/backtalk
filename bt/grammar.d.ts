@@ -1,9 +1,9 @@
-/// <reference path="back_talker.ts" />
+// TODO: this isn't quite right...
 
-declare module 'grammar' {
+declare module grammar {
   export class ParserNode {
     public isa: string;
-    transform(): any // actually Syntax.Visitable
+    transform(): any // actually BackTalker.Syntax.Visitable
   }
 
   export var Parser: any;

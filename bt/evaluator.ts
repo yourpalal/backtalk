@@ -1,4 +1,5 @@
 /// <reference path="back_talker.ts" />
+/// <reference path="scope.ts" />
 /// <reference path="syntax.ts" />
 
 
@@ -23,7 +24,7 @@ module BackTalker {
       this.newSubEval = false;
     }
 
-    evalString(source) {
+    evalString(source: string) {
       return this.eval(parse(source));
     }
 
@@ -92,7 +93,7 @@ module BackTalker {
       return this.callFunc(this, node.name, node.args);
     }
 
-    visitBinOpNode = function(node) {
+    visitBinOpNode(node: Syntax.BinOpNode, ...args) {
       var left = this.eval(node.left),
         i = 0;
 
@@ -100,9 +101,9 @@ module BackTalker {
         left = node.ops[i].accept(this, left);
       }
       return left;
-    };
+    }
 
-    visitAddOp(node, left) {
+    visitAddOp(node: Syntax.AddOp, left) {
       return left + node.right.accept(this);
     }
 
@@ -145,16 +146,16 @@ module BackTalker {
       super()
     }
 
-    visitAddOp(a: Syntax.AddOp): any { return this.subEval.visitAddOp(a); }
-    visitSubOp(a: Syntax.SubOp): any { return this.subEval.visitSubOp(a); }
-    visitDivideOp(a: Syntax.DivideOp): any { return this.subEval.visitDivideOp(a); }
-    visitMultOp(a: Syntax.MultOp): any { return this.subEval.visitMultOp(a); }
-    visitBinOpNode(a: Syntax.BinOpNode): any { return this.subEval.visitBinOpNode(a()); }
-    visitLiteral(a: Syntax.Literal): any { return this.subEval.visitLiteral(a); }
-    visitBareWord(a: Syntax.BareWord): any { return this.subEval.visitBareWord(a); }
-    visitUnaryMinus(a: Syntax.UnaryMinus): any { return this.subEval.visitUnaryMinus(a); }
-    visitCompoundExpression(a: Syntax.CompoundExpression): any { return this.subEval.visitCompoundExpression(a); }
-    visitFuncCall(a: Syntax.FuncCall): any { return this.subEval.visitFuncCall(a); }
+    visitAddOp(a: Syntax.AddOp): any { return a.accept(this.subEval); }
+    visitSubOp(a: Syntax.SubOp): any { return a.accept(this.subEval); }
+    visitDivideOp(a: Syntax.DivideOp): any { return a.accept(this.subEval); }
+    visitMultOp(a: Syntax.MultOp): any { return a.accept(this.subEval); }
+    visitBinOpNode(a: Syntax.BinOpNode): any { return a.accept(this.subEval); }
+    visitLiteral(a: Syntax.Literal): any { return a.accept(this.subEval); }
+    visitBareWord(a: Syntax.BareWord): any { return a.accept(this.subEval); }
+    visitUnaryMinus(a: Syntax.UnaryMinus): any { return a.accept(this.subEval); }
+    visitCompoundExpression(a: Syntax.CompoundExpression): any { return a.accept(this.subEval); }
+    visitFuncCall(a: Syntax.FuncCall): any { return a.accept(this.subEval); }
 
     visitRef(node: Syntax.Ref) {
       return this.subEval.scope.getVivifiable(node.name);

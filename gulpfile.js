@@ -20,10 +20,13 @@ gulp.task('scripts', function() {
             .pipe(sourcemaps.init())
             .pipe(typescript(project));
 
-        return tsResult.js
-                .pipe(concat('app.js'))
+        return merge([
+            gulp.src(['grammar.js'])
+                .pipe(gulp.dest('dist/js/')),
+            tsResult.js
                 .pipe(sourcemaps.write('./'))
-                .pipe(gulp.dest('dist/js'));
+                .pipe(gulp.dest('dist/js')),
+        ]);
 });
 
 gulp.task('watch', ['scripts'], function() {

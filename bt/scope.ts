@@ -1,8 +1,5 @@
-/// <reference path="vars.ts" />
-/// <reference path="functions.ts" />
-
-import vars = require("vars")
-import funcs = require("functions")
+import vars = require("./vars")
+import funcs = require("./functions")
 
 
 interface FuncHandle {

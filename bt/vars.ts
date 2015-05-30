@@ -1,6 +1,4 @@
-/// <reference path="scope.ts" />
-
-import scope = require("scope")
+import scope = require("./scope")
 
 export enum Vivify {
   ALWAYS = 1,

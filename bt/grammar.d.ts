@@ -1,4 +1,4 @@
-declare module "grammar" {
+declare module grammar {
 
   export function Parser(): void
   export function parse(src: string): ParserNode
@@ -22,3 +22,5 @@ declare module "grammar" {
     export var BareNode: ParserNode;
   }
 }
+
+export = grammar

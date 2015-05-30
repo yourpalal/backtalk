@@ -1,12 +1,7 @@
-/// <reference path="vars.ts" />
-/// <reference path="scope.ts" />
-/// <reference path="standard_lib.ts" />
-/// <reference path="syntax.ts" />
-
-import syntax = require("syntax");
-import scopes = require("scope");
-import vars = require("vars");
-import stdLib = require("standard_lib");
+import syntax = require("./syntax");
+import scopes = require("./scope");
+import vars = require("./vars");
+import stdLib = require("./standard_lib");
 
 
 export function evalBT(source, scope: scopes.Scope) {

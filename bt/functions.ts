@@ -1,8 +1,6 @@
-/// <reference path="vars.ts"/>
-
 'use strict';
 
-import vars = require("vars")
+import vars = require("./vars")
 
 // everything in this file should be pure functional
 // because I want it that way

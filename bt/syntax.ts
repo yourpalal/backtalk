@@ -1,7 +1,5 @@
-/// <reference path="grammar.d.ts" />
-
 // for use with the PEG grammar (compiled using  http://canopy.jcoglan.com/references.html)
-import grammar = require("grammar");
+import grammar = require("./grammar");
 
 var _parser: Parser = null;
 

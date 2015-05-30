@@ -16,16 +16,16 @@ var project = typescript.createProject({
 });
 
 gulp.task('scripts', function() {
-    var tsResult = gulp.src(['bt/**.ts'])
+    var tsResult = gulp.src(['bt/bin/**.ts', 'bt/lib/**.ts', 'bt/tests/**.ts'])
             .pipe(sourcemaps.init())
             .pipe(typescript(project));
 
         return merge([
             gulp.src(['grammar.js'])
-                .pipe(gulp.dest('dist/js/')),
+                .pipe(gulp.dest('build/js/')),
             tsResult.js
                 .pipe(sourcemaps.write('./'))
-                .pipe(gulp.dest('dist/js')),
+                .pipe(gulp.dest('build/js')),
         ]);
 });
 

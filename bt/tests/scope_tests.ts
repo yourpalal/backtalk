@@ -1,6 +1,8 @@
-var BT = require('../back_talker')
-    ,should = require('should')
-;
+/// <reference path="../typings/tsd.d.ts" />
+
+import should = require('should');
+
+import BT = require('../lib/back_talker');
 
 
 describe('BackTalker scopes', function() {
@@ -49,7 +51,7 @@ describe('BackTalker scopes', function() {
         BT.eval('with $a as 7', scope);
         scope.get("test").should.equal(3);
         scope.get("a").should.equal(7);
-        
+
         BT.eval('$test + 7', scope).should.equal(10);
         BT.eval('$test * 7', scope).should.equal(21);
 

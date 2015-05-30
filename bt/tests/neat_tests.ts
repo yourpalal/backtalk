@@ -1,7 +1,9 @@
-var BT = require('../back_talker')
-    ,should = require('should')
-    ,sinon = require('sinon')
-;
+/// <reference path="../typings/tsd.d.ts" />
+
+import should = require('should');
+import sinon = require('sinon');
+
+import BT = require('../lib/back_talker');
 
 
 it('BackTalker can', function() {
@@ -33,6 +35,6 @@ it('BackTalker can', function() {
         "   $i + 5"
         ].join("\n"));
 
-        results.should.equal([5,6,7,8,9,10,11,12,13,14]);
+        result.should.equal([5,6,7,8,9,10,11,12,13,14]);
     });
 });

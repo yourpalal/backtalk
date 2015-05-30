@@ -1,8 +1,10 @@
-var FuncDefParser = require('../functions')
-    ,BackTalker = require('../back_talker')
-    ,should = require('should')
-    ,sinon = require('sinon')
-;
+/// <reference path="../typings/tsd.d.ts" />
+
+import should = require('should');
+import sinon = require('sinon')
+
+import BT = require('../lib/back_talker');
+import FuncDefParser = require('../lib/functions');
 
 
 describe('a funcdef', function() {
@@ -15,8 +17,8 @@ describe('a funcdef', function() {
             result.pieces.should.have.lengthOf(1)
 
             result.pieces[0]
-              .should.be.an.instanceOf(FuncDefParser.Bare)
-              .with.the.property('word', 'foo');
+              .should.be.an.instanceOf(FuncDefParser.SimpleFuncDefPart)
+              .with.property('word', 'foo');
         });
 
         it('can recognize choices like <foo|bar>', function() {
@@ -26,34 +28,34 @@ describe('a funcdef', function() {
             result.pieces.should.have.lengthOf(1);
             result.pieces[0].should.be.an.instanceOf(FuncDefParser.Choice);
 
-            result.pieces[0].options[0].should
+            (<FuncDefParser.Choice>result.pieces[0]).options[0].should
                 .be.an.instanceOf(FuncDefParser.Seq)
                 .and.have.property('pieces')
-                    .with.property(0)
-                      .which.is.an.instanceOf(FuncDefParser.Bare)
+                    .with.property('0')
+                      .an.instanceOf(FuncDefParser.SimpleFuncDefPart)
                         .with.property('word', 'foo');
-            result.pieces[0].options[1].should
+            (<FuncDefParser.Choice>result.pieces[0]).options[1].should
                 .be.an.instanceOf(FuncDefParser.Seq)
                 .and.have.property('pieces')
-                    .with.property(0)
-                      .which.is.an.instanceOf(FuncDefParser.Bare)
+                    .with.property('0')
+                      .an.instanceOf(FuncDefParser.SimpleFuncDefPart)
                         .with.property('word', 'bar');
         });
 
         it('can split up choices like <foo|bar>', function() {
-          result = new FuncDefParser.Choice('<foo|bar>');
+          var result = new FuncDefParser.Choice('<foo|bar>');
           result.options.should.have.lengthOf(2);
 
           result.options[0].should
             .be.an.instanceOf(FuncDefParser.Seq)
             .and.have.property('pieces')
-              .with.property(0)
+              .with.property('0')
                 .with.property('word', 'foo')
 
           result.options[1].should
             .be.an.instanceOf(FuncDefParser.Seq)
             .and.have.property('pieces')
-              .with.property(0)
+              .with.property('0')
                 .with.property('word', 'bar')
         });
     });
@@ -88,7 +90,7 @@ describe('a funcdef', function() {
         result.defs[0].bits[0].should.equal('$');
 
         result.defs[0].vivify.length.should.equal(1);
-        result.defs[0].vivify[0].should.equal(BackTalker.VIVIFY.AUTO);
+        result.defs[0].vivify[0].should.equal(BT.Vivify.AUTO);
     });
 
     it('can contain simple choices like <foo|bar>', function() {

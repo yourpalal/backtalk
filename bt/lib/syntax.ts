@@ -190,10 +190,6 @@ export class Parser {
   };
 }
 
-//  'LineNode Expression ProdQuoNode Comment SPACE ArithValueNode'.split(" ").forEach(function(v) {
-//    grammar.Parser[v] = { isa: v };
-//  });
-
 // LineCollector collects lines based on indentation into
 // Syntax.CompoundExpression instances. As it does this,
 // hanging calls have their body property set to a CompoundExpression
@@ -376,4 +372,10 @@ class SimpleParserNode implements grammar.ParserNode {
     return null
   }
 }
+
 grammar.Parser.LineNode = new SimpleParserNode('LineNode');
+grammar.Parser.Expression = new SimpleParserNode('Expression');
+grammar.Parser.ProdQuoNode = new SimpleParserNode('ProdQuoNode');
+grammar.Parser.Comment = new SimpleParserNode('Comment');
+grammar.Parser.SPACE = new SimpleParserNode('SPACE');
+grammar.Parser.ArithValueNode = new SimpleParserNode('ArithValueNode');

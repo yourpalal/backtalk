@@ -16,7 +16,7 @@ var project = typescript.createProject({
 });
 
 gulp.task('scripts', function() {
-    var tsResult = gulp.src(['bt/bin/**.ts', 'bt/lib/**.ts', 'bt/tests/**.ts'])
+    var tsResult = gulp.src(['bt/bin/**.ts', 'bt/lib/**.ts', 'bt/tests/**.ts'], {'base': 'bt/'})
             .pipe(sourcemaps.init())
             .pipe(typescript(project));
 

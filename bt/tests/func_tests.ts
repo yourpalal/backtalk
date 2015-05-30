@@ -1,7 +1,9 @@
-var BT = require('../back_talker')
-    ,should = require('should')
-    ,sinon = require('sinon')
-;
+/// <reference path="../typings/tsd.d.ts" />
+
+import should = require('should');
+import sinon = require('sinon')
+
+import BT = require('../lib/back_talker');
 
 
 describe('BackTalker function calls', function() {
@@ -20,7 +22,7 @@ describe('BackTalker function calls', function() {
     });
 
     describe("are comprised of bare words and expressions", function() {
-        BT.parse("like this");        
+        BT.parse("like this");
 
         it("which can include number literals as parameters", function() {
             BT.parse("like this 1");
@@ -183,12 +185,12 @@ describe('BackTalker function calls', function() {
     });
 
     it('can create a new scope for a block of code', function() {
-        var bodyAST = null,
+        var bodySyntax = null,
             gravity = 0,
             planet = null,
             func = sinon.spy(function(planet_in) {
                 planet = planet_in;
-                bodyAST = this.body;
+                bodySyntax = this.body;
 
                 this.scope.addFunc({
                     patterns: ["I jump"],
@@ -212,13 +214,13 @@ describe('BackTalker function calls', function() {
                     '   with $gravity as 3 -- m/s/s',
                     '   I jump -- very high into the air'].join("\n")
             ,result = evaluator.evalString(code);
-    
+
         func.calledOnce.should.be.ok;
 
         result.should.equal("jumped");
         planet.should.equal("sarkon");
         gravity.should.equal(3);
 
-        bodyAST.should.be.an.instanceOf(BT.AST.CompoundExpression);
+        bodySyntax.should.be.an.instanceOf(BT.Syntax.CompoundExpression);
     });
 });

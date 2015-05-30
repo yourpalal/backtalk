@@ -4,7 +4,7 @@ import vars = require("./vars");
 import stdLib = require("./standard_lib");
 
 
-export function evalBT(source, scope: scopes.Scope) {
+export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope) {
   var parsed;
   if (typeof (source) === 'string') {
     parsed = syntax.parse(<string>source, null);
@@ -18,7 +18,7 @@ export class Evaluator extends syntax.BaseVisitor {
   public newSubEval: boolean;
   public body: syntax.Visitable;
 
-  constructor(public scope: scopes.Scope) {
+  constructor(public scope?: scopes.Scope) {
     super();
     this.scope = scope || stdLib.inScope(new scopes.Scope());
     this.newSubEval = false;

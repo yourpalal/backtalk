@@ -19,7 +19,7 @@ export class FuncDefCollection {
 
   static fromString(source: string): FuncDefCollection {
     var collection = new FuncDefCollection();
-    return collection.process(parseFuncDef(source));
+    return collection.process(parse(source));
   }
 
   process(seq: Seq): FuncDefCollection {
@@ -80,7 +80,7 @@ export class FuncDefCollection {
 
 type FuncDefPart = SimpleFuncDefPart | Choice | Seq;
 
-function parseFuncDef(pattern: string): Seq {
+export function parse(pattern: string): Seq {
   var pieces = pattern.match(/<[a-zA-Z |]+>|[a-zA-Z]+|\$\!?\!?/g)
     .map((piece) => {
     if (piece.indexOf('<') == 0) {
@@ -94,12 +94,12 @@ function parseFuncDef(pattern: string): Seq {
   return new Seq(pieces);
 };
 
-class Seq {
+export class Seq {
   constructor(public pieces: (Choice | SimpleFuncDefPart)[]) {
   }
 }
 
-class SimpleFuncDefPart {
+export class SimpleFuncDefPart {
   constructor(public bits: string[], public dyn: string[], public vivify: vars.Vivify[]) {
   }
 
@@ -122,11 +122,11 @@ class SimpleFuncDefPart {
   }
 }
 
-class Choice {
+export class Choice {
   options: Seq[]
 
   constructor(raw: string) {
     var bits = raw.substr(1, raw.length - 2).split('|');
-    this.options = bits.map(parseFuncDef);
+    this.options = bits.map(parse);
   }
 }

@@ -1,6 +1,7 @@
-var  should = require('should')
-    ,BT = require('../back_talker')
-;
+/// <reference path="../typings/tsd.d.ts" />
+
+import should = require('should');
+import BT = require('../lib/back_talker');
 
 
 describe('When doing math', function() {

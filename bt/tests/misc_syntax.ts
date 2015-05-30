@@ -1,7 +1,7 @@
-var BT = require('../back_talker')
-    ,should = require('should')
-;
+/// <reference path="../typings/tsd.d.ts" />
 
+import should = require('should');
+import BT = require('../lib/back_talker');
 
 describe('BackTalker code', function() {
     it('can have one expression per line', function() {

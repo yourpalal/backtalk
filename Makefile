@@ -12,11 +12,11 @@ build/js/grammar.js: grammar.peg
 	mv grammar.js build/js/lib
 
 test: build/js/lib/back_talker.js build/js/grammar.js
-	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js -u bdd
+	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js -u bdd --require source-map-support/register
 
 
 test-w: gen/grammar.js
-	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js --reporter $(REPORTER) --growl --watch
+	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js --reporter $(REPORTER) --growl --watch --require source-map-support/register
 
 
 .PHONY: test test-w repl ALL clean

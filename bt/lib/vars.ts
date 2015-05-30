@@ -9,7 +9,7 @@ export enum Vivify {
 export class AutoVar {
   defined: boolean;
 
-  constructor(public name: string, scope: scope.Scope, value: any) {
+  constructor(public name: string, scope: scope.Scope, public value: any) {
     this.defined = (typeof value !== 'undefined');
   }
 }

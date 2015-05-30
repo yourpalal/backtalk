@@ -125,6 +125,7 @@ export class SimpleFuncDefPart {
 export class Choice {
   options: Seq[]
 
+  // raw ~ <some stuff|like this|wow>
   constructor(raw: string) {
     var bits = raw.substr(1, raw.length - 2).split('|');
     this.options = bits.map(parse);

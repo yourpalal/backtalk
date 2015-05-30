@@ -5,10 +5,10 @@ grammar BackTalk
 
     sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   <SumNode>
 
-    prod_quo    <-          product / arith_value <ProdQuoNode>
+    prod_quo    <-          product / arith_value
     product     <-          ls:arith_value parts:(SPACE? op:("*" / "/") SPACE? rs:arith_value)+ <ProductNode>
 
-    arith_value <-          number / ref / paren_expr <ArithValueNode>
+    arith_value <-          number / ref / paren_expr
     paren_expr  <-          "(" SPACE? ex:expression SPACE? ")" <ParenNode>
 
 

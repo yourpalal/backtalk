@@ -22,7 +22,10 @@ gulp.task('scripts', function() {
 
         return merge([
             gulp.src(['grammar.js'])
-                .pipe(gulp.dest('build/js/')),
+                .pipe(sourcemaps.init()) // make a sourcemap so node-sourcemaps doesn't flip out
+                .pipe(concat('grammar.js'))
+                .pipe(sourcemaps.write('./'))
+                .pipe(gulp.dest('build/js/lib')),
             tsResult.js
                 .pipe(sourcemaps.write('./'))
                 .pipe(gulp.dest('build/js')),

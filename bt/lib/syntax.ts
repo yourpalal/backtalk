@@ -61,70 +61,70 @@ export interface Visitable {
 export class AddOp implements Visitable {
   constructor(public right: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitAddOp.apply(visitor, [visitor].concat(args));
+    return visitor.visitAddOp.apply(visitor, [this].concat(args));
   }
 }
 
 export class SubOp implements Visitable {
   constructor(public right: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitSubOp.apply(visitor, [visitor].concat(args));
+    return visitor.visitSubOp.apply(visitor, [this].concat(args));
   }
 }
 
 export class DivideOp implements Visitable {
   constructor(public right: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitDivideOp.apply(visitor, [visitor].concat(args));
+    return visitor.visitDivideOp.apply(visitor, [this].concat(args));
   }
 }
 
 export class MultOp implements Visitable {
   constructor(public right: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitMultOp.apply(visitor, [visitor].concat(args));
+    return visitor.visitMultOp.apply(visitor, [this].concat(args));
   }
 }
 
 export class BinOpNode implements Visitable {
   constructor(public left: any, public ops: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitBinOpNode.apply(visitor, [visitor].concat(args));
+    return visitor.visitBinOpNode.apply(visitor, [this].concat(args));
   }
 }
 
 export class Literal implements Visitable {
   constructor(public val: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitLiteral.apply(visitor, [visitor].concat(args));
+    return visitor.visitLiteral.apply(visitor, [this].concat(args));
   }
 }
 
 export class BareWord implements Visitable {
   constructor(public bare: string) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitBareWord.apply(visitor, [visitor].concat(args));
+    return visitor.visitBareWord.apply(visitor, [this].concat(args));
   }
 }
 
 export class UnaryMinus implements Visitable {
   constructor(public val: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitUnaryMinus.apply(visitor, [visitor].concat(args));
+    return visitor.visitUnaryMinus.apply(visitor, [this].concat(args));
   }
 }
 
 export class Ref implements Visitable {
   constructor(public name: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitRef.apply(visitor, [visitor].concat(args));
+    return visitor.visitRef.apply(visitor, [this].concat(args));
   }
 }
 
 export class CompoundExpression implements Visitable {
-  constructor(public parts: any) { }
+  constructor(public parts: Visitable[]) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitCompoundExpression.apply(visitor, [visitor].concat(args));
+    return visitor.visitCompoundExpression.apply(visitor, [this].concat(args));
   }
 }
 
@@ -133,14 +133,14 @@ export class HangingCall implements Visitable {
 
   constructor(public name: any, public args: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitHangingCall.apply(visitor, [visitor].concat(args));
+    return visitor.visitHangingCall.apply(visitor, [this].concat(args));
   }
 }
 
 export class FuncCall implements Visitable {
   constructor(public name: any, public args: any) { }
   accept(visitor: Visitor, ...args: any[]): any {
-    return visitor.visitFuncCall.apply(visitor, [visitor].concat(args));
+    return visitor.visitFuncCall.apply(visitor, [this].concat(args));
   }
 }
 
@@ -178,14 +178,10 @@ export class FuncCallMaker {
 export class Parser {
   fromSource = function(source: string, inspector?: (p: grammar.ParserNode) => void) {
     var parse_tree;
-    try {
       parse_tree = grammar.parse(source.trim());
       if (inspector) {
         inspector(parse_tree);
       }
-    } catch (e) {
-      throw new ParseError(e);
-    }
     return <Visitable>parse_tree.transform();
   };
 }
@@ -219,36 +215,39 @@ export class Parser {
 //
 // Useful insight: the stack of LineCollectors creating each other will
 // mirror the call stack of the program when it is run.
-export class LineCollector extends BaseVisitor {
-  private i: number = 0
+class Line {
+  indent: number
+  ex: Visitable
 
-  constructor(public lines: any, public start: number, public indent: any) {
-    super()
-  }
-
-  static makeLinePart(line) {
+  constructor(line: any) {
     line = line.line || line; // we may have a LineNode or a (BREAK line)
-    return {
-      indent: line.lead.textValue.length,
-      ex: line.ex.transform()
-    };
+    this.indent = line.lead.textValue.length;
+    this.ex = line.ex.transform();
+  }
+}
+
+export class LineCollector extends BaseVisitor {
+  // i is the index of the line we are processing
+  constructor(public lines: Line[], public i: number, public indent: number) {
+    super()
   }
 
   visitHangingCall(func: HangingCall): any {
     var c = new LineCollector(this.lines, this.i + 1, this.lines[this.i].indent);
     func.body = c.collect();
-
-    this.i = c.i - 1;
-    // we start up where the other collector left off
-    // c.i - 1 because the for loop will increment i momentarily
+    this.i = c.i;
+      // we start up where the other collector left off
+      // (this.i is the last line they included), and in the next iteration of
+      // this.collect, we will be processing the first line they did not include.
     return func;
   }
 
   collect(): CompoundExpression {
-    var parts = [];
+    var parts :Visitable[] = [];
 
     for (; this.i < this.lines.length; this.i++) {
       if (this.lines[this.i].indent < this.indent) {
+        this.i--
         break;
       }
 
@@ -270,7 +269,6 @@ export class LineCollector extends BaseVisitor {
   visitCompoundExpression(a: CompoundExpression): any { return a; }
   visitFuncCall(a: FuncCall): any { return a; }
 }
-
 
 // merge in our stuff
 module grammarParserNumberLiteral {
@@ -338,8 +336,8 @@ grammar.Parser.BareNode = grammarParserBareNode;
 module grammarParserCompoundNode {
   export var isa = 'CompoundNode'
   export function transform() {
-    var lines = this.rs.elements.map(LineCollector.makeLinePart);
-    lines.unshift(LineCollector.makeLinePart(this.ls));
+    var lines : Line[] = this.rs.elements.map((l) => new Line(l));
+    lines.unshift(new Line(this.ls));
 
     var collector = new LineCollector(lines, 0, 0);
     return collector.collect();
@@ -351,6 +349,7 @@ module grammarParserFuncCallNode {
   export var isa = 'FuncCallNode'
   export function transform() {
     var builder = new FuncCallMaker();
+
     builder.addPart(this.elements[0].transform());
 
     this.parts.elements.map(function(v) {
@@ -366,16 +365,16 @@ module grammarParserFuncCallNode {
 }
 grammar.Parser.FuncCallNode = grammarParserFuncCallNode;
 
+
 class SimpleParserNode implements grammar.ParserNode {
   constructor(public isa: string) { }
   transform(): any {
-    return null
+    console.log('throwing transform execption for: ', this);
+    throw new Error("Caled transform on a " + this.isa);
   }
 }
 
 grammar.Parser.LineNode = new SimpleParserNode('LineNode');
 grammar.Parser.Expression = new SimpleParserNode('Expression');
-grammar.Parser.ProdQuoNode = new SimpleParserNode('ProdQuoNode');
 grammar.Parser.Comment = new SimpleParserNode('Comment');
 grammar.Parser.SPACE = new SimpleParserNode('SPACE');
-grammar.Parser.ArithValueNode = new SimpleParserNode('ArithValueNode');

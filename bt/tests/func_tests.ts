@@ -4,6 +4,7 @@ import should = require('should');
 import sinon = require('sinon')
 
 import BT = require('../lib/back_talker');
+import evaluator = require('../lib/evaluator');
 
 
 describe('BackTalker function calls', function() {
@@ -166,9 +167,11 @@ describe('BackTalker function calls', function() {
         scope.addFunc({
             patterns: ["cool"],
             impl: function() {
-                newSubEval = this.newSubEval;
-                if (this.newSubEval) {
-                    return this.eval(this.body);
+                console.log('called cool can tell newSubEval', this);
+                var self = <evaluator.Evaluator>this;
+                newSubEval = self.newSubEval;
+                if (self.newSubEval) {
+                    return self.eval(self.body);
                 }
             }
         });

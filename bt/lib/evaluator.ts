@@ -24,7 +24,7 @@ export class Evaluator extends syntax.BaseVisitor {
     this.newSubEval = false;
   }
 
-  evalString(source: string) {
+  evalString(source: string): any {
     return this.eval(syntax.parse(source));
   }
 
@@ -45,7 +45,7 @@ export class Evaluator extends syntax.BaseVisitor {
       , argsGetter = new ArgsEvaluator(this);
 
     if ((f || 0) === 0) {
-      throw Error("function called but undefined " + name);
+      throw new Error("function called but undefined " + name);
     }
 
     args = args.map(function(arg) {
@@ -89,6 +89,7 @@ export class Evaluator extends syntax.BaseVisitor {
   }
 
   visitFuncCall(node) {
+    // TODO: should we restore newSubEval after this?
     this.newSubEval = false;
     return this.callFunc(this, node.name, node.args);
   }
@@ -119,19 +120,19 @@ export class Evaluator extends syntax.BaseVisitor {
     return left * node.right.accept(this);
   }
 
-  visitLiteral(node) {
+  visitLiteral(node: syntax.Literal) {
     return node.val;
   }
 
-  visitUnaryMinus(node) {
+  visitUnaryMinus(node: syntax.UnaryMinus) {
     return - node.accept(this);
   }
 
-  visitRef(node) {
+  visitRef(node: syntax.Ref) {
     return this.scope.get(node.name);
   }
 
-  visitCompoundExpression(node) {
+  visitCompoundExpression(node: syntax.CompoundExpression) {
     var result;
     node.parts.forEach(function(part) {
       result = part.accept(this);

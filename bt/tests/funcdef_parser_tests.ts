@@ -18,7 +18,8 @@ describe('a funcdef', function() {
 
             result.pieces[0]
               .should.be.an.instanceOf(FuncDefParser.SimpleFuncDefPart)
-              .with.property('word', 'foo');
+                .with.property('bits')
+                  .with.property('0', 'foo');
         });
 
         it('can recognize choices like <foo|bar>', function() {
@@ -33,13 +34,15 @@ describe('a funcdef', function() {
                 .and.have.property('pieces')
                     .with.property('0')
                       .an.instanceOf(FuncDefParser.SimpleFuncDefPart)
-                        .with.property('word', 'foo');
+                        .with.property('bits')
+                          .with.property('0', 'foo');
             (<FuncDefParser.Choice>result.pieces[0]).options[1].should
                 .be.an.instanceOf(FuncDefParser.Seq)
                 .and.have.property('pieces')
                     .with.property('0')
                       .an.instanceOf(FuncDefParser.SimpleFuncDefPart)
-                        .with.property('word', 'bar');
+                        .with.property('bits')
+                          .with.property('0', 'bar');
         });
 
         it('can split up choices like <foo|bar>', function() {
@@ -50,13 +53,15 @@ describe('a funcdef', function() {
             .be.an.instanceOf(FuncDefParser.Seq)
             .and.have.property('pieces')
               .with.property('0')
-                .with.property('word', 'foo')
+                .with.property('bits')
+                  .with.property('0', 'foo')
 
           result.options[1].should
             .be.an.instanceOf(FuncDefParser.Seq)
             .and.have.property('pieces')
               .with.property('0')
-                .with.property('word', 'bar')
+                .with.property('bits')
+                  .with.property('0', 'bar');
         });
     });
 

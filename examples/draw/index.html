@@ -28,7 +28,7 @@ a small yellow circle:
     <p id="help">
     </p>
 
-    <script type="text/javascript" src="../../gen/bt.js"></script>
+    <script type="text/javascript" src="../../build/dist/bt.js"></script>
     <script type="text/javascript" src="drawlib.js"></script>
     <script type="text/javascript">
         var canvas = document.getElementById("c"),
@@ -45,8 +45,7 @@ a small yellow circle:
             BackTalker.StdLib.inScope(btContext);
             drawContext.register(btContext);
 
-
-            window.setInterval(function() {
+            textarea.onkeyup = function() {
                 if (textarea.value == text) { return; }
                 text = textarea.value;
 
@@ -54,7 +53,7 @@ a small yellow circle:
                 requestAnimationFrame(function() {
                     drawContext.update(canvas, c2D);
                 });
-            }, 1000);
+            };
 
     </script>
 </body>

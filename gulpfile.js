@@ -1,9 +1,14 @@
 var gulp = require("gulp"),
+    gutil = require("gulp-util"),
     concat = require("gulp-concat"),
     connect = require("gulp-connect"),
     typescript = require("gulp-typescript"),
     sourcemaps = require('gulp-sourcemaps'),
-    merge = require('merge2');
+    merge = require('merge2'),
+
+    browserify = require('browserify'),
+    source = require('vinyl-source-stream'),
+    buffer = require('vinyl-buffer')
 ;
 
 
@@ -30,6 +35,21 @@ gulp.task('scripts', function() {
                 .pipe(sourcemaps.write('./'))
                 .pipe(gulp.dest('build/js')),
         ]);
+});
+
+gulp.task('dist', ['scripts'], function() {
+  var b = browserify({
+    entries: './build/js/lib/back_talker.js',
+    standalone: 'BackTalker',
+  });
+
+  return b.bundle()
+    .pipe(source('bt.js'))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({loadMaps: true}))
+    .on('error', gutil.log)
+    .pipe(sourcemaps.write('./'))
+    .pipe(gulp.dest('./build/dist/'));
 });
 
 gulp.task('watch', ['scripts'], function() {

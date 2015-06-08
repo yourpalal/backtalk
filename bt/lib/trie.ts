@@ -64,6 +64,12 @@ class Trie<T> {
       }
     }
   }
+
+  merge(t: Trie<T>) {
+      t.each((key, val) => {
+          this.put(key, val);
+      });
+  }
 }
 
 export = Trie

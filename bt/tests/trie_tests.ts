@@ -47,4 +47,16 @@ describe('the Trie', () => {
         results.should.have.property("think it is cool", 2);
         results.should.have.property("say woah!!!", 3);
     });
+
+    it('can merge two tries', () => {
+        var t = new Trie<number>(),
+          other = new Trie<number>();
+
+        t.put("wow", 5);
+        other.put("yay", 6);
+
+        t.merge(other);
+        t.get("wow").should.equal(5);
+        t.get("yay").should.equal(6);
+    });
 });

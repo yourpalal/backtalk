@@ -101,7 +101,6 @@ describe('BackTalker function calls', function() {
             evaluator.evalString('bake pie "?"').should.equal("?pie");
         });
 
-        /*
         it("can allow spaces in <|> like <foo or|foo and>", function() {
             scope.addFunc({
                 patterns: ["bake <cake and|pie or > $"],
@@ -109,10 +108,9 @@ describe('BackTalker function calls', function() {
             });
 
             console.log(scope.funcs);
-            evaluator.evalString('bake cake and "pie"').should.equal("cakepieor");
+            evaluator.evalString('bake cake and "pie"').should.equal("piecakeand");
             evaluator.evalString('bake pie or "cake"').should.equal("cakepieor");
         });
-        */
     });
 
     it("is called with 'this' being the backtalker instance", function() {

@@ -1,5 +1,7 @@
-import vars = require("./vars")
-import funcs = require("./functions")
+import vars = require("./vars");
+import funcs = require("./functions");
+
+import Trie = require("./trie");
 
 
 interface FuncHandle {
@@ -9,16 +11,15 @@ interface FuncHandle {
 
 export class Scope {
   names: { [key: string]: any }
-  funcs: { [key: string]: FuncHandle }
+  funcs: Trie<FuncHandle>;
 
   constructor(public parent: Scope = null) {
     if (this.parent !== null) {
       this.names = Object.create(parent.names);
-      this.funcs = Object.create(parent.funcs);
     } else {
       this.names = <{ [key: string]: any }>new Object();
-      this.funcs = <{ [key: string]: any }>new Object();
     }
+    this.funcs = new Trie<FuncHandle>();
   }
 
   createSubScope(): Scope {
@@ -38,7 +39,14 @@ export class Scope {
   }
 
   findFunc(name: string) {
-    return this.funcs['0' + name];
+    var f = this.funcs.get(name);
+    if (f) {
+      return f;
+    }
+    if (this.parent) {
+      return this.parent.findFunc(name);
+    }
+    return null;
   }
 
   addFunc = function(deets: { patterns: string[]; impl: (...b: any[]) => any }) {
@@ -60,13 +68,13 @@ export class Scope {
       // now we can register a wrapper for all of the specified functions
       // that will append the dynamic parts of the pattern as arguments
       result.defs.forEach((pattern) => {
-        this.funcs['0' + pattern.bits.join(" ")] = {
+        this.funcs.put(pattern.bits.join(" "), {
           vivification: pattern.vivify,
           impl: function(...args: any[]): any {
             args = args.concat(pattern.dyn);
             return deets.impl.apply(this, args);
           }
-        };
+        });
       });
     });
   };

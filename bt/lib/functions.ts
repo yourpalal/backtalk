@@ -61,15 +61,10 @@ export class FuncDefCollection {
     var original_defs = this,
       new_defs = this;
 
-    choice.options.forEach(function(option) {
+    choice.options.forEach((bits: SimpleFuncDefPart[]) => {
       var next_defs = original_defs;
-      option.pieces.forEach(function(piece) {
-        if (piece instanceof SimpleFuncDefPart) {
-          next_defs = next_defs.concatDynamic(piece);
-        } else {
-          // TODO: fix this
-          console.log('oh no :(')
-        }
+      bits.forEach((piece) => {
+        next_defs = next_defs.concatDynamic(piece);
       });
       new_defs = new_defs.join(next_defs);
     }, this);
@@ -123,11 +118,21 @@ export class SimpleFuncDefPart {
 }
 
 export class Choice {
-  options: Seq[]
+  options: SimpleFuncDefPart[][]
 
   // raw ~ <some stuff|like this|wow>
   constructor(raw: string) {
     var bits = raw.substr(1, raw.length - 2).split('|');
-    this.options = bits.map(parse);
+    var sequences = bits.map(parse);
+
+    // verify and extract the SimpleFuncDefParts
+    this.options = sequences.map((s: Seq) => {
+      s.pieces.forEach((p) => {
+        if (p instanceof Choice) {
+            throw new Error("Cannot have nested choices in function pattern");
+        }
+      });
+      return <SimpleFuncDefPart[]>(s.pieces);
+    });
   }
 }

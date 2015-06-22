@@ -29,39 +29,16 @@ describe('a funcdef', function() {
             result.pieces.should.have.lengthOf(1);
             result.pieces[0].should.be.an.instanceOf(FuncDefParser.Choice);
 
-            (<FuncDefParser.Choice>result.pieces[0]).options[0].should
-                .be.an.instanceOf(FuncDefParser.Seq)
-                .and.have.property('pieces')
-                    .with.property('0')
-                      .an.instanceOf(FuncDefParser.SimpleFuncDefPart)
-                        .with.property('bits')
-                          .with.property('0', 'foo');
-            (<FuncDefParser.Choice>result.pieces[0]).options[1].should
-                .be.an.instanceOf(FuncDefParser.Seq)
-                .and.have.property('pieces')
-                    .with.property('0')
-                      .an.instanceOf(FuncDefParser.SimpleFuncDefPart)
-                        .with.property('bits')
-                          .with.property('0', 'bar');
+            (<FuncDefParser.Choice>result.pieces[0]).options[0][0].bits[0].should.equal('foo');
+            (<FuncDefParser.Choice>result.pieces[0]).options[1][0].bits[0].should.equal('bar');
         });
 
         it('can split up choices like <foo|bar>', function() {
           var result = new FuncDefParser.Choice('<foo|bar>');
           result.options.should.have.lengthOf(2);
 
-          result.options[0].should
-            .be.an.instanceOf(FuncDefParser.Seq)
-            .and.have.property('pieces')
-              .with.property('0')
-                .with.property('bits')
-                  .with.property('0', 'foo')
-
-          result.options[1].should
-            .be.an.instanceOf(FuncDefParser.Seq)
-            .and.have.property('pieces')
-              .with.property('0')
-                .with.property('bits')
-                  .with.property('0', 'bar');
+          result.options[0][0].bits[0].should.equal('foo');
+          result.options[1][0].bits[0].should.equal('bar');
         });
     });
 

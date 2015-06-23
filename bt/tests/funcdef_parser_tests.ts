@@ -22,6 +22,24 @@ describe('a funcdef', function() {
                   .with.property('0', 'foo');
         });
 
+        it('can recognized named vars like $:foo', function() {
+            var result = FuncDefParser.parse('$:foo');
+            result.should.be.an.instanceOf(FuncDefParser.Seq);
+
+            result.should.have.property('pieces')
+            result.pieces.should.have.lengthOf(1)
+
+            result.pieces[0]
+              .should.be.an.instanceOf(FuncDefParser.SimpleFuncDefPart)
+                .with.property('bits')
+                  .with.property('0', '$');
+
+            result.pieces[0].should.have.property('arg');
+            var arg = result.pieces[0].arg;
+            arg.should.have.property('fromVar', true);
+            arg.should.have.property('name', 'foo');
+        });
+
         it('can recognize choices like <foo|bar>', function() {
             var result = FuncDefParser.parse('<foo|bar>');
             result.should.be.an.instanceOf(FuncDefParser.Seq);
@@ -75,6 +93,24 @@ describe('a funcdef', function() {
         result.defs[0].vivify[0].should.equal(BT.Vivify.AUTO);
     });
 
+    it('can name variables', function() {
+        var result = FuncDefParser.FuncDefCollection.fromString('$!:cool');
+        result.defs.length.should.equal(1);
+
+        var def = result.defs[0];
+        def.isEmpty().should.not.be.ok;
+
+        def.bits.length.should.equal(1);
+        def.bits[0].should.equal('$');
+
+        def.vivify.length.should.equal(1);
+        def.vivify[0].should.equal(BT.Vivify.AUTO);
+
+        def.args.length.should.equal(1);
+        def.args[0].name.should.equal("cool");
+        def.args[0].fromVar.should.be.ok;
+    });
+
     it('can contain simple choices like <foo|bar>', function() {
         var result = FuncDefParser.FuncDefCollection.fromString('<foo|bar>');
         result.defs.length.should.equal(2);
@@ -88,6 +124,29 @@ describe('a funcdef', function() {
         result.defs[1].bits[0].should.equal('bar');
     });
 
+    it('can name choices like <foo|bar>:foobar', function() {
+        var result = FuncDefParser.FuncDefCollection.fromString('<foo|bar>:foobar');
+        result.defs.length.should.equal(2);
+
+        result.defs[0].isEmpty().should.not.be.ok;
+        result.defs[0].bits.length.should.equal(1);
+        result.defs[0].bits[0].should.equal('foo');
+
+        result.defs[0].args.length.should.equal(1);
+        var arg = result.defs[0].args[0];
+        arg.should.have.property('name', 'foobar');
+        arg.should.have.property('value', 0);
+
+        result.defs[1].isEmpty().should.not.be.ok;
+        result.defs[1].bits.length.should.equal(1);
+        result.defs[1].bits[0].should.equal('bar');
+
+        result.defs[0].args.length.should.equal(1);
+        arg = result.defs[1].args[0];
+        arg.should.have.property('name', 'foobar');
+        arg.should.have.property('value', 1);
+
+    });
     it('can contain big choices like <foo faa|bar>', function() {
         var result = FuncDefParser.FuncDefCollection.fromString('<foo faa|bar>');
         result.defs.length.should.equal(2);

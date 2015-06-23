@@ -79,7 +79,7 @@ export class Evaluator extends syntax.BaseVisitor {
       }
     }
 
-    return f.impl.apply(subEval, args);
+    return f.impl.call(subEval, f.parameterize(args));
   }
 
   visitHangingCall(node: syntax.HangingCall) {

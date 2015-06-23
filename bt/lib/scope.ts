@@ -6,7 +6,8 @@ import Trie = require("./trie");
 
 interface FuncHandle {
   vivification: vars.Vivify[]
-  impl: (...args: any[]) => any
+  parameterize: (...args: any[]) => funcs.FuncParams
+  impl: (p: funcs.FuncParams) => any
 }
 
 export class Scope {
@@ -50,18 +51,6 @@ export class Scope {
   }
 
   addFunc = function(deets: { patterns: string[]; impl: (...b: any[]) => any }) {
-    // $ = variable
-    // <bare|words> = bare options
-    // $!! = just get the name of the var
-    // $! = auto-vivifiable variable this is good for placeholders, for instance
-    //          you will get an instance of BackTalker.AutoVar if an argument is
-    //          auto-vivified.
-    //
-    // deets = {
-    //  patterns: ["bare with $! arguments $", "dynamic with <bare|words> arguments $"]
-    //  impl: function(a, b, c) {
-    //  }
-    //}
     deets.patterns.map((pattern) => {
       var result = funcs.FuncDefCollection.fromString(pattern);
 
@@ -70,10 +59,8 @@ export class Scope {
       result.defs.forEach((pattern) => {
         this.funcs.put(pattern.bits.join(" "), {
           vivification: pattern.vivify,
-          impl: function(...args: any[]): any {
-            args = args.concat(pattern.dyn);
-            return deets.impl.apply(this, args);
-          }
+          parameterize: pattern.makeParameterizer(),
+          impl: deets.impl,
         });
       });
     });

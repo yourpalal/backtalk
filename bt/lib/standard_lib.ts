@@ -2,10 +2,10 @@
 
 var parts = [
   {
-    'patterns': ['with $!! as $'],
-    'impl': function(ref, val) {
-      this.scope.set(ref.name, val);
-      return val;
+    patterns: ['with $!!:ref as $:val'],
+    impl: function(args) {
+      this.scope.set(args.named.ref.name, args.named.val);
+      return args.named.val;
     }
   }];
 

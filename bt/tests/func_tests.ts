@@ -13,10 +13,10 @@ describe('BackTalker function calls', function() {
     beforeEach(function() {
         evaluator = new BT.Evaluator();
         scope = evaluator.scope;
-        addSpy = sinon.spy(function() {
-            var result = arguments[0];
-            for (var i = 1; i < arguments.length; i++ ) {
-                result += arguments[i];
+        addSpy = sinon.spy(function(args) {
+            var result = args.passed[0];
+            for (var i = 1; i < args.passed.length; i++ ) {
+                result += args.passed[i];
             }
             return result;
         });
@@ -38,6 +38,20 @@ describe('BackTalker function calls', function() {
         });
     });
 
+    it("can retrieve arguments by name", function() {
+        var func = sinon.spy(function(a) { return a; });
+        scope.addFunc({
+            patterns: ["look $:foo $:bar"],
+            impl: func
+        });
+
+        var result = evaluator.evalString("look 3 4");
+        result.named.should.have.property("foo", 3);
+        result.named.should.have.property("bar", 4);
+        func.calledOnce.should.be.ok;
+
+    });
+
     it("can call a function with no arguments", function() {
         var func = sinon.stub().returns("cool");
         scope.addFunc({
@@ -50,7 +64,7 @@ describe('BackTalker function calls', function() {
     });
 
     it("can call a function with arguments", function() {
-        var func = sinon.spy(function(a) { return a; });
+        var func = sinon.spy(function(a) { return a.passed[0]; });
         scope.addFunc({
             patterns: ["bake $"],
             impl: func
@@ -62,7 +76,7 @@ describe('BackTalker function calls', function() {
     });
 
     it("can call a function compoundly", function() {
-        var func = sinon.spy(function(a) { return a; });
+        var func = sinon.spy(function(a) { return a.passed[0]; });
         scope.addFunc({
             patterns: ["bake $"],
             impl: func
@@ -73,15 +87,15 @@ describe('BackTalker function calls', function() {
         func.calledTwice.should.be.ok;
     });
 
-    it("can specify bareword patterns, and get the actuals", function() {
-        var func = sinon.spy(function(a) { return a; });
+    it("can name choices and find which was used", function() {
+        var func = sinon.spy(function(a) { return a.named.target; });
         scope.addFunc({
-            patterns: ["bake <cake|pie>"],
+            patterns: ["bake <cake|pie>:target"],
             impl: func
         });
 
-        evaluator.evalString("bake cake").should.equal("cake");
-        evaluator.evalString("bake pie").should.equal("pie");
+        evaluator.evalString("bake cake").should.equal(0);
+        evaluator.evalString("bake pie").should.equal(1);
 
         (function(){
             evaluator.evalString("bake pants");
@@ -97,8 +111,8 @@ describe('BackTalker function calls', function() {
             });
 
             // $-type args are defined first
-            evaluator.evalString('bake cake "?"').should.equal("?cake");
-            evaluator.evalString('bake pie "?"').should.equal("?pie");
+            evaluator.evalString('bake cake "?"').should.equal("?");
+            evaluator.evalString('bake pie "?"').should.equal("?");
         });
 
         it("can allow spaces in <|> like <foo or|foo and>", function() {
@@ -107,9 +121,8 @@ describe('BackTalker function calls', function() {
                 impl: addSpy
             });
 
-            console.log(scope.funcs);
-            evaluator.evalString('bake cake and "pie"').should.equal("piecakeand");
-            evaluator.evalString('bake pie or "cake"').should.equal("cakepieor");
+            evaluator.evalString('bake cake and "pie"').should.equal("pie");
+            evaluator.evalString('bake pie or "cake"').should.equal("cake");
         });
     });
 
@@ -130,8 +143,8 @@ describe('BackTalker function calls', function() {
     });
 
     it('can allow for auto-vivified variables', function() {
-        var func = sinon.spy(function(arg) {
-            return arg;
+        var func = sinon.spy(function(args) {
+            return args.passed[0];
         });
 
         scope.addFunc({
@@ -165,7 +178,6 @@ describe('BackTalker function calls', function() {
         scope.addFunc({
             patterns: ["cool"],
             impl: function() {
-                console.log('called cool can tell newSubEval', this);
                 var self = <evaluator.Evaluator>this;
                 newSubEval = self.newSubEval;
                 if (self.newSubEval) {
@@ -190,7 +202,7 @@ describe('BackTalker function calls', function() {
             gravity = 0,
             planet = null,
             func = sinon.spy(function(planet_in) {
-                planet = planet_in;
+                planet = planet_in.passed[0];
                 bodySyntax = this.body;
 
                 this.scope.addFunc({

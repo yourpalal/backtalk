@@ -47,7 +47,7 @@ module FuncArg {
 }
 
 export class FuncDef {
-  constructor(public bits: string[], public dyn, public vivify: vars.Vivify[], public args: FuncArg[]) {
+  constructor(public bits: string[], public vivify: vars.Vivify[], public args: FuncArg[]) {
     args.forEach((arg, i) => {
       if (typeof arg === 'undefined') {
         throw new Error('undefined arg: ' + i);
@@ -56,7 +56,7 @@ export class FuncDef {
   }
 
   isEmpty(): boolean {
-    return (this.bits.length === 0 && this.dyn.length === 0);
+    return (this.bits.length === 0);
   }
 
   makeParameterizer() {
@@ -90,10 +90,9 @@ export class FuncDefCollection {
   }
 
   concat(piece: SimpleFuncDefPart): FuncDefCollection {
-    var concatTo = this.defs || [new FuncDef([], [], [], [])];
+    var concatTo = this.defs || [new FuncDef([], [], [])];
     return new FuncDefCollection(concatTo.map((def) => {
       return new FuncDef(def.bits.concat(piece.bits),
-        def.dyn,
         def.vivify.concat(piece.vivify),
         piece.arg ? def.args.concat(piece.arg) : def.args);
     }));
@@ -123,7 +122,7 @@ export class FuncDefCollection {
 
   withArg(arg: FuncArg): FuncDefCollection {
     return new FuncDefCollection(this.defs.map(def => {
-      return new FuncDef(def.bits, def.dyn, def.vivify, def.args.concat(arg));
+      return new FuncDef(def.bits, def.vivify, def.args.concat(arg));
     }));
   }
 }
@@ -150,7 +149,7 @@ export class Seq {
 }
 
 export class SimpleFuncDefPart {
-  constructor(public bits: string[], public dyn: string[], public vivify: vars.Vivify[], public arg?: FuncArg) {
+  constructor(public bits: string[], public vivify: vars.Vivify[], public arg?: FuncArg) {
   }
 
   static makeVar(raw: string): SimpleFuncDefPart {
@@ -168,14 +167,14 @@ export class SimpleFuncDefPart {
     }
 
     if (name === null) {
-      return new SimpleFuncDefPart(['$'], [], vivify);
+      return new SimpleFuncDefPart(['$'], vivify);
     } else {
-      return new SimpleFuncDefPart(['$'], [], vivify, FuncArg.forVar(name));
+      return new SimpleFuncDefPart(['$'], vivify, FuncArg.forVar(name));
     }
   }
 
   static makeBare(raw: string): SimpleFuncDefPart {
-    return new SimpleFuncDefPart([raw], [], [])
+    return new SimpleFuncDefPart([raw], [])
   }
 }
 

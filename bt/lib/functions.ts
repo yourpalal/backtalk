@@ -25,6 +25,26 @@ export class FuncParams {
       }
     });
   }
+
+  has(name: string): boolean {
+    if (this.named.hasOwnProperty(name)) {
+      return true;
+    }
+  }
+
+  get(name :string, missing?: any): any {
+    if (this.has(name)) {
+      return this.named[name];
+    }
+    return missing;
+  }
+
+  choose<T>(name :string, values:T[], missing?: T) :T {
+    if (this.has(name)) {
+      return values[this.named[name]];
+    }
+    return missing;
+  }
 }
 
 class FuncArg {

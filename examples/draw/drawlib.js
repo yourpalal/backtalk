@@ -4,10 +4,7 @@ window.Drawing = {
     width: 0,
     height: 0,
     Circle: function(size, color) {
-        this.radius = {
-            big: 30,
-            small: 5
-        }[size];
+        this.radius = size;
         this.color = color;
         this.center = [0, 0];
     },
@@ -29,26 +26,22 @@ Drawing.Context = function() {
 
 Drawing.makeObjectContext = function(object, scope) {
     scope.addFunc({
-        patterns: ['a <bit|pixel> <left of|right of|above|below> center',
-                   'at $ <pixel|pixels> <left|right> of center'],
-        impl: function() {
-            var how, much, lr, what = "center";
-            if (arguments[0] == 'bit' || arguments[0] == 'pixel') {
-                how = arguments[0];
-                much = 1;
-                lr = arguments[1];
-            } else if (arguments.length == 3) {
-                much = arguments[0];
-                how = arguments[1];
-                lr = arguments[2];
+        patterns: ['a <bit|pixel>:which <left of|right of|above|below>:direction center',
+                   'at $:count <pixel|pixels> <left of|right of|above|below>:direction center'],
+        impl: function(args) {
+            var count = args.choose("which", [5, 1], args.get("count"));
+            if (args.named.direction % 2 == 0) {
+              // left, above = -
+              count *= -1;
             }
 
-
-            if (how === 'bit') { much = 5 }
-            if (lr === 'left') { much *= -1 }
-            if (what === 'center') { what = Drawing.width / 2; }
-
-            object.center[0] = what - much;
+            if (args.named.direction > 1) {
+              // up/down
+              object.center[1] = (Drawing.height / 2) + count;
+            } else {
+              // left/right
+              object.center[0] = (Drawing.width / 2) + count;
+            }
         }
     });
 };
@@ -57,9 +50,9 @@ Drawing.Context.prototype.register = function(btcontext) {
     var ctx = this;
 
     btcontext.addFunc({
-        patterns: ['a <small|big> <red|yellow|green|blue> circle'],
-        impl: function(size, colour) {
-            var circle = new Drawing.Circle(size, colour);
+        patterns: ['a <small|big>:size <red|yellow|green|blue>:colour circle'],
+        impl: function(args) {
+            var circle = new Drawing.Circle(args.choose("size", [5, 30]), args.choose("colour", ["red", "yellow", "green", "blue"]));
             ctx.gfx.push(circle);
 
             Drawing.makeObjectContext(circle, this.scope);

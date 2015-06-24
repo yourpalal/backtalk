@@ -4,6 +4,9 @@ TS_FILES = find bt -name '.ts'
 scripts: grammar.js
 	gulp scripts
 
+dist:
+	gulp dist
+
 clean:
 	rm -rf build/
 
@@ -19,6 +22,7 @@ test: scripts build/js/lib/grammar.js
 
 test-w: gen/grammar.js
 	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js --reporter $(REPORTER) --growl --watch --require source-map-support/register
+
 
 
 .PHONY: test test-w repl ALL clean

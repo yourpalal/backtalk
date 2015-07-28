@@ -54,91 +54,100 @@ export class BaseVisitor implements Visitor {
   visitFuncCall(FuncCall, ...args: any[]): any { throw new Error("visitFuncCall not implemented"); }
 }
 
-export interface Visitable {
-  accept(Visitor, ...args: any[]): any
+export class Code {
+  constructor(public lineNumber: number = -1) {}
 }
 
-export class AddOp implements Visitable {
-  constructor(public right: any) { }
+export interface Visitable {
+  accept(Visitor, ...args: any[]): any
+  code: Code;
+}
+
+class ASTItem {
+  public code: Code = new Code();
+}
+
+export class AddOp extends ASTItem implements Visitable {
+  constructor(public right: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitAddOp.apply(visitor, [this].concat(args));
   }
 }
 
-export class SubOp implements Visitable {
-  constructor(public right: any) { }
+export class SubOp extends ASTItem implements Visitable {
+  constructor(public right: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitSubOp.apply(visitor, [this].concat(args));
   }
 }
 
-export class DivideOp implements Visitable {
-  constructor(public right: any) { }
+export class DivideOp extends ASTItem implements Visitable {
+  constructor(public right: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitDivideOp.apply(visitor, [this].concat(args));
   }
 }
 
-export class MultOp implements Visitable {
-  constructor(public right: any) { }
+export class MultOp extends ASTItem implements Visitable {
+  constructor(public right: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitMultOp.apply(visitor, [this].concat(args));
   }
 }
 
-export class BinOpNode implements Visitable {
-  constructor(public left: any, public ops: any) { }
+export class BinOpNode extends ASTItem implements Visitable {
+  constructor(public left: any, public ops: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitBinOpNode.apply(visitor, [this].concat(args));
   }
 }
 
-export class Literal implements Visitable {
-  constructor(public val: any) { }
+export class Literal extends ASTItem implements Visitable {
+  constructor(public val: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitLiteral.apply(visitor, [this].concat(args));
   }
 }
 
-export class BareWord implements Visitable {
-  constructor(public bare: string) { }
+export class BareWord extends ASTItem implements Visitable {
+  constructor(public bare: string) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitBareWord.apply(visitor, [this].concat(args));
   }
 }
 
-export class UnaryMinus implements Visitable {
-  constructor(public val: any) { }
+export class UnaryMinus extends ASTItem implements Visitable {
+  constructor(public val: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitUnaryMinus.apply(visitor, [this].concat(args));
   }
 }
 
-export class Ref implements Visitable {
-  constructor(public name: any) { }
+export class Ref extends ASTItem implements Visitable {
+  constructor(public name: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitRef.apply(visitor, [this].concat(args));
   }
 }
 
-export class CompoundExpression implements Visitable {
-  constructor(public parts: Visitable[]) { }
+export class CompoundExpression extends ASTItem implements Visitable {
+  constructor(public parts: Visitable[]) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitCompoundExpression.apply(visitor, [this].concat(args));
   }
 }
 
-export class HangingCall implements Visitable {
+export class HangingCall extends ASTItem implements Visitable {
   public body: CompoundExpression;
 
-  constructor(public name: any, public args: any) { }
+  constructor(public name: any, public args: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitHangingCall.apply(visitor, [this].concat(args));
   }
 }
 
-export class FuncCall implements Visitable {
-  constructor(public name: any, public args: any) { }
+export class FuncCall extends ASTItem implements Visitable {
+  constructor(public name: any, public args: any) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitFuncCall.apply(visitor, [this].concat(args));
   }
@@ -178,7 +187,7 @@ export class FuncCallMaker {
 export class Parser {
   fromSource = function(source: string, inspector?: (p: grammar.ParserNode) => void) {
     var parse_tree;
-      parse_tree = grammar.parse(source.trim());
+      parse_tree = grammar.parse(source);
       if (inspector) {
         inspector(parse_tree);
       }
@@ -219,10 +228,11 @@ class Line {
   indent: number
   ex: Visitable
 
-  constructor(line: any) {
+  constructor(num: number, line: any) {
     line = line.line || line; // we may have a LineNode or a (BREAK line)
     this.indent = line.lead.textValue.length;
     this.ex = line.ex.transform();
+    this.ex.code.lineNumber = num;
   }
 }
 
@@ -336,8 +346,14 @@ grammar.Parser.BareNode = grammarParserBareNode;
 module grammarParserCompoundNode {
   export var isa = 'CompoundNode'
   export function transform() {
-    var lines : Line[] = this.rs.elements.map((l) => new Line(l));
-    lines.unshift(new Line(this.ls));
+    // line numbering: starts from 1
+    // the first line is from this.ls, second and up are from this.rs
+    var lineNum = 1 + this.blanks.elements.length;
+    var lines : Line[] = this.rs.elements.map((line) => {
+      lineNum += line.blanks.elements.length;
+      return new Line(lineNum, line);
+    });
+    lines.unshift(new Line(1 + this.blanks.elements.length, this.ls));
 
     var collector = new LineCollector(lines, 0, 0);
     return collector.collect();
@@ -369,7 +385,7 @@ grammar.Parser.FuncCallNode = grammarParserFuncCallNode;
 class SimpleParserNode implements grammar.ParserNode {
   constructor(public isa: string) { }
   transform(): any {
-    console.log('throwing transform execption for: ', this);
+    console.log('throwing transform exception for: ', this);
     throw new Error("Caled transform on a " + this.isa);
   }
 }

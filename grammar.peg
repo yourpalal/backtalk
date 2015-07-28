@@ -1,5 +1,5 @@
 grammar BackTalk
-    compound    <-          BLANK* ls:line rs:(BLANK+ line)*  <CompoundNode>
+    compound    <-          blanks:(BLANK*) ls:line rs:(blanks:BLANK+ line)*  <CompoundNode>
     line        <-          lead:SPACE? ex:expression SPACE? comment? <LineNode>
     expression  <-          sum / product / number / string / func_call / paren_expr / ref
 

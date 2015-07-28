@@ -3,7 +3,7 @@
 var argparser = require('argparser')
                 .nonvals("ast")
                 .parse();
-var BT = require('./back_talker');
+var BT = require('../lib/back_talker');
 var readline = require('readline');
 
 
@@ -43,7 +43,7 @@ function loop() {
             }
             console.log(evaluator.eval(ast));
         } catch (e) {
-            if (e instanceof BT.AST.ParseError) {
+            if (e instanceof BT.Syntax.ParseError) {
                 console.log(e.message);
             } else {
                 throw e;

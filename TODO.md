@@ -1,30 +1,10 @@
 enable bare/var patterns like <$|something|else>
 enable optional words like "?just <$|one|two|three> pixels to the left"
 
-enable better function patterns with named args, eg:
+Add support for varargs. Possible pattern syntax is `$...:foo` or `$!...:foo` or `$!!...:foo` .
+Might also be cool to do something like <$ |with$| without $>...:args, to enable things like
 
-patterns for one thing:
+      draw a closed polygon from 5 10 to 8 10 to 10 10 to 5 5
 
-    just much:a how:<pixel|bit> direction:<left|right> of ref:<$|center>
-    just much:$ how:<pixel|pixels> direction:<left|right> of ref:<$|center>
-
-    function(much, how, direction, ref) {
-        if (how == 'bit') {
-            much = 5;
-        }
-        if (much === 'a' && how === 'pixel') {
-            much = 1;
-        }
-
-        if (direction === 'left') {
-            much *= -1;
-        }
-
-        if (ref === 'center') {
-            ref = Canvas.width / 2;
-        }
-
-        obj.x = ref + much;
-    }
-
-
+which would use a pattern like "draw a ?closed polygon from $:start_x $:start_y to $:next_x $:next_y <to $:x $:y>...:args"
+to allow for repeating "to $ $" arguments.

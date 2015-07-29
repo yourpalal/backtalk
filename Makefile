@@ -1,8 +1,10 @@
 REPORTER = dot
 TS_FILES = find bt -name '.ts'
+NODE_BIN = `npm bin`
+CANOPY = `npm bin`
 
-scripts: grammar.js
-	gulp scripts
+scripts:
+	gulp scripts canopy
 
 dist:
 	gulp dist
@@ -10,17 +12,13 @@ dist:
 clean:
 	rm -rf build/
 
-grammar.js: grammar.peg
-	canopy $(<)
-
-testnos: scripts build/js/lib/grammar.js
+testnos: scripts
 	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js -u bdd
 
-test: scripts build/js/lib/grammar.js
+test: scripts
 	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js -u bdd --require source-map-support/register
 
-
-test-w: gen/grammar.js
+test-w: scripts
 	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js --reporter $(REPORTER) --growl --watch --require source-map-support/register
 
 build/js/bin/repl.js: bt/bin/repl.js
@@ -28,7 +26,7 @@ build/js/bin/repl.js: bt/bin/repl.js
 	rm -f $@
 	cp $(<) $@
 
-repl: scripts build/js/lib/grammar.js build/js/bin/repl.js
+repl: scripts build/js/bin/repl.js
 	node build/js/bin/repl.js
 
 .PHONY: test test-w repl ALL clean

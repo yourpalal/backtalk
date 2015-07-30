@@ -12,12 +12,6 @@ dist:
 clean:
 	rm -rf build/
 
-testnos: scripts
-	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js -u bdd
-
-test: scripts
-	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js -u bdd --require source-map-support/register
-
 test-w: scripts
 	@NODE_ENV=test ./node_modules/.bin/mocha build/js/tests/*.js --reporter $(REPORTER) --growl --watch --require source-map-support/register
 

@@ -11,7 +11,9 @@ var gulp = require("gulp"),
     buffer = require('vinyl-buffer'),
 
     through = require('through2'),
-    canopy = require('canopy')
+    canopy = require('canopy'),
+
+    mocha = require('gulp-mocha')
 ;
 
 var GRAMMAR_FILE = "bt/lib/grammar.peg";
@@ -23,7 +25,22 @@ var project = typescript.createProject({
     noExternalResolve: false,
     target: 'ES5',
     module: 'commonjs',
+    noEmitOnError: true,
 });
+
+var dieAfterFinish = function(message) {
+  var installed = false;
+  // error handler installs 'end' handler
+  return function() {
+    if (installed) return;
+
+    this.on("end", function() {
+        console.log(message);
+        process.exit(1);
+    });
+  }
+};
+
 
 gulp.task("canopy", function(end) {
   return gulp.src(GRAMMAR_FILE)
@@ -39,10 +56,11 @@ gulp.task("canopy", function(end) {
     .pipe(gulp.dest('build/js/lib'));
 });
 
-gulp.task('scripts', function() {
+gulp.task('scripts', function(cb) {
     return gulp.src(['bt/bin/**.ts', 'bt/lib/**.ts', 'bt/tests/**.ts'], {'base': 'bt/'})
       .pipe(sourcemaps.init())
       .pipe(typescript(project)).js
+      .on('error', dieAfterFinish("typescript failed"))
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('build/js'));
 });
@@ -60,6 +78,11 @@ gulp.task('dist', ['scripts', 'canopy'], function() {
     .on('error', gutil.log)
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('./build/dist/'));
+});
+
+gulp.task('test', ['scripts', 'canopy'], function() {
+  return gulp.src(['build/js/tests/*.js'], {read: false})
+    .pipe(mocha({}));
 });
 
 gulp.task('watch', ['scripts', 'canopy'], function() {

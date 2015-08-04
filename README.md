@@ -1,5 +1,7 @@
 # BackTalk
 
+[![Build Status](https://travis-ci.org/yourpalal/backtalk.svg)](https://travis-ci.org/yourpalal/backtalk)
+
 BackTalk is a programming language that is focused on natural language-inspired embedded scripting. The idea is to let your users talk back to you. This goal is where the name "BackTalk" comes from. The interpreter and parser are implemented in TypeScript, and can be compiled into a relatively simple-to-use library that can be embedded in other {Java|Type}Script software. BackTalk is not done, it is not very usable yet, but it can run both in a command-line REPL as well as in a simple browser-based example (see /examples).
 
 ## Goals

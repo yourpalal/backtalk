@@ -82,7 +82,9 @@ gulp.task('dist', ['scripts', 'canopy'], function() {
 
 gulp.task('test', ['scripts', 'canopy'], function() {
   return gulp.src(['build/js/tests/*.js'], {read: false})
-    .pipe(mocha({}));
+    .pipe(mocha({
+        require: ['source-map-support/register']
+    }));
 });
 
 gulp.task('watch', ['scripts', 'canopy'], function() {

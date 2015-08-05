@@ -97,7 +97,7 @@ export class FuncDefCollection {
   }
 
   process(seq: Seq): FuncDefCollection {
-    var next = this;
+    var next: FuncDefCollection = this;
     seq.pieces.forEach((piece) => {
       if (piece instanceof Choice) {
         next = next.fork(<Choice>piece);
@@ -123,8 +123,8 @@ export class FuncDefCollection {
   }
 
   fork(choice: Choice): FuncDefCollection {
-    var original_defs = this,
-      new_defs = this;
+    var original_defs: FuncDefCollection = this,
+      new_defs: FuncDefCollection = new FuncDefCollection();
 
     choice.options.forEach((bits: SimpleFuncDefPart[], i:number) => {
       var next_defs = original_defs;
@@ -135,7 +135,7 @@ export class FuncDefCollection {
         next_defs = next_defs.withArg(choice.arg.withValue(i));
       }
       new_defs = new_defs.join(next_defs);
-    }, this);
+    });
 
     return new_defs;
   }

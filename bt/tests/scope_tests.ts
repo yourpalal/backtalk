@@ -14,6 +14,7 @@ describe('BackTalker scopes', function() {
 
     it('can inherit from their parents', function() {
         scope.set("weird", 5);
+        scope.has("weird").should.be.ok;
         scope.get("weird").should.equal(5);
 
         var sub = scope.createSubScope();

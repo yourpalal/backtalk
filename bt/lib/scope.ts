@@ -31,6 +31,10 @@ export class Scope {
     this.names[name] = val;
   }
 
+  has(name: string): any {
+    return name in this.names;
+  }
+
   get(name: string): any {
     return this.names[name];
   }

@@ -13,6 +13,9 @@
     },
     "sinon/sinon.d.ts": {
       "commit": "2d4c4679bc2b509f27435a4f9da5e2de11258571"
+    },
+    "node/node.d.ts": {
+      "commit": "147cc7a8b375d97bf82afb34614268bbb77d18d5"
     }
   }
 }

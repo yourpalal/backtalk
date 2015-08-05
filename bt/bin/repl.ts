@@ -1,20 +1,22 @@
+/// <reference path="../typings/argparser.d.ts" />
+/// <reference path="../typings/tsd.d.ts" />
+
 'use strict';
 
-var argparser = require('argparser')
-                .nonvals("ast")
-                .parse();
-var BT = require('../lib/back_talker');
-var Shell = require('../lib/shell').Shell;
-var readline = require('readline');
+import argparser = require('argparser');
+import readline = require('readline');
+
+import BT = require('../lib/back_talker');
+import {Shell} from '../lib/shell';
 
 
-var rl = readline.createInterface({
+var args = argparser.nonvals("ast").parse(),
+  rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
-});
+  });
 
-var print_parse_tree = function(pt, prefix) {
-    prefix = prefix || "";
+var print_parse_tree = function(pt, prefix = "") {
     console.log(prefix + "<" + (pt.isa || "unknown")  + ">" + '"' + pt.textValue + '"');
 
     pt.elements.forEach(function(e) {
@@ -39,7 +41,7 @@ scope.addFunc({
 shell.eval = function(source) {
   try {
     var ast = BT.parse(source, print_parse_tree);
-    if (argparser.opt("ast")) {
+    if (args.opt("ast")) {
       console.log(ast);
     }
     console.log(shell.evaluator.eval(ast));

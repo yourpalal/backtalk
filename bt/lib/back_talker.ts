@@ -1,17 +1,7 @@
-import evaluator = require("./evaluator");
-import functions = require("./functions");
-import scope = require("./scope");
-import stdLib = require("./standard_lib");
-import syntax = require("./syntax");
-import vars = require("./vars");
+export {Evaluator, evalBT as eval} from "./evaluator";
+export {Scope} from "./scope";
+export import StdLib = require("./standard_lib");
+export import Syntax = require("./syntax");
+export {AutoVar, Vivify} from "./vars";
 
-export var Vivify = vars.Vivify;
-export var AutoVar = vars.AutoVar;
-export var Scope = scope.Scope;
-export var Evaluator = evaluator.Evaluator;
-export var eval = evaluator.evalBT;
-
-export var parse = syntax.parse;
-
-export var StdLib = stdLib;
-export var Syntax = syntax;
+export var parse = Syntax.parse;

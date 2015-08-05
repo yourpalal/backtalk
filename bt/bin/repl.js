@@ -4,6 +4,7 @@ var argparser = require('argparser')
                 .nonvals("ast")
                 .parse();
 var BT = require('../lib/back_talker');
+var Shell = require('../lib/shell').Shell;
 var readline = require('readline');
 
 
@@ -11,7 +12,6 @@ var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
-
 
 var print_parse_tree = function(pt, prefix) {
     prefix = prefix || "";
@@ -24,37 +24,43 @@ var print_parse_tree = function(pt, prefix) {
 
 var evaluator = new BT.Evaluator(scope),
     scope = evaluator.scope,
-    running = true
+    shell = new Shell(evaluator);
     ;
 
 scope.addFunc({
     patterns: ['q'],
-    impl: function() { running = false; return 'goodbye!';}
+    impl: function() {
+      console.log('goodbye!');
+      rl.close();
+      process.exit();
+    }
 });
 
+shell.eval = function(source) {
+  try {
+    var ast = BT.parse(source, print_parse_tree);
+    if (argparser.opt("ast")) {
+      console.log(ast);
+    }
+    console.log(shell.evaluator.eval(ast));
+  } catch (e) {
+    if (e instanceof BT.Syntax.ParseError) {
+        console.log(e.message);
+    } else {
+        throw e;
+    }
+  }
+}
 
-function loop() {
-    rl.question('$>: ', function(answer) {
+rl.setPrompt("::>");
+rl.prompt();
 
-        try {
-            var ast = BT.parse(answer, print_parse_tree);
-            if (argparser.opt("ast")) {
-                console.log(ast);
-            }
-            console.log(evaluator.eval(ast));
-        } catch (e) {
-            if (e instanceof BT.Syntax.ParseError) {
-                console.log(e.message);
-            } else {
-                throw e;
-            }
-        }
-        if (!running) {
-            rl.close();
-            process.exit();
-        }
-        loop();
-    });
-};
-
-loop();
+rl.on('line', function(line) {
+  shell.processLine(line);
+  if (shell.multiline) {
+    rl.setPrompt(".. ");
+  } else {
+    rl.setPrompt("::>");
+  }
+  rl.prompt();
+});

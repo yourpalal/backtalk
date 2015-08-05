@@ -57,6 +57,7 @@ export class Shell {
 
     if (this.processor.processLine(line)) {
       this.processor = null;
+      this.multiline = false;
     }
   }
 }

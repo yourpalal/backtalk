@@ -46,5 +46,7 @@ describe('The BackTalker Shell', () => {
       shell.processLine("");
       shell.eval.calledOnce.should.be.ok;
       shell.eval.calledWithExactly("foo:\n bar\n baz").should.be.ok;
+
+      shell.multiline.should.not.be.ok;
     });
 });

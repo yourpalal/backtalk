@@ -4,7 +4,7 @@ import should = require('should');
 import sinon = require('sinon')
 
 import BT = require('../lib/back_talker');
-import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/functions';
+import {Choice, FuncDefCollection, FuncParams, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/functions';
 
 
 describe('a funcdef collection', () => {
@@ -85,6 +85,15 @@ describe('a funcdef', function() {
 
           result.options[0][0].bits[0].should.equal('foo');
           result.options[1][0].bits[0].should.equal('bar');
+        });
+
+        it('can split up choices that include vars like <foo|bar $:baz>', () => {
+          var result = new Choice('<foo|bar $:baz>');
+          result.options.should.have.length(2);
+
+          result.options[0][0].bits[0].should.equal('foo');
+          result.options[1][0].bits[0].should.equal('bar');
+          result.options[1][1].bits[0].should.equal('$');
         });
     });
 
@@ -224,5 +233,28 @@ describe('a funcdef', function() {
         result.defs[1].isEmpty().should.not.be.ok;
         result.defs[1].bits.length.should.equal(1);
         result.defs[1].bits[0].should.equal('bar');
+    });
+
+    it('can contain $ in choices like <bar|$:barvar>', () => {
+        var result = FuncDefCollection.fromString("foo <bar|$:barvar>");
+        result.defs.length.should.equal(2);
+
+        result.defs[0].bits[0].should.equal('foo');
+        result.defs[0].bits[1].should.equal('bar');
+
+        result.defs[1].isEmpty().should.not.be.ok;
+        result.defs[1].bits.length.should.equal(2);
+        result.defs[1].bits[0].should.equal('foo');
+        result.defs[1].bits[1].should.equal('$');
+        result.defs[1].args.should.have.length(1);
+
+        // foo bar
+        var args = new FuncParams(["barvalue"], result.defs[0].args);
+        args.has("barvar").should.not.be.ok;
+
+        // foo $:barvar
+        args = new FuncParams(["barvalue"], result.defs[1].args);
+        args.has("barvar").should.be.ok;
+        args.named["barvar"].should.equal("barvalue");
     });
 });

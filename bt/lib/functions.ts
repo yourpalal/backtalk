@@ -151,7 +151,16 @@ export class FuncDefCollection {
 type FuncDefPart = SimpleFuncDefPart | Choice | Seq;
 
 export function parse(pattern: string): Seq {
-  var pieces = pattern.match(/<[a-zA-Z |]+>(:[a-zA-Z]+)?|[a-zA-Z]+|\$\!?\!?(:[a-zA-Z]+)?/g)
+  // regexp explanation:
+  // the strategy is to match each piece that we are interested in, instead of
+  // spliting via whitespace or something like that.
+  //
+  // <[a-zA-Z |$!]+> matches choices like this: <foo bar | baz $!:cool>
+  //     this doesn't need to be perfect, as we will send it to parse() later.
+  // (:[a-zA-Z]+)? matches the tag that can come after a choice
+  // [a-zA-Z]+ matches bare words
+  // \$\!?\!? matches vars (and they can be tagged like choices)
+  var pieces = pattern.match(/<[a-zA-Z |$!:]+>(:[a-zA-Z]+)?|[a-zA-Z]+|\$\!?\!?(:[a-zA-Z]+)?/g)
     .map((piece) => {
     if (piece.indexOf('<') == 0) {
       return new Choice(piece);

@@ -1,4 +1,3 @@
-enable bare/var patterns like <$|something|else>
 enable optional words like "?just <$|one|two|three> pixels to the left"
 
 Add support for varargs. Possible pattern syntax is `$...:foo` or `$!...:foo` or `$!!...:foo` .

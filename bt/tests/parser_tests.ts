@@ -24,6 +24,18 @@ describe("The BackTalker parser", () => {
       (<syntax.CompoundExpression>parsed).parts[0].code.should.have.property("lineNumber", 4);
       (<syntax.CompoundExpression>parsed).parts[1].code.should.have.property("lineNumber", 6);
     });
+  });
 
+  describe("groups lines into hanging call bodies by leading whitespace", () => {
+    var parsed = <syntax.CompoundExpression>BT.parse(`
+    with $a as:
+     "in the block"
+      "also in the block"
+    $a`);
+
+    parsed.parts.should.have.length(2); // hanging call + $a
+
+    parsed.parts[0].should.be.an.instanceOf(syntax.HangingCall);
+    (<syntax.HangingCall>parsed.parts[0]).body.parts.should.have.length(2);
   });
 });

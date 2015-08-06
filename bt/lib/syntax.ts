@@ -249,7 +249,7 @@ export class LineCollector extends BaseVisitor {
   }
 
   visitHangingCall(func: HangingCall): any {
-    var c = new LineCollector(this.lines, this.i + 1, this.lines[this.i].indent);
+    var c = new LineCollector(this.lines, this.i + 1, this.lines[this.i].indent + 1);
     func.body = c.collect();
     this.i = c.i;
       // we start up where the other collector left off

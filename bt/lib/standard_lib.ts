@@ -1,13 +1,41 @@
 'use strict';
 
 var parts = [
-  {
-    patterns: ['with $!!:ref as $:val'],
+  { // assignment
+    patterns: ['with $!!:ref as $:val', 'with $!!:ref as:'],
     impl: function(args) {
-      this.scope.set(args.named.ref.name, args.named.val);
-      return args.named.val;
+      var bodyValue = this.newSubEval ? this.eval(this.body) : null,
+          val = args.get("val", bodyValue),
+          scope = this.newSubEval ? this.scope.parent : this.scope;
+      scope.set(args.named.ref.name, val);
+      return val;
     }
-  }];
+  },
+  { // list constructor
+    patterns: ['list of:'],
+    impl: function(args) {
+      // eval each line in the block scope, and put all results into
+      // a list
+      return this.body.parts.map((p) => this.eval(p));
+    }
+  },
+  { // list accessor
+    patterns: ['item $:count of $:list'],
+    impl: function(args) {
+      if (typeof args.named.count != 'number') {
+        return undefined;
+      }
+      return args.named.list[args.named.count - 1];
+    }
+  },
+  { // printer
+    patterns: ['print $:arg'],
+    impl: function(args) {
+      console.log(args.named.arg);
+    }
+  }
+
+ ];
 
 export function inScope(scope) {
   parts.forEach(function(f) {

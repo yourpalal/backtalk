@@ -30,6 +30,7 @@ export class FuncParams {
     if (this.named.hasOwnProperty(name)) {
       return true;
     }
+    return false;
   }
 
   get(name :string, missing?: any): any {

@@ -52,6 +52,17 @@ describe('BackTalker function calls', function() {
 
     });
 
+    it("can check for the existence of arguments by name", function() {
+        var hasFoo = sinon.spy(function(args) { return args.has("foo"); });
+        scope.addFunc({
+            patterns: ["has foo $:foo", "has no foo"],
+            impl: hasFoo
+        });
+
+        evaluator.evalString("has foo 3").should.be.ok;
+        evaluator.evalString("has no foo").should.not.be.ok;
+    });
+
     it("can call a function with no arguments", function() {
         var func = sinon.stub().returns("cool");
         scope.addFunc({

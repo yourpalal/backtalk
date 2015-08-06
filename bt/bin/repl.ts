@@ -35,13 +35,23 @@ class REPL {
     this.init_scope();
   }
 
+  static json_replacer(k: string, v: any) {
+    if (k === "code") {
+      return undefined
+    }
+    return v;
+  }
+
   shell_eval(source) {
     try {
       var ast = BT.parse(source, (a) => this.print_parse_tree(a));
       if (this.print_ast) {
-        console.log(ast);
+        console.log(JSON.stringify(ast, REPL.json_replacer, 2));
       }
-      console.log(this.shell.evaluator.eval(ast));
+      var result = this.shell.evaluator.eval(ast);
+      if (typeof result !== 'undefined') {
+        console.log(result);
+      }
     } catch (e) {
       if (e instanceof BT.BaseError) {
         console.log(e.toString());
@@ -88,6 +98,13 @@ class REPL {
         impl: (args) => {
           this.scope.funcs.each((k, v) => console.log(k));
         }
+    });
+
+    this.scope.addFunc({
+      patterns: ["repl scope"],
+      impl: (args) => {
+        console.log(this.scope.names);
+      }
     });
   }
 

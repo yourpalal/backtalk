@@ -3,6 +3,18 @@ import scopes = require("./scope");
 import vars = require("./vars");
 import stdLib = require("./standard_lib");
 
+import {BaseError} from "./errors";
+
+
+export class FunctionNameError extends BaseError {
+  constructor(name) {
+    super(`function "${name}" called but undefined`);
+  }
+
+  toString(): string {
+    return this.msg;
+  }
+}
 
 export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope) {
   var parsed;
@@ -45,7 +57,7 @@ export class Evaluator extends syntax.BaseVisitor {
       , argsGetter = new ArgsEvaluator(this);
 
     if ((f || 0) === 0) {
-      throw new Error("function called but undefined " + name);
+      throw new FunctionNameError(name);
     }
 
     args = args.map(function(arg) {

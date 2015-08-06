@@ -1,6 +1,8 @@
 // for use with the PEG grammar (compiled using  http://canopy.jcoglan.com/references.html)
 import grammar = require("./grammar");
 
+import {BaseError} from "./errors";
+
 var _parser: Parser = null;
 
 export function parse(source: string, inspector?: (p: grammar.ParserNode) => void) {
@@ -8,19 +10,19 @@ export function parse(source: string, inspector?: (p: grammar.ParserNode) => voi
   return _parser.fromSource(source, inspector);
 }
 
-export class ParseError {
+export class ParseError extends BaseError {
   public inner: any
   public message: string
   public stack: any
 
   constructor(err) {
+    super(`ParseError: ${err.message}`);
     this.inner = err;
-    this.message = "ParseError: " + err.message;
     this.stack = err.stack;
   }
 
   toString() {
-    return this.inner.toString();
+    return this.inner;
   }
 }
 
@@ -187,7 +189,11 @@ export class FuncCallMaker {
 export class Parser {
   fromSource = function(source: string, inspector?: (p: grammar.ParserNode) => void) {
     var parse_tree;
-      parse_tree = grammar.parse(source);
+      try {
+        parse_tree = grammar.parse(source);
+      } catch (e) {
+        throw new ParseError(e);
+      }
       if (inspector) {
         inspector(parse_tree);
       }

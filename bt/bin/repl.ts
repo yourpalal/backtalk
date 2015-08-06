@@ -43,8 +43,8 @@ class REPL {
       }
       console.log(this.shell.evaluator.eval(ast));
     } catch (e) {
-      if (e instanceof BT.Syntax.ParseError) {
-          console.log(e.message);
+      if (e instanceof BT.BaseError) {
+        console.log(e.toString());
       } else {
           throw e;
       }

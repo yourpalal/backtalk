@@ -2,6 +2,7 @@ var gulp = require("gulp"),
     gutil = require("gulp-util"),
     concat = require("gulp-concat"),
     connect = require("gulp-connect"),
+    jsdoc = require("gulp-jsdoc"),
     typescript = require("gulp-typescript"),
     sourcemaps = require('gulp-sourcemaps'),
     merge = require('merge2'),
@@ -26,6 +27,7 @@ var project = typescript.createProject({
     target: 'ES5',
     module: 'commonjs',
     noEmitOnError: true,
+    removeComments: false,
 });
 
 var dieAfterFinish = function(message) {
@@ -63,6 +65,11 @@ gulp.task('scripts', function(cb) {
       .on('error', dieAfterFinish("typescript failed"))
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('build/js'));
+});
+
+gulp.task('docs', ['scripts'], function() {
+  gulp.src(['build/js/lib/**.js'])
+    .pipe(jsdoc('build/docs'));
 });
 
 gulp.task('dist', ['scripts', 'canopy'], function() {

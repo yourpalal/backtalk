@@ -5,7 +5,17 @@ import stdLib = require("./standard_lib");
 
 import {BaseError} from "./errors";
 
+/**
+ * @module evaluator
+ * @description contains classes & functions for evaluating backtalk code.
+ */
 
+
+/**
+ * @class FunctionNameError
+ * @description thrown when a function is called but does not exist in
+ *   the current scope.
+ */
 export class FunctionNameError extends BaseError {
   constructor(name) {
     super(`function "${name}" called but undefined`);
@@ -16,6 +26,11 @@ export class FunctionNameError extends BaseError {
   }
 }
 
+/**
+ * @function evalBT
+ * @description Evaluates a string or AST within a scope.
+ * @returns The last value returned from the backtalk code.
+ */
 export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope) {
   var parsed;
   if (typeof (source) === 'string') {
@@ -26,10 +41,24 @@ export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope) 
   return (new Evaluator(scope)).eval(parsed);
 }
 
+/**
+ * @class evaluator.Evaluator
+ * @description BackTalk evaluator. Interprets BackTalk AST's within a given scope.
+ *
+ */
 export class Evaluator extends syntax.BaseVisitor {
+  /**
+   * @member evaluator.Evaluator#newSubEval is true if this evaluator was created to evaluate the body of a
+   * hanging call. If newSubEval is true, then `body` will hold the body of the
+   * hanging call.
+   */
   public newSubEval: boolean;
   public body: syntax.Visitable;
 
+  /**
+   * @constructor
+   * @param {scopes.Scope} (optional) scope in which to evaluate BT code.
+   */
   constructor(public scope?: scopes.Scope) {
     super();
     this.scope = scope || stdLib.inScope(new scopes.Scope());
@@ -153,7 +182,11 @@ export class Evaluator extends syntax.BaseVisitor {
   }
 }
 
-// ArgsEvaluator is an syntax Visitor that returns AutoVar for all RefNodes
+/**
+ * @class evaluator.ArgsEvaluator
+ * @description Syntax Visitor that returns AutoVar for all RefNodes. Used to
+ * evaluate function paramaters.
+ */
 class ArgsEvaluator extends syntax.BaseVisitor {
   constructor(public subEval: Evaluator) {
     super()

@@ -5,6 +5,13 @@ import {BaseError} from "./errors";
 
 var _parser: Parser = null;
 
+/** @module syntax */
+
+/** @function syntax.parse
+ * @param {string} source - the backtalk source code to parse.
+ * @param [inspector] - optional funciton which is called with the raw Canopy AST
+ * before it's turnd into a backtalk AST.
+ */
 export function parse(source: string, inspector?: (p: grammar.ParserNode) => void) {
   _parser = _parser || new Parser();
   return _parser.fromSource(source, inspector);

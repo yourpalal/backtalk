@@ -1,5 +1,7 @@
 import {Evaluator} from "./evaluator";
 
+/** @module shell */
+
 interface LineProcessor {
   processLine(line: string);
 }
@@ -32,6 +34,10 @@ class MultiLineProcessor implements LineProcessor {
   }
 }
 
+/** @class shell.Shell
+ * @description Implements line-by-line processing, with simple heuristics that allow users
+ * to input multiline statements one line at a time. Used in the backtalk repl.
+ */
 export class Shell {
   private processor: LineProcessor;
   public multiline = false;

@@ -3,6 +3,7 @@ import funcs = require("./functions");
 
 import Trie = require("./trie");
 
+/** @module scope */
 
 interface FuncHandle {
   vivification: vars.Vivify[]
@@ -10,6 +11,11 @@ interface FuncHandle {
   impl: (p: funcs.FuncParams) => any
 }
 
+/** @class scope.Scope
+ * @description Scope keeps track of variable and function names. It uses
+ *  prototype inheritance to make sure all variables from a parent scope are
+ *  visible within child scopes. Function names are handled specially.
+ */
 export class Scope {
   names: { [key: string]: any }
   funcs: Trie<FuncHandle>;
@@ -23,6 +29,11 @@ export class Scope {
     this.funcs = new Trie<FuncHandle>();
   }
 
+  /**
+   * @method scope.Scope#createSubScope
+   * @returns A new scope that has all functions and variables of this one, but
+   *  can add its own functions and variables as well.
+   */
   createSubScope(): Scope {
     return new Scope(this);
   }
@@ -39,6 +50,9 @@ export class Scope {
     return this.names[name];
   }
 
+  /** @method scope.Scope#getVivifiable
+   * @returns {vars.Autovar} handle for a given name in this scope.
+   */
   getVivifiable(name: string): vars.AutoVar {
     return new vars.AutoVar(name, this, this.names[name]);
   }

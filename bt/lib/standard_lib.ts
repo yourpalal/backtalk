@@ -22,10 +22,8 @@ var parts = [
   { // list accessor
     patterns: ['item $:count of $:list'],
     impl: function(args) {
-      if (typeof args.named.count != 'number') {
-        return undefined;
-      }
-      return args.named.list[args.named.count - 1];
+      var count = args.getNumber("count");
+      return args.named.list[count - 1];
     }
   },
   { // printer

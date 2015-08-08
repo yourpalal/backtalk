@@ -1,6 +1,7 @@
 'use strict';
 
 import vars = require("./vars")
+import {BadTypeError} from "./errors"
 
 // everything in this file should be pure functional
 // because I want it that way
@@ -46,9 +47,31 @@ export class FuncParams {
     }
     return missing;
   }
+
+  hasNumber(name: string): boolean {
+    return this.has(name) && (typeof this.named[name] == 'number');
+  }
+
+  getNumber(name: string): number {
+    if (!this.hasNumber(name)) {
+      throw new BadTypeError(this.named[name], 'number');
+    }
+    return this.named[name];
+  }
+
+  hasString(name: string): boolean {
+    return this.has(name) && (typeof this.named[name] == 'string');
+  }
+
+  getString(name: string): string {
+    if (!this.hasString(name)) {
+      throw new BadTypeError(this.named[name], 'string');
+    }
+    return this.named[name];
+  }
 }
 
-class FuncArg {
+export class FuncArg {
     constructor(public name: string, public value: any, public fromVar: boolean) {
     }
 
@@ -57,7 +80,7 @@ class FuncArg {
     }
 }
 
-module FuncArg {
+export module FuncArg {
   export function forVar(name: string) {
     return new FuncArg(name, null, true);
   }

@@ -7,3 +7,9 @@ export class BaseError {
 }
 
 BaseError.prototype = <any>new Error();
+
+export class BadTypeError extends BaseError {
+  constructor(public value:any, expected: string) {
+    super(`Expected type of ${expected}, but got ${typeof value}, ${value} instead`);
+  }
+}

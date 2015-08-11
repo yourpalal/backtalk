@@ -87,6 +87,13 @@ describe('a funcdef', function() {
           result.options[1][0].bits[0].should.equal('bar');
         });
 
+        it('can split up choices with empty parts like <|bar>', function() {
+          var result = new Choice('<|bar>');
+          result.options.should.have.lengthOf(2);
+          result.options[0].should.have.length(1);
+          result.options[1][0].bits[0].should.equal('bar');
+        });
+
         it('can split up choices that include vars like <foo|bar $:baz>', () => {
           var result = new Choice('<foo|bar $:baz>');
           result.options.should.have.length(2);

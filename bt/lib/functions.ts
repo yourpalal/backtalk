@@ -229,6 +229,10 @@ export class SimpleFuncDefPart {
   static makeBare(raw: string): SimpleFuncDefPart {
     return new SimpleFuncDefPart([raw], [])
   }
+
+  static makeEmpty(): SimpleFuncDefPart {
+    return new SimpleFuncDefPart([], []);
+  }
 }
 
 export class Choice {
@@ -239,8 +243,15 @@ export class Choice {
   constructor(raw: string) {
     var end = raw.lastIndexOf(">");
     var bits = raw.substr(1, end).split('|');
-    var sequences = bits.map(parse);
 
+    // check for empty part
+    var emptyPart = null;
+    if (bits[0] == "") {
+      emptyPart = SimpleFuncDefPart.makeEmpty();
+      bits.shift();
+    }
+
+    // check for choice arg
     this.arg = null;
     if (end != raw.length && raw[end + 1] === ":") {
       var name = raw.slice(end + 2);
@@ -248,7 +259,8 @@ export class Choice {
     }
 
     // verify and extract the SimpleFuncDefParts
-    this.options = sequences.map((s: Seq) => {
+    this.options = bits.map((b: string) => {
+      var s: Seq = parse(b);
       s.pieces.forEach((p) => {
         if (p instanceof Choice) {
             throw new Error("Cannot have nested choices in function pattern");
@@ -256,5 +268,9 @@ export class Choice {
       });
       return <SimpleFuncDefPart[]>(s.pieces);
     });
+
+    if (emptyPart !== null) {
+      this.options.unshift([emptyPart]);
+    }
   }
 }

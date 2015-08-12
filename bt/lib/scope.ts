@@ -1,7 +1,6 @@
-import vars = require("./vars");
-import funcs = require("./functions");
-
-import Trie = require("./trie");
+import * as funcs from "./functions";
+import * as vars from "./vars";
+import {Trie} from "./trie";
 
 /** @module scope */
 

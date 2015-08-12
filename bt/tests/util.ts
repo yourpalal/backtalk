@@ -1,5 +1,6 @@
-
+/// <reference path="../typings/tsd.d.ts" />
 import * as sinon from 'sinon';
+
 import {Evaluator} from "../lib/evaluator";
 import {Scope} from "../lib/scope";
 

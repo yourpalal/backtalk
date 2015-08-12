@@ -1,5 +1,5 @@
 // for use with the PEG grammar (compiled using  http://canopy.jcoglan.com/references.html)
-import grammar = require("./grammar");
+import * as grammar from "./grammar";
 
 import {BaseError} from "./errors";
 

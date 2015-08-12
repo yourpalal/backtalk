@@ -1,9 +1,7 @@
-
 /// <reference path="../typings/tsd.d.ts" />
+import * as should from 'should';
 
-import should = require('should');
-
-import Trie = require('../lib/trie');
+import {Trie} from '../lib/trie';
 
 
 describe('the Trie', () => {

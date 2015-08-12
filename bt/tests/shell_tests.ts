@@ -1,10 +1,10 @@
 /// <reference path="../typings/tsd.d.ts" />
+import * as should from 'should';
+import * as sinon from 'sinon';
 
-import BT = require('../lib/back_talker');
+import * as BT from '../lib/back_talker';
 import {Shell} from '../lib/shell';
 
-import should = require('should');
-import sinon = require('sinon')
 
 import {addSpyToScope} from "./util";
 

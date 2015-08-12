@@ -3,10 +3,10 @@
 
 'use strict';
 
-import argparser = require('argparser');
-import readline = require('readline');
+import * as argparser from 'argparser';
+import * as readline from 'readline';
 
-import BT = require('../lib/back_talker');
+import * as BT from '../lib/back_talker';
 import {Shell} from '../lib/shell';
 
 

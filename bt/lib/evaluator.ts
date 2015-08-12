@@ -1,7 +1,7 @@
-import syntax = require("./syntax");
-import scopes = require("./scope");
-import vars = require("./vars");
-import stdLib = require("./standard_lib");
+import * as vars from "./vars";
+import * as scopes from "./scope";
+import * as stdLib from "./standard_lib";
+import * as syntax from "./syntax";
 
 import {BaseError} from "./errors";
 

@@ -1,10 +1,9 @@
 /// <reference path="../typings/tsd.d.ts" />
+import * as should from 'should';
+import * as sinon from 'sinon';
 
-import should = require('should');
-import sinon = require('sinon');
-
-import BT = require('../lib/back_talker');
-import syntax = require('../lib/syntax');
+import * as BT from '../lib/back_talker';
+import * as syntax from '../lib/syntax';
 
 
 describe("The BackTalker parser", () => {

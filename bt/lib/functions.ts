@@ -1,7 +1,7 @@
 'use strict';
 
-import vars = require("./vars")
-import {BadTypeError} from "./errors"
+import * as vars from "./vars";
+import {BadTypeError} from "./errors";
 
 // everything in this file should be pure functional
 // because I want it that way

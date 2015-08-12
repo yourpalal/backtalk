@@ -1,4 +1,4 @@
-class Trie<T> {
+export class Trie<T> {
   private children: {
     [name: string]: Trie<T>
   } = {};
@@ -71,5 +71,3 @@ class Trie<T> {
       });
   }
 }
-
-export = Trie

@@ -1,9 +1,7 @@
 /// <reference path="../typings/tsd.d.ts" />
+import * as should from 'should';
 
-import should = require('should');
-import sinon = require('sinon')
-
-import BT = require('../lib/back_talker');
+import * as BT from '../lib/back_talker';
 import {Choice, FuncDefCollection, FuncParams, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/functions';
 
 

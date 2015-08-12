@@ -1,9 +1,9 @@
 /// <reference path="../typings/tsd.d.ts" />
+import * as should from 'should';
+import * as sinon from 'sinon';
 
-import should = require('should');
-import sinon = require('sinon')
+import * as BT from '../lib/back_talker';
 
-import BT = require('../lib/back_talker');
 import {InteractiveEvaluator} from "../lib/interactive";
 import {addSpyToScope} from "./util";
 

@@ -1,5 +1,3 @@
-'use strict';
-
 var parts = [
   { // assignment
     patterns: ['with $!!:ref as $:val', 'with $!!:ref as:'],

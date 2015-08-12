@@ -5,6 +5,7 @@ import sinon = require('sinon')
 
 import BT = require('../lib/back_talker');
 import {InteractiveEvaluator} from "../lib/interactive";
+import {addSpyToScope} from "./util";
 
 
 describe('The BackTalker InteractiveEvaluator', function() {
@@ -12,11 +13,7 @@ describe('The BackTalker InteractiveEvaluator', function() {
   beforeEach(function() {
       evaluator = new InteractiveEvaluator();
       scope = evaluator.scope;
-      spyFunc = sinon.spy((a) => a);
-      scope.addFunc({
-        patterns: ["spy on $"],
-        impl: spyFunc
-      });
+      spyFunc = addSpyToScope(scope);
   });
 
   it("emits a line-changed event at each line", function() {

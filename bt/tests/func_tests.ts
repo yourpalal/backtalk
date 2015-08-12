@@ -5,21 +5,15 @@ import sinon = require('sinon')
 
 import BT = require('../lib/back_talker');
 import evaluator = require('../lib/evaluator');
+import {addSpyToScope} from "./util";
 
 
 describe('BackTalker function calls', function() {
-    var scope, evaluator, addSpy;
+    var scope, evaluator;
 
     beforeEach(function() {
         evaluator = new BT.Evaluator();
         scope = evaluator.scope;
-        addSpy = sinon.spy(function(args) {
-            var result = args.passed[0];
-            for (var i = 1; i < args.passed.length; i++ ) {
-                result += args.passed[i];
-            }
-            return result;
-        });
     });
 
     describe("are comprised of bare words and expressions", function() {
@@ -39,62 +33,38 @@ describe('BackTalker function calls', function() {
     });
 
     it("can retrieve arguments by name", function() {
-        var func = sinon.spy(function(a) { return a; });
-        scope.addFunc({
-            patterns: ["look $:foo $:bar"],
-            impl: func
-        });
-
-        var result = evaluator.evalString("look 3 4");
-        result.named.should.have.property("foo", 3);
-        result.named.should.have.property("bar", 4);
-        func.calledOnce.should.be.ok;
-
+        var spyFunc = addSpyToScope(scope);
+        var result = evaluator.evalString("spy on 3 4");
+        result.named.should.have.property("a", 3);
+        result.named.should.have.property("b", 4);
+        spyFunc.calledOnce.should.be.ok;
     });
 
     it("can check for the existence of arguments by name", function() {
-        var hasFoo = sinon.spy(function(args) { return args.has("foo"); });
-        scope.addFunc({
-            patterns: ["has foo $:foo", "has no foo"],
-            impl: hasFoo
-        });
-
-        evaluator.evalString("has foo 3").should.be.ok;
-        evaluator.evalString("has no foo").should.not.be.ok;
+        addSpyToScope(scope, (args) => args.has("a"));
+        evaluator.evalString("spy on 3").should.be.ok;
+        evaluator.evalString("spy").should.not.be.ok;
     });
 
     it("can call a function with no arguments", function() {
-        var func = sinon.stub().returns("cool");
-        scope.addFunc({
-            patterns: ["no args"],
-            impl: func
-        });
+        var func = addSpyToScope(scope, (a) => "cool");
 
-        evaluator.evalString("no args").should.equal("cool");
+        evaluator.evalString("spy").should.equal("cool");
         func.calledOnce.should.be.ok;
     });
 
     it("can call a function with arguments", function() {
-        var func = sinon.spy(function(a) { return a.passed[0]; });
-        scope.addFunc({
-            patterns: ["bake $"],
-            impl: func
-        });
+        var func = addSpyToScope(scope, (a) => a.passed[0]);
 
         scope.set("cake", "yum!");
-        evaluator.evalString("bake $cake").should.equal("yum!");
+        evaluator.evalString("spy on $cake").should.equal("yum!");
         func.calledOnce.should.be.ok;
     });
 
     it("can call a function compoundly", function() {
-        var func = sinon.spy(function(a) { return a.passed[0]; });
-        scope.addFunc({
-            patterns: ["bake $"],
-            impl: func
-        });
-
+        var func = addSpyToScope(scope, (a) => a.passed[0]);
         scope.set("cake", "yum!");
-        evaluator.evalString("bake $cake\nbake $cake").should.equal("yum!");
+        evaluator.evalString("spy on $cake\nspy on $cake").should.equal("yum!");
         func.calledTwice.should.be.ok;
     });
 
@@ -108,17 +78,14 @@ describe('BackTalker function calls', function() {
         evaluator.evalString("bake cake").should.equal(0);
         evaluator.evalString("bake pie").should.equal(1);
 
-        (function(){
-            evaluator.evalString("bake pants");
-
-        }).should.throw();
+        (() => evaluator.evalString("bake pants")).should.throw();
     });
 
     describe("can save you typing with patterns", function() {
         it("can allow choices of barewords like <foo|bar>", function() {
             scope.addFunc({
                 patterns: ["bake <cake|pie> $"],
-                impl: addSpy
+                impl: (a) => a.passed[0]
             });
 
             // $-type args are defined first
@@ -129,7 +96,7 @@ describe('BackTalker function calls', function() {
         it("can allow spaces in <|> like <foo or|foo and>", function() {
             scope.addFunc({
                 patterns: ["bake <cake and|pie or > $"],
-                impl: addSpy
+                impl: (a) => a.passed[0]
             });
 
             evaluator.evalString('bake cake and "pie"').should.equal("pie");
@@ -138,19 +105,10 @@ describe('BackTalker function calls', function() {
     });
 
     it("is called with 'this' being the backtalker instance", function() {
-        var func = sinon.spy(function() {
-            return this;
-        });
-        scope.addFunc({
-            patterns: ["get funky"],
-            impl: func
-        });
-
-
-        var r = evaluator.evalString('get funky');
+        var func = addSpyToScope(scope, function() { return this; });
+        var r = evaluator.evalString('spy on "this"');
 
         r.should.be.an.instanceOf(BT.Evaluator);
-        r.should.have.property('scope');
     });
 
     it('can allow for auto-vivified variables', function() {

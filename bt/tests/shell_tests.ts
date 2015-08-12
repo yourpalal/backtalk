@@ -6,6 +6,8 @@ import {Shell} from '../lib/shell';
 import should = require('should');
 import sinon = require('sinon')
 
+import {addSpyToScope} from "./util";
+
 describe('The BackTalker Shell', () => {
     var scope, shell;
 
@@ -15,6 +17,7 @@ describe('The BackTalker Shell', () => {
 
       shell = new Shell(new BT.Evaluator(scope));
       sinon.spy(shell, "eval");
+      addSpyToScope(scope);
     });
 
     it('can have one expression per line', () => {
@@ -30,22 +33,18 @@ describe('The BackTalker Shell', () => {
     });
 
     it('can have multiline expressions, which are ended via a blank line', () => {
-      scope.addFunc({
-        patterns: ["foo:", "bar", "baz"],
-        impl: () => 4
-      });
-      shell.processLine("foo:");
+      shell.processLine("spy:");
       shell.multiline.should.be.ok;
-      shell.processLine(" bar");
+      shell.processLine(" spy on 1");
       shell.multiline.should.be.ok;
-      shell.processLine(" baz");
+      shell.processLine(" spy on 2");
 
       shell.multiline.should.be.ok;
       shell.eval.notCalled.should.be.ok;
 
       shell.processLine("");
       shell.eval.calledOnce.should.be.ok;
-      shell.eval.calledWithExactly("foo:\n bar\n baz").should.be.ok;
+      shell.eval.calledWithExactly("spy:\n spy on 1\n spy on 2").should.be.ok;
 
       shell.multiline.should.not.be.ok;
     });

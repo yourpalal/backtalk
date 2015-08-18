@@ -44,6 +44,7 @@ export interface Visitor {
   visitUnaryMinus(UnaryMinus, ...args: any[]): any;
   visitRef(Ref, ...args: any[]): any;
   visitCompoundExpression(CompoundExpression, ...args: any[]): any;
+  visitFuncArg(FuncArg, ...args: any[]): any;
   visitHangingCall(HangingCall, ...args: any[]): any;
   visitFuncCall(FuncCall, ...args: any[]): any;
 }
@@ -58,6 +59,7 @@ export class BaseVisitor implements Visitor {
   visitBareWord(BareWord, ...args: any[]): any { throw new Error("visitBareWord not implemented"); }
   visitUnaryMinus(UnaryMinus, ...args: any[]): any { throw new Error("visitUnaryMinus not implemented"); }
   visitRef(Ref, ...args: any[]): any { throw new Error("visitRef not implemented"); }
+  visitFuncArg(FuncArg, ...args: any[]): any { throw new Error("visitFuncArg not implemented"); }
   visitCompoundExpression(CompoundExpression, ...args: any[]): any { throw new Error("visitCompoundExpression not implemented"); }
   visitHangingCall(HangingCall, ...args: any[]): any { throw new Error("visitHangingCall not implemented"); }
   visitFuncCall(FuncCall, ...args: any[]): any { throw new Error("visitFuncCall not implemented"); }
@@ -104,8 +106,10 @@ export class MultOp extends ASTItem implements Visitable {
   }
 }
 
+type BinOp = AddOp | SubOp | DivideOp | MultOp;
+
 export class BinOpNode extends ASTItem implements Visitable {
-  constructor(public left: any, public ops: any) { super(); }
+  constructor(public left: any, public ops: BinOp[]) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitBinOpNode.apply(visitor, [this].concat(args));
   }
@@ -146,17 +150,25 @@ export class CompoundExpression extends ASTItem implements Visitable {
   }
 }
 
+export class FuncArg extends ASTItem implements Visitable {
+  constructor(public body: Visitable) { super(); }
+
+  accept(visitor: Visitor, ...args: any[]): any {
+    return visitor.visitFuncArg.apply(visitor, [this].concat(args));
+  }
+}
+
 export class HangingCall extends ASTItem implements Visitable {
   public body: CompoundExpression;
 
-  constructor(public name: any, public args: any) { super(); }
+  constructor(public name: string, public args: FuncArg[]) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitHangingCall.apply(visitor, [this].concat(args));
   }
 }
 
 export class FuncCall extends ASTItem implements Visitable {
-  constructor(public name: any, public args: any) { super(); }
+  constructor(public name: string, public args: FuncArg[]) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitFuncCall.apply(visitor, [this].concat(args));
   }
@@ -182,11 +194,11 @@ export class FuncCallMaker {
     this.parts.push(part)
   }
 
-  build(): { name: string; args: Visitable[] } {
-    var args: Visitable[] = [],
+  build(): { name: string; args: FuncArg[] } {
+    var args: FuncArg[] = [],
       name = this.parts.map(function(p) {
         var result = <string>p.accept(new FuncCallNameMaker());
-        if (result === "$") { args.push(p); }
+        if (result === "$") { args.push(new FuncArg(p)); }
         return result;
       }).join(" ");
     return { name: name, args: args };

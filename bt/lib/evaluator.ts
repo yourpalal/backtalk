@@ -203,6 +203,10 @@ class ArgsEvaluator extends syntax.BaseVisitor {
   visitCompoundExpression(a: syntax.CompoundExpression): any { return a.accept(this.subEval); }
   visitFuncCall(a: syntax.FuncCall): any { return a.accept(this.subEval); }
 
+  visitFuncArg(node: syntax.FuncArg) {
+    return  node.body.accept(this);
+  }
+
   visitRef(node: syntax.Ref) {
     return this.subEval.scope.getVivifiable(node.name);
   }

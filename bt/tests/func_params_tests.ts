@@ -1,38 +1,38 @@
 /// <reference path="../typings/tsd.d.ts" />
 import * as should from 'should';
 
-import {FuncArg, FuncParams} from "../lib/functions";
+import {FuncParam, FuncParams} from "../lib/functions";
 import {BadTypeError} from "../lib/errors";
 
 describe('the BackTalker func params obj', () => {
-  var args:FuncParams, spec:FuncArg[];
+  var params:FuncParams, spec:FuncParam[];
   before(() => {
     spec = [
-      FuncArg.forVar("int"),
-      FuncArg.forVar("string"),
-      FuncArg.forChoice("choice").withValue(0),
-      FuncArg.forChoice("baz").withValue(1)
+      FuncParam.forVar("int"),
+      FuncParam.forVar("string"),
+      FuncParam.forChoice("choice").withValue(0),
+      FuncParam.forChoice("baz").withValue(1)
     ];
 
-    args = new FuncParams([0, "wow"], spec);
+    params = new FuncParams([0, "wow"], spec);
   });
 
-  it('can check if arguments exist', () => {
-    args.has("int").should.be.ok;
-    args.has("nope").should.not.be.ok;
+  it('can check if paramuments exist', () => {
+    params.has("int").should.be.ok;
+    params.has("nope").should.not.be.ok;
   });
 
-  it('can make sure arguments are correctly typed', () => {
-    args.hasNumber("int").should.be.ok;
-    args.hasNumber("string").should.not.be.ok;
-    args.hasNumber("nope").should.not.be.ok;
-    args.getNumber("int").should.equal(0);
-    (() => args.getNumber("string")).should.throw(BadTypeError);
+  it('can make sure paramuments are correctly typed', () => {
+    params.hasNumber("int").should.be.ok;
+    params.hasNumber("string").should.not.be.ok;
+    params.hasNumber("nope").should.not.be.ok;
+    params.getNumber("int").should.equal(0);
+    (() => params.getNumber("string")).should.throw(BadTypeError);
 
-    args.hasString("string").should.be.ok;
-    args.hasString("int").should.not.be.ok;
-    args.hasString("nope").should.not.be.ok;
-    args.getString("string").should.equal("wow");
-    (() => args.getString("int")).should.throw(BadTypeError);
+    params.hasString("string").should.be.ok;
+    params.hasString("int").should.not.be.ok;
+    params.hasString("nope").should.not.be.ok;
+    params.getString("string").should.equal("wow");
+    (() => params.getString("int")).should.throw(BadTypeError);
   });
 });

@@ -60,10 +60,10 @@ describe('a funcdef', function() {
                 .with.property('bits')
                   .with.property('0', '$');
 
-            result.pieces[0].should.have.property('arg');
-            var arg = result.pieces[0].arg;
-            arg.should.have.property('fromVar', true);
-            arg.should.have.property('name', 'foo');
+            result.pieces[0].should.have.property('param');
+            var param = result.pieces[0].param;
+            param.should.have.property('fromVar', true);
+            param.should.have.property('name', 'foo');
         });
 
         it('can recognize choices like <foo|bar>', function() {
@@ -148,9 +148,9 @@ describe('a funcdef', function() {
         def.vivify.length.should.equal(1);
         def.vivify[0].should.equal(BT.Vivify.AUTO);
 
-        def.args.length.should.equal(1);
-        def.args[0].name.should.equal("cool");
-        def.args[0].fromVar.should.be.ok;
+        def.params.length.should.equal(1);
+        def.params[0].name.should.equal("cool");
+        def.params[0].fromVar.should.be.ok;
     });
 
     it('can contain simple choices like <foo|bar>', function() {
@@ -172,7 +172,7 @@ describe('a funcdef', function() {
 
         parsed.pieces[0].should.be.an.instanceOf(Choice);
         var foobar = <Choice>(parsed.pieces[0]);
-        foobar.arg.name.should.equal('foobar');
+        foobar.param.name.should.equal('foobar');
         foobar.options.should.have.length(2);
         foobar.options[0][0].bits[0].should.equal('foo');
         foobar.options[0].should.have.length(1);
@@ -181,7 +181,7 @@ describe('a funcdef', function() {
 
         parsed.pieces[1].should.be.an.instanceOf(Choice);
         var foobaz = <Choice>(parsed.pieces[1]);
-        foobaz.arg.name.should.equal('foobaz');
+        foobaz.param.name.should.equal('foobaz');
         foobaz.options.should.have.length(2);
         foobaz.options[0][0].bits[0].should.equal('foo');
         foobaz.options[0].should.have.length(1);
@@ -194,13 +194,13 @@ describe('a funcdef', function() {
         result.defs.map(def => def.bits.join(" "))
           .should.containDeep(["foo foo", "bar foo", "foo baz", "bar baz"]);
 
-        var arg = result.defs[0].args[0];
-        arg.should.have.property('name', 'foobar');
-        arg.should.have.property('value', 0);
+        var param = result.defs[0].params[0];
+        param.should.have.property('name', 'foobar');
+        param.should.have.property('value', 0);
 
-        arg = result.defs[0].args[1];
-        arg.should.have.property('name', 'foobaz');
-        arg.should.have.property('value', 0);
+        param = result.defs[0].params[1];
+        param.should.have.property('name', 'foobaz');
+        param.should.have.property('value', 0);
     });
 
     it('can name choices like <foo|bar>:foobar', function() {
@@ -211,19 +211,19 @@ describe('a funcdef', function() {
         result.defs[0].bits.length.should.equal(1);
         result.defs[0].bits[0].should.equal('foo');
 
-        result.defs[0].args.length.should.equal(1);
-        var arg = result.defs[0].args[0];
-        arg.should.have.property('name', 'foobar');
-        arg.should.have.property('value', 0);
+        result.defs[0].params.length.should.equal(1);
+        var param = result.defs[0].params[0];
+        param.should.have.property('name', 'foobar');
+        param.should.have.property('value', 0);
 
         result.defs[1].isEmpty().should.not.be.ok;
         result.defs[1].bits.length.should.equal(1);
         result.defs[1].bits[0].should.equal('bar');
 
-        result.defs[0].args.length.should.equal(1);
-        arg = result.defs[1].args[0];
-        arg.should.have.property('name', 'foobar');
-        arg.should.have.property('value', 1);
+        result.defs[0].params.length.should.equal(1);
+        param = result.defs[1].params[0];
+        param.should.have.property('name', 'foobar');
+        param.should.have.property('value', 1);
 
     });
     it('can contain big choices like <foo faa|bar>', function() {
@@ -251,15 +251,15 @@ describe('a funcdef', function() {
         result.defs[1].bits.length.should.equal(2);
         result.defs[1].bits[0].should.equal('foo');
         result.defs[1].bits[1].should.equal('$');
-        result.defs[1].args.should.have.length(1);
+        result.defs[1].params.should.have.length(1);
 
         // foo bar
-        var args = new FuncParams(["barvalue"], result.defs[0].args);
-        args.has("barvar").should.not.be.ok;
+        var params = new FuncParams(["barvalue"], result.defs[0].params);
+        params.has("barvar").should.not.be.ok;
 
         // foo $:barvar
-        args = new FuncParams(["barvalue"], result.defs[1].args);
-        args.has("barvar").should.be.ok;
-        args.named["barvar"].should.equal("barvalue");
+        params = new FuncParams(["barvalue"], result.defs[1].params);
+        params.has("barvar").should.be.ok;
+        params.named["barvar"].should.equal("barvalue");
     });
 });

@@ -9,20 +9,20 @@ import {BadTypeError} from "./errors";
 export class FuncParams {
   named: { [key: string]: any }
 
-  constructor(public passed: any[], args: FuncArg[]) {
+  constructor(public passed: any[], params: FuncParam[]) {
     this.named = {};
-    if (args === null) {
+    if (params === null) {
       return
     }
 
     // impure, but convenient
-    var param = 0;
-    args.forEach((arg) => {
-      if (arg.fromVar) {
-        this.named[arg.name] = passed[param];
-        param++;
+    var i = 0;
+    params.forEach((param) => {
+      if (param.fromVar) {
+        this.named[param.name] = passed[i];
+        i++;
       } else {
-        this.named[arg.name] = arg.value;
+        this.named[param.name] = param.value;
       }
     });
   }
@@ -71,32 +71,27 @@ export class FuncParams {
   }
 }
 
-export class FuncArg {
+export class FuncParam {
     constructor(public name: string, public value: any, public fromVar: boolean) {
     }
 
-    withValue(value: any): FuncArg {
-      return new FuncArg(this.name, value, this.fromVar);
+    withValue(value: any): FuncParam {
+      return new FuncParam(this.name, value, this.fromVar);
     }
 }
 
-export module FuncArg {
+export module FuncParam{
   export function forVar(name: string) {
-    return new FuncArg(name, null, true);
+    return new FuncParam(name, null, true);
   }
 
   export function forChoice(name: string) {
-    return new FuncArg(name, 0, false);
+    return new FuncParam(name, 0, false);
   }
 }
 
 export class FuncDef {
-  constructor(public bits: string[], public vivify: vars.Vivify[], public args: FuncArg[]) {
-    args.forEach((arg, i) => {
-      if (typeof arg === 'undefined') {
-        throw new Error('undefined arg: ' + i);
-      }
-    });
+  constructor(public bits: string[], public vivify: vars.Vivify[], public params: FuncParam[]) {
   }
 
   isEmpty(): boolean {
@@ -104,10 +99,7 @@ export class FuncDef {
   }
 
   makeParameterizer() {
-    var args = this.args;
-    return function(passed: any[]) {
-      return new FuncParams(passed, args);
-    };
+    return (passed: any[]) => new FuncParams(passed, this.params);
   }
 }
 
@@ -138,7 +130,7 @@ export class FuncDefCollection {
     return new FuncDefCollection(concatTo.map((def) => {
       return new FuncDef(def.bits.concat(piece.bits),
         def.vivify.concat(piece.vivify),
-        piece.arg ? def.args.concat(piece.arg) : def.args);
+        piece.param ? def.params.concat(piece.param) : def.params);
     }));
   }
 
@@ -155,8 +147,8 @@ export class FuncDefCollection {
       bits.forEach((piece) => {
         next_defs = next_defs.concat(piece);
       });
-      if (choice.arg) {
-        next_defs = next_defs.withArg(choice.arg.withValue(i));
+      if (choice.param) {
+        next_defs = next_defs.withArg(choice.param.withValue(i));
       }
       new_defs = new_defs.join(next_defs);
     });
@@ -164,9 +156,9 @@ export class FuncDefCollection {
     return new_defs;
   }
 
-  withArg(arg: FuncArg): FuncDefCollection {
+  withArg(param: FuncParam): FuncDefCollection {
     return new FuncDefCollection(this.defs.map(def => {
-      return new FuncDef(def.bits, def.vivify, def.args.concat(arg));
+      return new FuncDef(def.bits, def.vivify, def.params.concat(param));
     }));
   }
 }
@@ -202,7 +194,7 @@ export class Seq {
 }
 
 export class SimpleFuncDefPart {
-  constructor(public bits: string[], public vivify: vars.Vivify[], public arg?: FuncArg) {
+  constructor(public bits: string[], public vivify: vars.Vivify[], public param?: FuncParam) {
   }
 
   static makeVar(raw: string): SimpleFuncDefPart {
@@ -222,7 +214,7 @@ export class SimpleFuncDefPart {
     if (name === null) {
       return new SimpleFuncDefPart(['$'], vivify);
     } else {
-      return new SimpleFuncDefPart(['$'], vivify, FuncArg.forVar(name));
+      return new SimpleFuncDefPart(['$'], vivify, FuncParam.forVar(name));
     }
   }
 
@@ -237,7 +229,7 @@ export class SimpleFuncDefPart {
 
 export class Choice {
   options: SimpleFuncDefPart[][];
-  arg: FuncArg;
+  param: FuncParam;
 
   // raw ~ <some stuff|like this|wow>:cool
   constructor(raw: string) {
@@ -251,11 +243,11 @@ export class Choice {
       bits.shift();
     }
 
-    // check for choice arg
-    this.arg = null;
+    // check for choice param
+    this.param = null;
     if (end != raw.length && raw[end + 1] === ":") {
       var name = raw.slice(end + 2);
-      this.arg = FuncArg.forChoice(name);
+      this.param = FuncParam.forChoice(name);
     }
 
     // verify and extract the SimpleFuncDefParts

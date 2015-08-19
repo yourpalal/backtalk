@@ -1,3 +1,5 @@
+import {StackExpresser} from "./expressers";
+
 var parts = [
   { // assignment
     patterns: ['with $!!:ref as $:val', 'with $!!:ref as:'],
@@ -12,9 +14,10 @@ var parts = [
   { // list constructor
     patterns: ['list of:'],
     impl: function(args) {
-      // eval each line in the block scope, and put all results into
-      // a list
-      return this.body.parts.map((p) => this.eval(p));
+      // StackExpresser calls 'push' on each result
+      var parts = [];
+      this.evalExpressions(this.body, new StackExpresser(parts));
+      return parts;
     }
   },
   { // list accessor

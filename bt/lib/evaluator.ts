@@ -2,6 +2,7 @@ import * as vars from "./vars";
 import * as scopes from "./scope";
 import * as stdLib from "./standard_lib";
 import * as syntax from "./syntax";
+import * as VM from "./vm";
 
 import {BaseError} from "./errors";
 
@@ -59,7 +60,7 @@ export class Evaluator extends syntax.BaseVisitor {
    * @constructor
    * @param {scopes.Scope} (optional) scope in which to evaluate BT code.
    */
-  constructor(public scope?: scopes.Scope) {
+  constructor(public scope?: scopes.Scope, public vm:VM.VM = new VM.VM()) {
     super();
     this.scope = scope || stdLib.inScope(new scopes.Scope());
     this.newSubEval = false;
@@ -70,39 +71,42 @@ export class Evaluator extends syntax.BaseVisitor {
   }
 
   eval(node: syntax.Visitable): any {
-    this.body = node;
-    return node.accept(this);
+    var expresser = new VM.ResultExpresser();
+    this.evalExpressions(node, expresser);
+    return expresser.result;
   }
 
-  makeSubEvaluator(): Evaluator {
+  evalExpressions(node: syntax.Visitable, expresser: VM.Expresser): void {
+    this.body = node;
+    var compiled = VM.Compiler.compile(node);
+    this.vm.execute(compiled, this.vm.makeFrame(expresser), this);
+  }
+
+  makeSubEvaluator(body: syntax.Visitable): Evaluator {
     var subEval = new Evaluator(new scopes.Scope(this.scope));
     subEval.newSubEval = true;
+    subEval.body = body;
     return subEval;
   }
 
-  callFunc(subEval, name, args) {
-    var i = 0
-      , f = this.scope.findFunc(name)
-      , argsGetter = new ArgsEvaluator(this);
-
-    if ((f || 0) === 0) {
+  findFuncOrThrow(name: string): scopes.FuncHandle {
+    var func = this.scope.findFunc(name);
+    if (typeof func === 'undefined') {
       throw new FunctionNameError(name);
     }
+    return func;
+  }
 
-    args = args.map(function(arg) {
-      return arg.accept(argsGetter);
-    }, this);
-
-    for (; i < f.vivification.length; i++) {
-      var viv = f.vivification[i]
-        , defined = args[i].defined
+  vivifyArgs(func: scopes.FuncHandle, args: any[]): any[] {
+    for (var i = 0; i < func.vivification.length; i++) {
+      var viv = func.vivification[i]
         , isAuto = (args[i] instanceof vars.AutoVar);
 
       if (viv === vars.Vivify.ALWAYS) {
         if (isAuto) {
           continue;
         } else {
-          throw Error("value used in place of variable in call to '" + name + "'");
+          throw Error("value used in place of variable in call to '" + func.name + "'");
         }
       }
 
@@ -110,7 +114,7 @@ export class Evaluator extends syntax.BaseVisitor {
         continue;
       }
 
-      if (defined) {
+      if (args[i].defined) {
         args[i] = args[i].value;
         continue;
       }
@@ -120,95 +124,17 @@ export class Evaluator extends syntax.BaseVisitor {
       }
     }
 
-    return f.impl.call(subEval, f.parameterize(args));
+    return args;
   }
 
-  visitHangingCall(node: syntax.HangingCall) {
-    var subEval = this.makeSubEvaluator();
-    subEval.body = node.body;
-    return this.callFunc(subEval, node.name, node.args);
+  hangingCall(func: scopes.FuncHandle, body: syntax.Visitable, args: any[]) {
+    args = this.vivifyArgs(func, args);
+    return func.impl.call(this.makeSubEvaluator(body), func.parameterize(args));
   }
 
-  visitFuncCall(node) {
-    // TODO: should we restore newSubEval after this?
+  simpleCall(func: scopes.FuncHandle, args: any[]) {
+    args = this.vivifyArgs(func, args);
     this.newSubEval = false;
-    return this.callFunc(this, node.name, node.args);
+    return func.impl.call(this, func.parameterize(args));
   }
-
-  visitBinOpNode(node: syntax.BinOpNode, ...args) {
-    var left = this.eval(node.left),
-      i = 0;
-
-    for (i = 0; i < node.ops.length; i++) {
-      left = node.ops[i].accept(this, left);
-    }
-    return left;
-  }
-
-  visitAddOp(node: syntax.AddOp, left) {
-    return left + node.right.accept(this);
-  }
-
-  visitSubOp(node, left) {
-    return left - node.right.accept(this);
-  }
-
-  visitDivideOp(node, left) {
-    return left / node.right.accept(this);
-  }
-
-  visitMultOp(node, left) {
-    return left * node.right.accept(this);
-  }
-
-  visitLiteral(node: syntax.Literal) {
-    return node.val;
-  }
-
-  visitUnaryMinus(node: syntax.UnaryMinus) {
-    return - node.accept(this);
-  }
-
-  visitRef(node: syntax.Ref) {
-    return this.scope.get(node.name);
-  }
-
-  visitCompoundExpression(node: syntax.CompoundExpression) {
-    var result;
-    node.parts.forEach(function(part) {
-      result = part.accept(this);
-    }, this);
-    return result;
-  }
-}
-
-/**
- * @class evaluator.ArgsEvaluator
- * @description Syntax Visitor that returns AutoVar for all RefNodes. Used to
- * evaluate function paramaters.
- */
-class ArgsEvaluator extends syntax.BaseVisitor {
-  constructor(public subEval: Evaluator) {
-    super()
-  }
-
-  visitAddOp(a: syntax.AddOp): any { return a.accept(this.subEval); }
-  visitSubOp(a: syntax.SubOp): any { return a.accept(this.subEval); }
-  visitDivideOp(a: syntax.DivideOp): any { return a.accept(this.subEval); }
-  visitMultOp(a: syntax.MultOp): any { return a.accept(this.subEval); }
-  visitBinOpNode(a: syntax.BinOpNode): any { return a.accept(this.subEval); }
-  visitLiteral(a: syntax.Literal): any { return a.accept(this.subEval); }
-  visitBareWord(a: syntax.BareWord): any { return a.accept(this.subEval); }
-  visitUnaryMinus(a: syntax.UnaryMinus): any { return a.accept(this.subEval); }
-  visitCompoundExpression(a: syntax.CompoundExpression): any { return a.accept(this.subEval); }
-  visitFuncCall(a: syntax.FuncCall): any { return a.accept(this.subEval); }
-
-  visitFuncArg(node: syntax.FuncArg) {
-    return  node.body.accept(this);
-  }
-
-  visitRef(node: syntax.Ref) {
-    return this.subEval.scope.getVivifiable(node.name);
-  }
-
 }

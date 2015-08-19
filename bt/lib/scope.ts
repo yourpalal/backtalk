@@ -4,7 +4,8 @@ import {Trie} from "./trie";
 
 /** @module scope */
 
-interface FuncHandle {
+export interface FuncHandle {
+  name: string,
   vivification: vars.Vivify[]
   parameterize: (...args: any[]) => funcs.FuncParams
   impl: (p: funcs.FuncParams) => any
@@ -56,7 +57,7 @@ export class Scope {
     return new vars.AutoVar(name, this, this.names[name]);
   }
 
-  findFunc(name: string) {
+  findFunc(name: string): FuncHandle {
     var f = this.funcs.get(name);
     if (f) {
       return f;
@@ -74,7 +75,9 @@ export class Scope {
       // now we can register a wrapper for all of the specified functions
       // that will append the dynamic parts of the pattern as arguments
       result.defs.forEach((pattern) => {
-        this.funcs.put(pattern.bits.join(" "), {
+        var name = pattern.bits.join(" ");
+        this.funcs.put(name, {
+          name: name,
           vivification: pattern.vivify,
           parameterize: pattern.makeParameterizer(),
           impl: deets.impl,

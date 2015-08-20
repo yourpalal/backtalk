@@ -169,12 +169,12 @@ class ArgsCompiler extends syntax.BaseVisitor {
   }
 
   visitRef(node: syntax.Ref) {
-    this.compiler.push(new Instructions.GetVivifiable(node.name));
+    this.compiler.push(new Instructions.GetVivifiable(node.name), node.code);
   }
 }
 
 export class Compiler extends syntax.BaseVisitor {
-  private instructions: Instructions.Instruction[] = [];
+  instructions: Instructions.Instruction[] = [];
   private argsCompiler: ArgsCompiler;
 
   constructor() {
@@ -188,17 +188,18 @@ export class Compiler extends syntax.BaseVisitor {
     return c.instructions;
   }
 
-  push(i: Instructions.Instruction) {
+  push(i: Instructions.Instruction, code: syntax.Code) {
     this.instructions.push(i);
   }
+
   visitHangingCall(node: syntax.HangingCall) {
     node.args.forEach((v) => v.accept(this));
-    this.push(new Instructions.CallHanging(node.name, node.body));
+    this.push(new Instructions.CallHanging(node.name, node.body), node.code);
   }
 
   visitFuncCall(node: syntax.FuncCall) {
     node.args.forEach((arg) => arg.accept(this));
-    this.push(new Instructions.CallFunc(node.name));
+    this.push(new Instructions.CallFunc(node.name), node.code);
   }
 
   visitBinOpNode(node: syntax.BinOpNode) {
@@ -208,32 +209,32 @@ export class Compiler extends syntax.BaseVisitor {
 
   visitAddOp(node: syntax.AddOp) {
     node.right.accept(this);
-    this.push(Instructions.Add);
+    this.push(Instructions.Add, node.code);
   }
 
   visitSubOp(node: syntax.SubOp) {
     node.right.accept(this);
-    this.push(Instructions.Sub);
+    this.push(Instructions.Sub, node.code);
   }
 
   visitDivideOp(node: syntax.DivideOp) {
     node.right.accept(this);
-    this.push(Instructions.Div);
+    this.push(Instructions.Div, node.code);
   }
 
   visitMultOp(node: syntax.MultOp) {
     node.right.accept(this);
-    this.push(Instructions.Mult);
+    this.push(Instructions.Mult, node.code);
   }
 
   visitLiteral(node: syntax.Literal) {
-    this.push(new Instructions.Push(node.val));
+    this.push(new Instructions.Push(node.val), node.code);
   }
 
   visitUnaryMinus(node: syntax.UnaryMinus) {
-    this.push(Instructions.PushZero);
+    this.push(Instructions.PushZero, node.code);
     node.val.accept(this);
-    this.push(Instructions.Sub);
+    this.push(Instructions.Sub, node.code);
   }
 
   visitFuncArg(node: syntax.FuncArg) {
@@ -241,13 +242,13 @@ export class Compiler extends syntax.BaseVisitor {
   }
 
   visitRef(node: syntax.Ref) {
-    this.push(new Instructions.Get(node.name));
+    this.push(new Instructions.Get(node.name), node.code);
   }
 
   visitCompoundExpression(node: syntax.CompoundExpression) {
     node.parts.forEach((part) => {
       part.accept(this);
-      this.push(Instructions.Express);
+      this.push(Instructions.Express, node.code);
     });
   }
 }

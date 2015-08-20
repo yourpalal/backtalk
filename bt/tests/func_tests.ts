@@ -149,7 +149,6 @@ describe('BackTalker function calls', function() {
                 var self = <evaluator.Evaluator>this;
                 newSubEval = self.newSubEval;
                 if (self.newSubEval) {
-                    console.log('body is', self.body);
                     return self.eval(self.body);
                 }
             }

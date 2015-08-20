@@ -4,11 +4,11 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/back_talker';
 
-import {InteractiveEvaluator} from "../lib/interactive";
+import {CodeRange, InteractiveEvaluator, SourceInfoCompiler} from "../lib/interactive";
 import {addSpyToScope} from "./util";
 
 
-describe('The BackTalker InteractiveEvaluator', function() {
+describe('The BackTalker InteractiveEvaluator', () => {
   var evaluator: InteractiveEvaluator, scope: BT.Scope, spyFunc;
   beforeEach(function() {
       evaluator = new InteractiveEvaluator();
@@ -16,24 +16,38 @@ describe('The BackTalker InteractiveEvaluator', function() {
       spyFunc = addSpyToScope(scope);
   });
 
-  it("emits a line-changed event at each line", function() {
+  it("has a compiler that adds line numbers", () => {
+    let code = `spy on "1"
+    spy on "2"
+    spy on "3"`;
+
+    let compiler = new SourceInfoCompiler();
+    BT.parse(code).accept(compiler);
+
+    compiler.ranges.map((range) => range.count)
+      .reduce((a, b) => a + b)
+      .should.equal(compiler.instructions.length);
+  });
+
+  it("emits a line-changed event at each line", () => {
     var code = `spy on "1"
     spy on "2"
     spy on "3"`;
 
-    var spy = sinon.spy((line: number) => line);
-    evaluator.on('line-changed', spy);
+    var lineSpy = sinon.spy((line: number) => line);
+    evaluator.on('line-changed', lineSpy);
     evaluator.eval(BT.parse(code));
 
-    spy.firstCall.calledWith(1).should.be.ok;
-    spy.firstCall.calledBefore(spyFunc.firstCall).should.be.ok;
-    spyFunc.firstCall.calledBefore(spy.secondCall);
+    lineSpy.called.should.be.ok;
+    lineSpy.firstCall.calledWith(1).should.be.ok;
+    lineSpy.firstCall.calledBefore(spyFunc.firstCall).should.be.ok;
+    spyFunc.firstCall.calledBefore(lineSpy.secondCall);
 
-    spy.secondCall.calledWith(2).should.be.ok;
-    spy.secondCall.calledBefore(spyFunc.secondCall).should.be.ok;
-    spyFunc.secondCall.calledBefore(spy.thirdCall);
+    lineSpy.secondCall.calledWith(2).should.be.ok;
+    lineSpy.secondCall.calledBefore(spyFunc.secondCall).should.be.ok;
+    spyFunc.secondCall.calledBefore(lineSpy.thirdCall);
 
-    spy.thirdCall.calledWith(3).should.be.ok;
-    spy.thirdCall.calledBefore(spyFunc.thirdCall).should.be.ok;
+    lineSpy.thirdCall.calledWith(3).should.be.ok;
+    lineSpy.thirdCall.calledBefore(spyFunc.thirdCall).should.be.ok;
   });
 });

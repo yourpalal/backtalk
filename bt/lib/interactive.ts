@@ -2,6 +2,46 @@
 import {Evaluator} from "./evaluator";
 import {EventEmitter} from "./events";
 import * as syntax from "./syntax" ;
+import * as VM from "./vm";
+
+/**
+ *  CodeRange ties instructions to lines
+ */
+export class CodeRange {
+    constructor(public start: number, public count:number, public code: syntax.Code) {}
+
+    includes(i: number): boolean {
+      return (this.start <= i && i <= this.start + this.count);
+    }
+}
+
+/**
+ * SourceInfoCompiler creates debugging info while compiling an AST
+ */
+export class SourceInfoCompiler extends VM.Compiler {
+  ranges: CodeRange[] = [];
+
+  push(i: VM.Instructions.Instruction, code: syntax.Code) {
+    super.push(i, code);
+
+    if (this.ranges.length == 0) {
+      this.ranges.push(new CodeRange(0, 1, code))
+      return;
+    }
+
+    // -1's are considered as part of the next line we see
+    let current = this.ranges[this.ranges.length - 1];
+    if (current.code.lineNumber == -1) {
+      current.code = code;
+    }
+
+    if (current.code.lineNumber == code.lineNumber) {
+      current.count++;
+    } else {
+      this.ranges.push(new CodeRange(current.start + current.count, 1, code));
+    }
+  }
+};
 
 /**
  * @class InteractiveEvaluator
@@ -21,9 +61,25 @@ export class InteractiveEvaluator extends Evaluator {
     ]);
   }
 
-  eval(node: syntax.Visitable): any {
-    this.currentLine = -1;
-    return node.accept(this);
+  evalExpressions(node: syntax.Visitable, expresser: VM.Expresser): void {
+    this.body = node;
+    let compiler = new SourceInfoCompiler();
+    node.accept(compiler);
+
+    console.log('compiled to', compiler.instructions, compiler.ranges);
+
+    let frame = this.vm.makeFrame(expresser);
+
+    let codeRangeIndex = 0;
+    this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
+
+    for (let i = 0; i < compiler.instructions.length; i++) {
+      if (!compiler.ranges[codeRangeIndex].includes(i)) {
+        codeRangeIndex++;
+        this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
+      }
+      compiler.instructions[i].execute(this.vm, frame, this);
+    }
   }
 
   /**
@@ -34,68 +90,6 @@ export class InteractiveEvaluator extends Evaluator {
    */
   on(name:string, f: Function) {
     return this.events.on(name, f);
-  }
-
-  private nextCode(c: syntax.Code) {
-    if (c.lineNumber != -1 && c.lineNumber != this.currentLine) {
-      this.currentLine = c.lineNumber;
-      this.events.emit('line-changed', this, this.currentLine);
-    }
-  }
-
-  public visitAddOp(a: syntax.AddOp, left): any {
-    this.nextCode(a.code);
-    return super.visitAddOp(a, left);
-  }
-
-  public visitSubOp(a: syntax.SubOp, left): any {
-    this.nextCode(a.code);
-    return super.visitSubOp(a, left);
-  }
-
-  public visitDivideOp(a: syntax.DivideOp, left): any {
-    this.nextCode(a.code);
-    return super.visitDivideOp(a, left);
-  }
-
-  public visitMultOp(a: syntax.MultOp, left): any {
-    this.nextCode(a.code);
-    return super.visitMultOp(a, left);
-  }
-
-  public visitBinOpNode(a: syntax.BinOpNode, ...args): any {
-    this.nextCode(a.code);
-    return super.visitBinOpNode(a, ...args);
-  }
-
-  public visitLiteral(a: syntax.Literal): any {
-    this.nextCode(a.code);
-    return super.visitLiteral(a);
-  }
-
-  public visitBareWord(a: syntax.BareWord): any {
-    this.nextCode(a.code);
-    return super.visitBareWord(a);
-  }
-
-  public visitUnaryMinus(a: syntax.UnaryMinus): any {
-    this.nextCode(a.code);
-    return super.visitUnaryMinus(a);
-  }
-
-  public visitCompoundExpression(a: syntax.CompoundExpression): any {
-    this.nextCode(a.code);
-    return super.visitCompoundExpression(a);
-  }
-
-  public visitFuncCall(a: syntax.FuncCall): any {
-    this.nextCode(a.code);
-    return super.visitFuncCall(a);
-  }
-
-  public visitRef(a: syntax.Ref) {
-    this.nextCode(a.code);
-    return super.visitRef(a);
   }
 }
 

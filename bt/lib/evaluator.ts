@@ -47,7 +47,7 @@ export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope) 
  * @description BackTalk evaluator. Interprets BackTalk AST's within a given scope.
  *
  */
-export class Evaluator extends syntax.BaseVisitor {
+export class Evaluator {
   /**
    * @member evaluator.Evaluator#newSubEval is true if this evaluator was created to evaluate the body of a
    * hanging call. If newSubEval is true, then `body` will hold the body of the
@@ -61,7 +61,6 @@ export class Evaluator extends syntax.BaseVisitor {
    * @param {scopes.Scope} (optional) scope in which to evaluate BT code.
    */
   constructor(public scope?: scopes.Scope, public vm:VM.VM = new VM.VM()) {
-    super();
     this.scope = scope || stdLib.inScope(new scopes.Scope());
     this.newSubEval = false;
   }

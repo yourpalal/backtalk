@@ -2,7 +2,8 @@
 import * as should from 'should';
 
 import * as BT from '../lib/back_talker';
-import {Choice, FuncDefCollection, FuncParams, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/functions';
+import {FuncParams} from '../lib/functions';
+import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/funcdefs';
 
 
 describe('a funcdef collection', () => {

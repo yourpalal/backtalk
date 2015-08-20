@@ -1,14 +1,15 @@
-import * as funcs from "./functions";
-import * as vars from "./vars";
+import {FuncDefCollection} from "./funcdefs";
+import {FuncParams} from "./functions";
+import {AutoVar, Vivify} from "./vars";
 import {Trie} from "./trie";
 
 /** @module scope */
 
 export interface FuncHandle {
   name: string,
-  vivification: vars.Vivify[]
-  parameterize: (...args: any[]) => funcs.FuncParams
-  impl: (p: funcs.FuncParams) => any
+  vivification: Vivify[]
+  parameterize: (...args: any[]) => FuncParams
+  impl: (p: FuncParams) => any
 }
 
 /** @class scope.Scope
@@ -51,10 +52,10 @@ export class Scope {
   }
 
   /** @method scope.Scope#getVivifiable
-   * @returns {vars.Autovar} handle for a given name in this scope.
+   * @returns {Autovar} handle for a given name in this scope.
    */
-  getVivifiable(name: string): vars.AutoVar {
-    return new vars.AutoVar(name, this, this.names[name]);
+  getVivifiable(name: string): AutoVar {
+    return new AutoVar(name, this, this.names[name]);
   }
 
   findFunc(name: string): FuncHandle {
@@ -70,7 +71,7 @@ export class Scope {
 
   addFunc = function(deets: { patterns: string[]; impl: (...b: any[]) => any }) {
     deets.patterns.map((pattern) => {
-      var result = funcs.FuncDefCollection.fromString(pattern);
+      var result = FuncDefCollection.fromString(pattern);
 
       // now we can register a wrapper for all of the specified functions
       // that will append the dynamic parts of the pattern as arguments

@@ -1,7 +1,7 @@
 import {Evaluator} from "./evaluator";
 export * from "./expressers";
 import {Expresser, ConsoleExpresser} from "./expressers";
-import {FuncDef} from "./functions";
+import {FuncDef} from "./funcdefs";
 import * as syntax from "./syntax";
 
 export class VM {

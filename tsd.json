@@ -16,6 +16,9 @@
     },
     "node/node.d.ts": {
       "commit": "147cc7a8b375d97bf82afb34614268bbb77d18d5"
+    },
+    "es6-promise/es6-promise.d.ts": {
+      "commit": "38fb591c6eba840e0b53d1110302b8e4fb04651c"
     }
   }
 }

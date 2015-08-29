@@ -20,7 +20,7 @@ describe('BackTalker lists', () => {
           "Ricky"
           "Victor"`;
 
-      var result = BT.eval(code, scope);
+      var result = BT.eval(code, scope).get();
       result.should.have.lengthOf(6);
     });
 
@@ -35,7 +35,7 @@ describe('BackTalker lists', () => {
           "Ricky"
           "Victor"`;
 
-      var result = BT.eval(code, scope);
+      var result = BT.eval(code, scope).get();
       result.should.have.lengthOf(6);
 
       scope.has("cast").should.be.ok;
@@ -49,6 +49,6 @@ describe('BackTalker lists', () => {
           "a"
           "b"
       item 1 of $letters`;
-      BT.eval(code, scope).should.equal("a");
+      BT.eval(code, scope).get().should.equal("a");
     });
 });

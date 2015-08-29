@@ -23,4 +23,10 @@ export class EventEmitter {
   emit(name: string, thisArg: any, ...args) {
     this.listeners[name].forEach((l) => l.apply(thisArg, args));
   }
+
+  emitAsync(name: string, thisArg: any, ...args) {
+    setTimeout(() => {
+      this.listeners[name].forEach((l) => l.apply(thisArg, args));
+    }, 0);
+  }
 }

@@ -1,21 +1,22 @@
 /// <reference path="../typings/tsd.d.ts" />
 import * as sinon from 'sinon';
+import * as should from 'should';
 
 import {Evaluator} from "../lib/evaluator";
 import {Scope} from "../lib/scope";
 
-function ident(a) {
-  return a;
+function ident(a, ret) {
+  ret.set(a);
 };
 
 export function addSpyToScope(scope: Scope, hook: Function = ident) {
-  var spyFunc = sinon.spy(function(a) {
+  var spyFunc = sinon.spy(function(a, ret) {
       var self = <Evaluator>this;
-      var result = hook.call(this, a);
       if (self.newSubEval) {
-          return self.eval(self.body);
+        ret.resolve(self.eval(self.body));
+      } else {
+        hook.call(this, a, ret);
       }
-      return result;
   });
 
   scope.addFunc({

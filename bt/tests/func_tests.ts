@@ -4,11 +4,12 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/back_talker';
 import * as evaluator from '../lib/evaluator';
-import {addSpyToScope} from "./util";
+import {addSpyToScope} from './util';
+import {FuncResult} from '../lib/functions';
 
 
 describe('BackTalker function calls', function() {
-    var scope, evaluator;
+    var scope: BT.Scope, evaluator: BT.Evaluator;
 
     beforeEach(function() {
         evaluator = new BT.Evaluator();
@@ -33,49 +34,51 @@ describe('BackTalker function calls', function() {
 
     it("can retrieve arguments by name", function() {
         var spyFunc = addSpyToScope(scope);
-        var result = evaluator.evalString("spy on 3 4");
+        var result = evaluator.evalString("spy on 3 4").get();
         result.named.should.have.property("a", 3);
         result.named.should.have.property("b", 4);
         spyFunc.calledOnce.should.be.ok;
     });
 
     it("can check for the existence of arguments by name", function() {
-        addSpyToScope(scope, (args) => args.has("a"));
-        evaluator.evalString("spy on 3").should.be.ok;
-        evaluator.evalString("spy").should.not.be.ok;
+        addSpyToScope(scope, (args, ret) => ret.set(args.has("a")));
+        evaluator.evalString("spy on 3").get().should.be.ok;
+        evaluator.evalString("spy").get().should.not.be.ok;
     });
 
     it("can call a function with no arguments", function() {
-        var func = addSpyToScope(scope, (a) => "cool");
+        var func = addSpyToScope(scope, (a, ret) => ret.set("cool"));
 
-        evaluator.evalString("spy").should.equal("cool");
+        evaluator.evalString("spy").get().should.equal("cool");
         func.calledOnce.should.be.ok;
     });
 
     it("can call a function with arguments", function() {
-        var func = addSpyToScope(scope, (a) => a.passed[0]);
+        var func = addSpyToScope(scope, (a, ret) => ret.set(a.passed[0]));
 
         scope.set("cake", "yum!");
-        evaluator.evalString("spy on $cake").should.equal("yum!");
+        evaluator.evalString("spy on $cake").get().should.equal("yum!");
         func.calledOnce.should.be.ok;
     });
 
     it("can call a function compoundly", function() {
-        var func = addSpyToScope(scope, (a) => a.passed[0]);
+        var func = addSpyToScope(scope, (a, ret) => ret.set(a.passed[0]));
         scope.set("cake", "yum!");
-        evaluator.evalString("spy on $cake\nspy on $cake").should.equal("yum!");
+        evaluator.evalString("spy on $cake\nspy on $cake").get().should.equal("yum!");
         func.calledTwice.should.be.ok;
     });
 
     it("can name choices and find which was used", function() {
-        var func = sinon.spy(function(a) { return a.named.target; });
+        var func = sinon.spy((a, ret) => { ret.set(a.named.target); });
         scope.addFunc({
             patterns: ["bake <cake|pie>:target"],
             impl: func
         });
 
-        evaluator.evalString("bake cake").should.equal(0);
-        evaluator.evalString("bake pie").should.equal(1);
+        evaluator.evalString("bake cake").get()
+          .should.equal(0);
+        evaluator.evalString("bake pie").get()
+          .should.equal(1);
 
         (() => evaluator.evalString("bake pants")).should.throw();
     });
@@ -84,35 +87,38 @@ describe('BackTalker function calls', function() {
         it("can allow choices of barewords like <foo|bar>", function() {
             scope.addFunc({
                 patterns: ["bake <cake|pie> $"],
-                impl: (a) => a.passed[0]
+                impl: (a, ret) => ret.set(a.passed[0])
             });
 
             // $-type args are defined first
-            evaluator.evalString('bake cake "?"').should.equal("?");
-            evaluator.evalString('bake pie "?"').should.equal("?");
+            evaluator.evalString('bake cake "?"').get()
+              .should.equal("?");
+            evaluator.evalString('bake pie "?"').get().
+              should.equal("?");
         });
 
         it("can allow spaces in <|> like <foo or|foo and>", function() {
             scope.addFunc({
                 patterns: ["bake <cake and|pie or > $"],
-                impl: (a) => a.passed[0]
+                impl: (a, ret) => ret.set(a.passed[0])
             });
 
-            evaluator.evalString('bake cake and "pie"').should.equal("pie");
-            evaluator.evalString('bake pie or "cake"').should.equal("cake");
+            evaluator.evalString('bake cake and "pie"').get()
+              .should.equal("pie");
+            evaluator.evalString('bake pie or "cake"').get()
+              .should.equal("cake");
         });
     });
 
     it("is called with 'this' being the backtalker instance", function() {
-        var func = addSpyToScope(scope, function() { return this; });
-        var r = evaluator.evalString('spy on "this"');
-
-        r.should.be.an.instanceOf(BT.Evaluator);
+        addSpyToScope(scope, function(a, ret) { ret.set(this); });
+        evaluator.evalString('spy on "this"').get()
+          .should.be.an.instanceOf(BT.Evaluator);
     });
 
     it('can allow for auto-vivified variables', function() {
-        var func = sinon.spy(function(args) {
-            return args.passed[0];
+        var func = sinon.spy(function(args, ret) {
+            ret.set(args.passed[0]);
         });
 
         scope.addFunc({
@@ -120,12 +126,13 @@ describe('BackTalker function calls', function() {
             impl: func
         });
 
-        var result = evaluator.evalString("on the planet $earth");
+        var result = evaluator.evalString("on the planet $earth").get();
         result.should.be.instanceOf(BT.AutoVar);
         result.name.should.equal("earth");
         func.calledOnce.should.be.ok;
 
-        evaluator.evalString('on the planet "not earth"').should.equal("not earth");
+        evaluator.evalString('on the planet "not earth"')
+          .get().should.equal("not earth");
         func.calledTwice.should.be.ok;
     });
 
@@ -145,11 +152,11 @@ describe('BackTalker function calls', function() {
 
         scope.addFunc({
             patterns: ["cool"],
-            impl: function() {
+            impl: function(args, ret) {
                 var self = <evaluator.Evaluator>this;
                 newSubEval = self.newSubEval;
                 if (self.newSubEval) {
-                    return self.eval(self.body);
+                    ret.resolve(self.eval(self.body));
                 }
             }
         });
@@ -157,7 +164,7 @@ describe('BackTalker function calls', function() {
         evaluator.evalString("cool");
         newSubEval.should.not.be.ok;
 
-        evaluator.evalString("cool:\n    5").should.equal(5);
+        evaluator.evalString("cool:\n    5").get().should.equal(5);
         newSubEval.should.be.ok;
 
         // newSubEval false when called not with a block
@@ -169,21 +176,20 @@ describe('BackTalker function calls', function() {
         var bodySyntax = null,
             gravity = 0,
             planet = null,
-            func = sinon.spy(function(planet_in) {
-                planet = planet_in.passed[0];
+            func = sinon.spy(function(args, ret) {
+                planet = args.passed[0];
                 bodySyntax = this.body;
 
                 this.scope.addFunc({
                     patterns: ["I jump"],
-                    impl: function(v, val) {
-                        return "jumped";
+                    impl: function(args, ret) {
+                        ret.set("jumped");
                     }
                 });
 
-                var result = this.eval(this.body);
+                var result = this.eval(this.body).get();
                 gravity = this.scope.get("gravity");
-
-                return result;
+                ret.set(result);
             });
 
         scope.addFunc({
@@ -198,10 +204,48 @@ describe('BackTalker function calls', function() {
 
         func.calledOnce.should.be.ok;
 
-        result.should.equal("jumped");
+        result.get().should.equal("jumped");
         planet.should.equal("sarkon");
         gravity.should.equal(3);
 
         bodySyntax.should.be.an.instanceOf(BT.Syntax.CompoundExpression);
+    });
+
+    describe("return via promise-like the FuncResult, which", function() {
+      it('can be used synchronously with get()', function() {
+        let result = new FuncResult();
+        result.set("wow");
+        result.get().should.equal("wow");
+      });
+
+      it('throws an error if get() is called before set()', function() {
+        let result = new FuncResult();
+        (function() {
+          console.log(result.get());
+        }).should.throw();
+      });
+
+      it('can be resolved via another FuncResult', function(done) {
+        let result = new FuncResult();
+        let other = new FuncResult();
+        result.resolve(other);
+
+        other.set("wow");
+
+        result.then((value) => {
+          value.should.equal("wow");
+          done();
+        });
+      });
+    });
+
+    it('can be listened to asyncrhonously with then', function(done) {
+        let result = new FuncResult();
+
+        result.then((value) => {
+          value.should.equal("wow");
+          done();
+        });
+        result.set("wow");
     });
 });

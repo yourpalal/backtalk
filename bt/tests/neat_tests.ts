@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 import * as BT from '../lib/back_talker';
 
 
-it('BackTalker can', function() {
+describe('BackTalker can', function() {
     var scope, evaluator;
 
     before(function() {
@@ -14,26 +14,40 @@ it('BackTalker can', function() {
     });
 
 
-    it("make loops", function() {
+    it("make loops", function(done) {
         scope.addFunc({
             patterns: ["for $! from $ to $"]
-            ,impl: function(v, low, high) {
-                var i = 0,
+            ,impl: function(args, ret) {
+                let low = args.named.low,
+                    high = args.named.high,
+                    name = args.named.name,
+                    i = 0,
                     results = [];
 
-                for (; low + i < high; i++) {
-                    this.scope.set(v.name, low + i);
-                    results.push(this.eval(this.body));
+                let step = () => {
+                  if (low + i >=  high) {
+                    ret.set(results);
+                    return;
+                  }
+
+                  this.eval(this.body).then((value) => {
+                    results.push(value);
+                    i++;
+                    step();
+                  });
                 }
-                return results;
+
+                step();
             }
         });
 
-        var result = evaluator.eval([
-        "for $i from 0 to 10:",
-        "   $i + 5"
-        ].join("\n"));
+        var result = evaluator.evalString(`
+        for $i from 0 to 10:
+           $i + 5`);
 
-        result.should.equal([5,6,7,8,9,10,11,12,13,14]);
+        result.then((value) => {
+          value.should.equal([5,6,7,8,9,10,11,12,13,14]);
+          done();
+        });
     });
 });

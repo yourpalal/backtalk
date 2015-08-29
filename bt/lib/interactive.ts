@@ -66,9 +66,7 @@ export class InteractiveEvaluator extends Evaluator {
     let compiler = new SourceInfoCompiler();
     node.accept(compiler);
 
-    console.log('compiled to', compiler.instructions, compiler.ranges);
-
-    let frame = this.vm.makeFrame(expresser);
+    let vm = new VM.VM(compiler.instructions, this, expresser);
 
     let codeRangeIndex = 0;
     this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
@@ -78,7 +76,7 @@ export class InteractiveEvaluator extends Evaluator {
         codeRangeIndex++;
         this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
       }
-      compiler.instructions[i].execute(this.vm, frame, this);
+      compiler.instructions[i].execute(vm, this);
     }
   }
 

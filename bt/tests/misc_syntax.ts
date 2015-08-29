@@ -13,6 +13,6 @@ describe('BackTalker code', function() {
     });
 
     it('can have string literals', function() {
-        BT.eval('"neat"').should.equal('neat');
+        BT.eval('"neat"').get().should.equal('neat');
     });
 });

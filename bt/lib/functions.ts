@@ -1,7 +1,5 @@
-import {BadTypeError} from "./errors";
-
-// everything in this file should be pure functional
-// because I want it that way
+import {BadTypeError, BaseError} from './errors';
+import {EventEmitter} from './events';
 
 export class FuncParams {
   named: { [key: string]: any }
@@ -12,7 +10,6 @@ export class FuncParams {
       return
     }
 
-    // impure, but convenient
     var i = 0;
     params.forEach((param) => {
       if (param.fromVar) {
@@ -84,5 +81,70 @@ export module FuncParam{
 
   export function forChoice(name: string) {
     return new FuncParam(name, 0, false);
+  }
+}
+
+export class TooEagerError extends BaseError {
+  constructor() {
+    super('Attempted to get FuncResult value before it was fulfilled');
+  }
+}
+
+// pretty much a promise
+export class FuncResult {
+  private value: any;
+  private haveValue: boolean = false;
+
+  private emitter: EventEmitter;
+
+  constructor() {
+    this.emitter = new EventEmitter(['set']);
+  }
+
+  set(v?: any) {
+    this.value = v;
+    this.haveValue = true;
+
+    this.emitter.emitAsync('set', this, this.value);
+    return this;
+  }
+
+  resolve(r: FuncResult) {
+    r.now((value) => this.set(value));
+    return this;
+  }
+
+  isFulfilled(): boolean {
+    return this.haveValue;
+  }
+
+  get() {
+    if (!this.isFulfilled()) {
+      throw new TooEagerError();
+    }
+    return this.value;
+  }
+
+  /**
+   * Like then, but it might execute the callback synchronously.
+   * @param  {any} onFulfilled callback, called with the value
+   * @returns {FuncResult} this
+   */
+  now(onFulfilled: {(any): any}): FuncResult {
+    if (this.isFulfilled()) {
+      onFulfilled.call(this, this.value);
+    } else {
+      this.emitter.on('set', onFulfilled);
+    }
+    return this;
+  }
+
+  then(onFulfilled: {(any): any}): FuncResult {
+    if (this.isFulfilled()) {
+      setTimeout(() => onFulfilled.call(this, this.value), 0);
+    } else {
+      this.emitter.on('set', onFulfilled);
+    }
+    return this;
   }
 }

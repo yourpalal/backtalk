@@ -4,36 +4,16 @@ import {Expresser, ConsoleExpresser} from "./expressers";
 import {FuncDef} from "./funcdefs";
 import * as syntax from "./syntax";
 
+
 export class VM {
-  private stack: VMFrame[];
-
-  constructor(private expresser:Expresser = new ConsoleExpresser()) {
-    this.stack = [];
-  }
-
-  public frame() {
-    return this.stack[this.stack.length - 1];
-  }
-
-  public makeFrame(expresser? :Expresser) {
-    this.stack.push(new VMFrame(expresser || this.expresser));
-    return this.frame();
-  }
-
-  public execute(code: Instructions.Instruction[], frame: VMFrame, evaluator: Evaluator) {
-    code.forEach((i) => {
-      i.execute(this, frame, evaluator);
-    });
-    this.stack.pop();
-    frame.finish();
-  }
-};
-
-export class VMFrame extends syntax.BaseVisitor {
     bits: any[] = [];
 
-    constructor(private expresser: Expresser) {
-      super();
+    ip: number = 0;
+    waiting: boolean = false;
+
+    constructor(public instructions: Instructions.Instruction[],
+              private evaluator: Evaluator,
+              private expresser: Expresser = new ConsoleExpresser()) {
     }
 
     pop(): any {
@@ -52,60 +32,76 @@ export class VMFrame extends syntax.BaseVisitor {
       this.expresser.express(r);
     }
 
-    finish() {
-      this.expresser.finish();
+    resume() {
+      this.waiting = false;
+      while (!this.isFinished() && !this.waiting) {
+        this.instructions[this.ip++].execute(this, this.evaluator);
+      }
+
+      if (this.isFinished()) {
+        this.finish();
+      }
     }
 
-    call(f: FuncDef, numArgs: number, thisArg: any) {
+    wait() {
+      this.waiting = true;
+    }
+
+    isFinished() {
+      return this.ip >= this.instructions.length;
+    }
+
+    finish() {
+      this.expresser.finish();
     }
 }
 
 export module Instructions {
   export interface Instruction {
-      execute(vm: VM, frame: VMFrame, evaluator: Evaluator);
+      execute(vm: VM, evaluator: Evaluator);
   }
 
   export class Push implements Instruction {
       constructor(private value: any) {}
 
-      execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        frame.push(this.value);
+      execute(vm: VM, evaluator: Evaluator) {
+        vm.push(this.value);
       }
   }
 
   export var PushZero = new Push(0);
 
   export class Express {
-      static execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        frame.express(frame.pop());
+      static execute(vm: VM, evaluator: Evaluator) {
+        vm.express(vm.pop());
       }
   }
 
   export class Add {
-      static execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        var right = frame.pop();
-        frame.push(frame.pop() + right);
+      static execute(vm: VM, evaluator: Evaluator) {
+        var right = vm.pop();
+        vm.push(vm.pop() + right);
       }
   }
 
   export class Sub {
-      static execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        var right = frame.pop();
-        frame.push(frame.pop() - right);
+      static execute(vm: VM, evaluator: Evaluator) {
+        var right = vm.pop();
+        vm.push(vm.pop() - right);
       }
   }
 
   export class Mult {
-      static execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        var right = frame.pop();
-        frame.push(frame.pop() * right);
+      static execute(vm: VM, evaluator: Evaluator) {
+        var right = vm.pop();
+        vm.push(vm.pop() * right);
       }
   }
 
   export class Div {
-      static execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        var right = frame.pop();
-        frame.push(frame.pop() / right);
+      static execute(vm: VM, evaluator: Evaluator) {
+        var right = vm.pop();
+        vm.push(vm.pop() / right);
       }
   }
 
@@ -113,10 +109,19 @@ export module Instructions {
       constructor(private name: string) {
       }
 
-      execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
+      execute(vm: VM, evaluator: Evaluator) {
         var func = evaluator.findFuncOrThrow(this.name),
-            args = frame.yoink(func.vivification.length);
-        frame.push(evaluator.simpleCall(func, args));
+            args = vm.yoink(func.vivification.length),
+            result = evaluator.simpleCall(func, args)
+        if (result.isFulfilled()) {
+          return vm.push(result.get());
+        }
+
+        vm.wait();
+        result.then((value) => {
+            vm.push(value);
+            vm.resume();
+        });
       }
   }
 
@@ -124,10 +129,19 @@ export module Instructions {
       constructor(private name: string, private body: syntax.CompoundExpression) {
       }
 
-      execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
+      execute(vm: VM, evaluator: Evaluator) {
         var func = evaluator.findFuncOrThrow(this.name),
-            args = frame.yoink(func.vivification.length);
-        frame.push(evaluator.hangingCall(func, this.body, args));
+            args = vm.yoink(func.vivification.length),
+            result = evaluator.hangingCall(func, this.body, args);
+        if (result.isFulfilled()) {
+          return vm.push(result.get());
+        }
+
+        vm.wait();
+        result.then((value) => {
+          vm.push(value);
+          vm.resume();
+        });
       }
   }
 
@@ -135,8 +149,8 @@ export module Instructions {
       constructor(private name: string) {
       }
 
-      execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        frame.push(evaluator.scope.get(this.name));
+      execute(vm: VM, evaluator: Evaluator) {
+        vm.push(evaluator.scope.get(this.name));
       }
   }
 
@@ -144,8 +158,8 @@ export module Instructions {
       constructor(private name: string) {
       }
 
-      execute(vm: VM, frame: VMFrame, evaluator: Evaluator) {
-        frame.push(evaluator.scope.getVivifiable(this.name));
+      execute(vm: VM, evaluator: Evaluator) {
+        vm.push(evaluator.scope.getVivifiable(this.name));
       }
   }
 }

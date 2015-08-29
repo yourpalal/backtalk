@@ -3,6 +3,7 @@ import * as scopes from "./scope";
 import * as stdLib from "./standard_lib";
 import * as syntax from "./syntax";
 import * as VM from "./vm";
+import {FuncResult} from "./functions";
 
 import {BaseError} from "./errors";
 
@@ -32,12 +33,12 @@ export class FunctionNameError extends BaseError {
  * @description Evaluates a string or AST within a scope.
  * @returns The last value returned from the backtalk code.
  */
-export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope) {
+export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope): FuncResult {
   var parsed;
   if (typeof (source) === 'string') {
     parsed = syntax.parse(<string>source, null);
   } else {
-    parsed = source; // hopefuly this is the syntax
+    parsed = source;
   }
   return (new Evaluator(scope)).eval(parsed);
 }
@@ -60,25 +61,26 @@ export class Evaluator {
    * @constructor
    * @param {scopes.Scope} (optional) scope in which to evaluate BT code.
    */
-  constructor(public scope?: scopes.Scope, public vm:VM.VM = new VM.VM()) {
+  constructor(public scope?: scopes.Scope) {
     this.scope = scope || stdLib.inScope(new scopes.Scope());
     this.newSubEval = false;
   }
 
-  evalString(source: string): any {
+  evalString(source: string): FuncResult {
     return this.eval(syntax.parse(source));
   }
 
-  eval(node: syntax.Visitable): any {
-    var expresser = new VM.ResultExpresser();
+  eval(node: syntax.Visitable): FuncResult {
+    let expresser = new VM.ResultExpresser();
     this.evalExpressions(node, expresser);
     return expresser.result;
   }
 
   evalExpressions(node: syntax.Visitable, expresser: VM.Expresser): void {
     this.body = node;
-    var compiled = VM.Compiler.compile(node);
-    this.vm.execute(compiled, this.vm.makeFrame(expresser), this);
+    let compiled = VM.Compiler.compile(node);
+    let vm = new VM.VM(compiled, this, expresser);
+    vm.resume();
   }
 
   makeSubEvaluator(body: syntax.Visitable): Evaluator {
@@ -126,14 +128,18 @@ export class Evaluator {
     return args;
   }
 
-  hangingCall(func: scopes.FuncHandle, body: syntax.Visitable, args: any[]) {
+  hangingCall(func: scopes.FuncHandle, body: syntax.Visitable, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
-    return func.impl.call(this.makeSubEvaluator(body), func.parameterize(args));
+    let result = new FuncResult();
+    func.impl.call(this.makeSubEvaluator(body), func.parameterize(args), result);
+    return result;
   }
 
-  simpleCall(func: scopes.FuncHandle, args: any[]) {
+  simpleCall(func: scopes.FuncHandle, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
     this.newSubEval = false;
-    return func.impl.call(this, func.parameterize(args));
+    let result = new FuncResult();
+    func.impl.call(this, func.parameterize(args), result);
+    return result;
   }
 }

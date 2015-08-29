@@ -13,52 +13,56 @@ class ExpresserSpy implements VM.Expresser {
   public express: { (any): void};
   public finish: { ():void };
 
+  public promise: Promise<any>;
+
   constructor() {
     this.express = sinon.spy();
-    this.finish = sinon.spy();
+    this.promise = new Promise<any>((resolve, reject) => {
+      this.finish = sinon.spy(resolve);
+    });
   }
 };
 
 describe('The BackTalker VM', () => {
-    var evaluator: BT.Evaluator, scope: BT.Scope, spyFunc, expressed, vm: VM.VM, frame: VM.VMFrame;
+    var evaluator: BT.Evaluator, scope: BT.Scope, spyFunc, expressed, vm: VM.VM;
+
+    let execute = (...program: VM.Instructions.Instruction[]) => {
+        var expresserSpy = new ExpresserSpy();
+        expressed = <any>expresserSpy.express;
+        vm = new VM.VM(program, evaluator, expresserSpy);
+        vm.resume();
+        return expresserSpy.promise;
+    }
 
     beforeEach(() => {
       scope = new BT.Scope();
       evaluator = new BT.Evaluator(scope);
       spyFunc = addSpyToScope(scope);
-      var expresserSpy = new ExpresserSpy();
-      expressed = <any>expresserSpy.express;
-
-      vm = new VM.VM(expresserSpy);
-      frame = vm.makeFrame();
     });
 
-    it('can do simple math', () => {
-      vm.execute([
+    it('can do simple math', () => execute(
         new VM.Instructions.Push(3),
         new VM.Instructions.Push(2),
         VM.Instructions.Add,
         VM.Instructions.Express
-      ], frame, evaluator);
+      ).then(() => {
+        expressed.calledOnce.should.be.ok;
+        expressed.calledWith(5).should.be.ok;
+    }));
 
-      expressed.calledOnce.should.be.ok;
-      expressed.calledWith(5).should.be.ok;
-    });
-
-    it('can call a function', () => {
-      vm.execute([
+    it('can call a function', () => execute(
         new VM.Instructions.Push(3),
         new VM.Instructions.Push(2),
         new VM.Instructions.CallFunc("spy on $ $"),
         VM.Instructions.Express
-      ], frame, evaluator);
+      ).then(() => {
 
-      expressed.calledOnce.should.be.ok;
-      spyFunc.calledOnce.should.be.ok;
-      var params = spyFunc.firstCall.args[0];
-      params.named.should.have.property("a", 3);
-      params.named.should.have.property("b", 2);
-    });
+        expressed.calledOnce.should.be.ok;
+        spyFunc.calledOnce.should.be.ok;
+        var params = spyFunc.firstCall.args[0];
+        params.named.should.have.property("a", 3);
+        params.named.should.have.property("b", 2);
+    }));
 });
 
 describe('The BackTalker Compiler', () => {

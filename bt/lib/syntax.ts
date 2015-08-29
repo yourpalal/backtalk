@@ -19,13 +19,10 @@ export function parse(source: string, inspector?: (p: grammar.ParserNode) => voi
 
 export class ParseError extends BaseError {
   public inner: any
-  public message: string
-  public stack: any
 
   constructor(err) {
     super(`ParseError: ${err.message}`);
     this.inner = err;
-    this.stack = err.stack;
   }
 
   toString() {

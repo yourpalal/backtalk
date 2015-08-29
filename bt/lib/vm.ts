@@ -6,7 +6,7 @@ import * as syntax from "./syntax";
 
 
 export class VM {
-    protected bits: any[] = [];
+    protected stack: any[] = [];
 
     protected ip: number = 0;
     protected waiting: boolean = true;
@@ -17,15 +17,15 @@ export class VM {
     }
 
     pop(): any {
-      return this.bits.pop();
+      return this.stack.pop();
     }
 
     push(b: any) {
-      this.bits.push(b);
+      this.stack.push(b);
     }
 
     yoink(count: number): any[] {
-      return this.bits.splice(this.bits.length - count, count);
+      return this.stack.splice(this.stack.length - count, count);
     }
 
     express(r: any) {

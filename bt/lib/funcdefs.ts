@@ -6,11 +6,11 @@ export interface FuncParameterizer {
 }
 
 export class FuncDef {
-  constructor(public bits: string[], public vivify: Vivify[], public params: FuncParam[]) {
+  constructor(public tokens: string[], public vivify: Vivify[], public params: FuncParam[]) {
   }
 
   isEmpty(): boolean {
-    return (this.bits.length === 0);
+    return (this.tokens.length === 0);
   }
 
   makeParameterizer(): FuncParameterizer {
@@ -43,7 +43,7 @@ export class FuncDefCollection {
   concat(piece: SimpleFuncDefPart): FuncDefCollection {
     var concatTo = this.defs || [new FuncDef([], [], [])];
     return new FuncDefCollection(concatTo.map((def) => {
-      return new FuncDef(def.bits.concat(piece.bits),
+      return new FuncDef(def.tokens.concat(piece.tokens),
         def.vivify.concat(piece.vivify),
         piece.param ? def.params.concat(piece.param) : def.params);
     }));
@@ -73,7 +73,7 @@ export class FuncDefCollection {
 
   withArg(param: FuncParam): FuncDefCollection {
     return new FuncDefCollection(this.defs.map(def => {
-      return new FuncDef(def.bits, def.vivify, def.params.concat(param));
+      return new FuncDef(def.tokens, def.vivify, def.params.concat(param));
     }));
   }
 }
@@ -109,7 +109,7 @@ export class Seq {
 }
 
 export class SimpleFuncDefPart {
-  constructor(public bits: string[], public vivify: Vivify[], public param?: FuncParam) {
+  constructor(public tokens: string[], public vivify: Vivify[], public param?: FuncParam) {
   }
 
   static makeVar(raw: string): SimpleFuncDefPart {

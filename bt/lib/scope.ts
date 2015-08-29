@@ -83,7 +83,7 @@ export class Scope {
       // now we can register a wrapper for all of the specified functions
       // that will append the dynamic parts of the pattern as arguments
       result.defs.forEach((funcdef) => {
-        var name = funcdef.bits.join(" ");
+        var name = funcdef.tokens.join(" ");
         this.funcs.put(name, new FuncHandle(name, impl, funcdef));
       });
     });

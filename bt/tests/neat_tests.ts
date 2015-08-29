@@ -16,26 +16,26 @@ describe('BackTalker can', function() {
 
     it("make loops", function(done) {
         scope.addFunc({
-            patterns: ["for $! from $ to $"]
+            patterns: ["for $!:name from $:low to $:high"]
             ,impl: function(args, ret) {
                 let low = args.named.low,
                     high = args.named.high,
                     name = args.named.name,
                     i = 0,
-                    results = [];
+                    results = new Array(high - low - 1);
 
                 let step = () => {
                   if (low + i >=  high) {
-                    ret.set(results);
-                    return;
+                    return ret.set(results);
                   }
 
+                  this.scope.set("i", i);
                   this.eval(this.body).then((value) => {
-                    results.push(value);
+                    results[i] = value;
                     i++;
                     step();
                   });
-                }
+                };
 
                 step();
             }
@@ -46,7 +46,7 @@ describe('BackTalker can', function() {
            $i + 5`);
 
         result.then((value) => {
-          value.should.equal([5,6,7,8,9,10,11,12,13,14]);
+          value.should.eql([5,6,7,8,9,10,11,12,13,14]);
           done();
         });
     });

@@ -1,12 +1,17 @@
 // inspired by http://stackoverflow.com/a/31628245/868528
 
 export class BaseError {
+  public stack: any;
+  public message: string;
+
   constructor(public msg:string = "[Error]", ...args) {
-    Error.apply(this, args);
+    this.message = msg;
+    this.stack = (new Error())['stack'];
   }
 }
 
-BaseError.prototype = <any>new Error();
+BaseError.prototype = Object.create(Error.prototype);
+BaseError.prototype.constructor = BaseError;
 
 export class BadTypeError extends BaseError {
   constructor(public value:any, expected: string) {

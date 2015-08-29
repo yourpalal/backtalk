@@ -92,7 +92,7 @@ export class Evaluator {
 
   findFuncOrThrow(name: string): scopes.FuncHandle {
     var func = this.scope.findFunc(name);
-    if (typeof func === 'undefined') {
+    if (func === null || typeof func === 'undefined') {
       throw new FunctionNameError(name);
     }
     return func;

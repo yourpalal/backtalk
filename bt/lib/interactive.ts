@@ -43,6 +43,35 @@ export class SourceInfoCompiler extends VM.Compiler {
   }
 };
 
+export class InteractiveVM extends VM.VM {
+  events: EventEmitter;
+
+  constructor(instructions: VM.Instructions.Instruction[],
+            evaluator: Evaluator,
+            expresser: VM.Expresser = new VM.ConsoleExpresser()) {
+    super(instructions, evaluator, expresser);
+    this.events = new EventEmitter(['ready']);
+  }
+
+  isReady(): boolean {
+    return !this.waiting;
+  }
+
+  step(): number {
+    this.instructions[this.ip++].execute(this, this.evaluator);
+    return this.ip;
+  }
+
+  resume() {
+    this.waiting = false;
+    if (this.isFinished()) {
+      this.finish();
+    }
+
+    this.events.emitAsync('ready', this, this.ip);
+  }
+};
+
 /**
  * @class InteractiveEvaluator
  * @description BackTalk evaluator that provides control and information of how
@@ -66,18 +95,30 @@ export class InteractiveEvaluator extends Evaluator {
     let compiler = new SourceInfoCompiler();
     node.accept(compiler);
 
-    let vm = new VM.VM(compiler.instructions, this, expresser);
+    let vm = new InteractiveVM(compiler.instructions, this, expresser);
 
     let codeRangeIndex = 0;
     this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
 
-    for (let i = 0; i < compiler.instructions.length; i++) {
-      if (!compiler.ranges[codeRangeIndex].includes(i)) {
+    let step = () => {
+      if (vm.isFinished()) {
+        return;
+      }
+
+      if (!compiler.ranges[codeRangeIndex].includes(vm.step())) {
         codeRangeIndex++;
         this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
       }
-      compiler.instructions[i].execute(vm, this);
+
+      // trigger a "ready" event manually
+      if (vm.isReady()) {
+        vm.wait();
+        vm.resume();
+      }
     }
+
+    vm.events.on("ready", step);
+    vm.resume();
   }
 
   /**

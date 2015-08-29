@@ -26,3 +26,21 @@ export function addSpyToScope(scope: Scope, hook: Function = ident) {
 
   return spyFunc;
 }
+
+export function addAsyncSpyToScope(scope: Scope, hook: Function = ident) {
+  var spyFunc = sinon.spy(function(a, ret) {
+      var self = <Evaluator>this;
+      if (self.newSubEval) {
+        setTimeout(() => ret.resolve(self.eval(self.body)), 0);
+      } else {
+        setTimeout(() => hook.call(this, a, ret), 0);
+      }
+  });
+
+  scope.addFunc({
+    patterns: ["spy async <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d>"],
+    impl: spyFunc
+  });
+
+  return spyFunc;
+}

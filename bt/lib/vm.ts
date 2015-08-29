@@ -6,14 +6,14 @@ import * as syntax from "./syntax";
 
 
 export class VM {
-    bits: any[] = [];
+    protected bits: any[] = [];
 
-    ip: number = 0;
-    waiting: boolean = false;
+    protected ip: number = 0;
+    protected waiting: boolean = true;
 
     constructor(public instructions: Instructions.Instruction[],
-              private evaluator: Evaluator,
-              private expresser: Expresser = new ConsoleExpresser()) {
+              protected evaluator: Evaluator,
+              protected expresser: Expresser = new ConsoleExpresser()) {
     }
 
     pop(): any {

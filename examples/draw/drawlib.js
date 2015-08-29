@@ -25,10 +25,9 @@ Drawing.Context = function() {
 
 
 Drawing.makeObjectContext = function(object, scope) {
-    scope.addFunc({
-        patterns: ['a <bit|pixel>:which <left of|right of|above|below>:direction center',
+    scope.addFunc(['a <bit|pixel>:which <left of|right of|above|below>:direction center',
                    'at $:count <pixel|pixels> <left of|right of|above|below>:direction center'],
-        impl: function(args) {
+        function(args) {
             var count = args.choose("which", [5, 1], args.get("count"));
             if (args.named.direction % 2 == 0) {
               // left, above = -
@@ -42,16 +41,14 @@ Drawing.makeObjectContext = function(object, scope) {
               // left/right
               object.center[0] = (Drawing.width / 2) + count;
             }
-        }
-    });
+        });
 };
 
 Drawing.Context.prototype.register = function(btcontext) {
     var ctx = this;
 
-    btcontext.addFunc({
-        patterns: ['a <small|big>:size <red|yellow|green|blue>:colour circle'],
-        impl: function(args) {
+    btcontext.addFunc(['a <small|big>:size <red|yellow|green|blue>:colour circle'],
+        function(args) {
             var circle = new Drawing.Circle(args.choose("size", [5, 30]), args.choose("colour", ["red", "yellow", "green", "blue"]));
             ctx.gfx.push(circle);
 
@@ -60,8 +57,7 @@ Drawing.Context.prototype.register = function(btcontext) {
             if (this.newSubEval) {
                 this.eval(this.body);
             }
-        }
-    });
+        });
 
 };
 

@@ -70,10 +70,7 @@ describe('BackTalker function calls', function() {
 
     it("can name choices and find which was used", function() {
         var func = sinon.spy((a, ret) => { ret.set(a.named.target); });
-        scope.addFunc({
-            patterns: ["bake <cake|pie>:target"],
-            impl: func
-        });
+        scope.addFunc(["bake <cake|pie>:target"], func);
 
         evaluator.evalString("bake cake").get()
           .should.equal(0);
@@ -85,12 +82,8 @@ describe('BackTalker function calls', function() {
 
     describe("can save you typing with patterns", function() {
         it("can allow choices of barewords like <foo|bar>", function() {
-            scope.addFunc({
-                patterns: ["bake <cake|pie> $"],
-                impl: (a, ret) => ret.set(a.passed[0])
-            });
+            scope.addFunc(["bake <cake|pie> $"], (a, ret) => ret.set(a.passed[0]));
 
-            // $-type args are defined first
             evaluator.evalString('bake cake "?"').get()
               .should.equal("?");
             evaluator.evalString('bake pie "?"').get().
@@ -98,10 +91,7 @@ describe('BackTalker function calls', function() {
         });
 
         it("can allow spaces in <|> like <foo or|foo and>", function() {
-            scope.addFunc({
-                patterns: ["bake <cake and|pie or > $"],
-                impl: (a, ret) => ret.set(a.passed[0])
-            });
+            scope.addFunc(["bake <cake and|pie or > $"], (a, ret) => ret.set(a.passed[0]));
 
             evaluator.evalString('bake cake and "pie"').get()
               .should.equal("pie");
@@ -120,11 +110,7 @@ describe('BackTalker function calls', function() {
         var func = sinon.spy(function(args, ret) {
             ret.set(args.passed[0]);
         });
-
-        scope.addFunc({
-            patterns: ["on the planet $!"],
-            impl: func
-        });
+        scope.addFunc(["on the planet $!"], func);
 
         var result = evaluator.evalString("on the planet $earth").get();
         result.should.be.instanceOf(BT.AutoVar);
@@ -137,11 +123,7 @@ describe('BackTalker function calls', function() {
     });
 
     it('can disallow autovivification', function() {
-        scope.addFunc({
-            patterns: ["no"],
-            impl: function() {}
-        });
-
+        scope.addFunc(["no"], () => false);
         should.throws(function() {
             evaluator.evalString('no $vivification');
         }, Error);
@@ -150,15 +132,12 @@ describe('BackTalker function calls', function() {
     it('can tell if it is making a block by checking newSubEval', function() {
         var newSubEval = false;
 
-        scope.addFunc({
-            patterns: ["cool"],
-            impl: function(args, ret) {
-                var self = <evaluator.Evaluator>this;
-                newSubEval = self.newSubEval;
-                if (self.newSubEval) {
-                    ret.resolve(self.eval(self.body));
-                }
-            }
+        scope.addFunc(["cool"], function(args, ret) {
+          var self = <evaluator.Evaluator>this;
+          newSubEval = self.newSubEval;
+          if (self.newSubEval) {
+              ret.resolve(self.eval(self.body));
+          }
         });
 
         evaluator.evalString("cool");
@@ -180,22 +159,13 @@ describe('BackTalker function calls', function() {
                 planet = args.passed[0];
                 bodySyntax = this.body;
 
-                this.scope.addFunc({
-                    patterns: ["I jump"],
-                    impl: function(args, ret) {
-                        ret.set("jumped");
-                    }
-                });
-
+                this.scope.addFunc(["I jump"], (args, ret) => ret.set("jumped"));
                 var result = this.eval(this.body).get();
                 gravity = this.scope.get("gravity");
                 ret.set(result);
             });
 
-        scope.addFunc({
-            patterns: ["on the planet $"],
-            impl: func
-        });
+        scope.addFunc(["on the planet $"], func);
 
         var code = ['on the planet "sarkon":',
                     '   with $gravity as 3 -- m/s/s',

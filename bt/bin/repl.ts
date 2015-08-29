@@ -72,39 +72,27 @@ class REPL {
   }
 
   init_scope() {
-    this.scope.addFunc({
-        patterns: ['q'],
-        impl: () => {
-          console.log('goodbye!');
-          this.rl.close();
-          process.exit();
+    this.scope.addFunc(['q'], () => {
+      console.log('goodbye!');
+      this.rl.close();
+      process.exit();
+    });
+
+    this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args) => {
+        let on = args.choose('on', [true, false, false]);
+        if (args.named['what'] == 0) {
+          this.print_ast = on;
+        } else {
+          this.print_parse = on;
         }
     });
 
-    this.scope.addFunc({
-        patterns: ["repl <debug|stop debug|no debug>:on <ast|parse>:what"],
-        impl: (args) => {
-          var on = args.named.on == 0;
-          if (args.named.what == 0) {
-            this.print_ast = on;
-          } else {
-            this.print_parse = on;
-          }
-        }
+    this.scope.addFunc(["repl ls", "help"], (args) => {
+      this.scope.funcs.each((k, v) => console.log(k));
     });
 
-    this.scope.addFunc({
-        patterns: ["repl ls", "help"],
-        impl: (args) => {
-          this.scope.funcs.each((k, v) => console.log(k));
-        }
-    });
-
-    this.scope.addFunc({
-      patterns: ["repl scope"],
-      impl: (args) => {
+    this.scope.addFunc(["repl scope"], (args) => {
         console.log(this.scope.names);
-      }
     });
   }
 

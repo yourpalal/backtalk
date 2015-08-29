@@ -1,6 +1,10 @@
 import {Vivify} from "./vars";
 import {FuncParam, FuncParams} from './functions';
 
+export interface FuncParameterizer {
+  (passed: any[]): FuncParams
+}
+
 export class FuncDef {
   constructor(public bits: string[], public vivify: Vivify[], public params: FuncParam[]) {
   }
@@ -9,7 +13,7 @@ export class FuncDef {
     return (this.bits.length === 0);
   }
 
-  makeParameterizer() {
+  makeParameterizer(): FuncParameterizer {
     return (passed: any[]) => new FuncParams(passed, this.params);
   }
 }

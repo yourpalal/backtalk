@@ -72,25 +72,27 @@ export class FuncParam {
     withValue(value: any): FuncParam {
       return new FuncParam(this.name, value, this.fromVar);
     }
-}
 
-export module FuncParam{
-  export function forVar(name: string) {
-    return new FuncParam(name, null, true);
-  }
+    static forVar(name: string) {
+      return new FuncParam(name, null, true);
+    }
 
-  export function forChoice(name: string) {
-    return new FuncParam(name, 0, false);
-  }
+    static forChoice(name: string) {
+      return new FuncParam(name, 0, false);
+    }
 }
 
 export class TooEagerError extends BaseError {
   constructor() {
-    super('Attempted to get FuncResult value before it was fulfilled');
+    super("Attempted to get FuncResult value before it was fulfilled");
   }
 }
 
-// pretty much a promise
+/**
+ * @class FuncResult
+ * @description FuncResult is much like a promise, with the exception that it
+ *  can sometimes be used synchronously.
+ */
 export class FuncResult {
   private value: any;
   private haveValue: boolean = false;
@@ -139,6 +141,14 @@ export class FuncResult {
     return this;
   }
 
+  /**
+   * Add a callback to be run when the FuncResult is fulfilled. The
+   * callback will always run async, but may run very soon if the result is
+   * already set.
+   *
+   * @param  {{(any} onFulfilled [description]
+   * @return {any}               [description]
+   */
   then(onFulfilled: {(any): any}): FuncResult {
     if (this.isFulfilled()) {
       setTimeout(() => onFulfilled.call(this, this.value), 0);

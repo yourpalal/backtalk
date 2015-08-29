@@ -15,30 +15,27 @@ describe('BackTalker can', function() {
 
 
     it("make loops", function(done) {
-        scope.addFunc({
-            patterns: ["for $!:name from $:low to $:high"]
-            ,impl: function(args, ret) {
-                let low = args.named.low,
-                    high = args.named.high,
-                    name = args.named.name,
-                    i = 0,
-                    results = new Array(high - low - 1);
+        scope.addFunc(["for $!:name from $:low to $:high"], function(args, ret) {
+            let low = args.named.low,
+                high = args.named.high,
+                name = args.named.name,
+                i = 0,
+                results = new Array(high - low - 1);
 
-                let step = () => {
-                  if (low + i >=  high) {
-                    return ret.set(results);
-                  }
+            let step = () => {
+              if (low + i >=  high) {
+                return ret.set(results);
+              }
 
-                  this.scope.set("i", i);
-                  this.eval(this.body).then((value) => {
-                    results[i] = value;
-                    i++;
-                    step();
-                  });
-                };
-
+              this.scope.set("i", i);
+              this.eval(this.body).then((value) => {
+                results[i] = value;
+                i++;
                 step();
-            }
+              });
+            };
+
+            step();
         });
 
         var result = evaluator.evalString(`

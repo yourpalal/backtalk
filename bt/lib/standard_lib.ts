@@ -46,7 +46,7 @@ var parts = [
 
 export function inScope(scope) {
   parts.forEach(function(f) {
-    scope.addFunc(f);
+    scope.addFunc(f.patterns, f.impl);
   });
   return scope;
 }

@@ -31,7 +31,7 @@ export class FunctionNameError extends BaseError {
 /**
  * @function evalBT
  * @description Evaluates a string or AST within a scope.
- * @returns The last value returned from the backtalk code.
+ * @returns {FuncResult} result of the backtalk code.
  */
 export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope): FuncResult {
   var parsed;
@@ -45,7 +45,8 @@ export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope):
 
 /**
  * @class evaluator.Evaluator
- * @description BackTalk evaluator. Interprets BackTalk AST's within a given scope.
+ * @description BackTalk evaluator. Provides scope and javascript binding for evaluating
+ *              BackTalk code.
  *
  */
 export class Evaluator {

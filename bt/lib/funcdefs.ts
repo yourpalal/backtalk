@@ -43,9 +43,9 @@ export class FuncDefCollection {
   concat(piece: SimpleFuncDefPart): FuncDefCollection {
     var concatTo = this.defs || [new FuncDef([], [], [])];
     return new FuncDefCollection(concatTo.map((def) => {
-      return new FuncDef(def.tokens.concat(piece.tokens),
-        def.vivify.concat(piece.vivify),
-        piece.param ? def.params.concat(piece.param) : def.params);
+      return new FuncDef(def.tokens.concat(piece.token),
+        piece.vivify === null ? def.vivify : def.vivify.concat(piece.vivify),
+        piece.param === null ? def.params : def.params.concat(piece.param));
     }));
   }
 
@@ -109,36 +109,32 @@ export class Seq {
 }
 
 export class SimpleFuncDefPart {
-  constructor(public tokens: string[], public vivify: Vivify[], public param?: FuncParam) {
+  constructor(public token: string, public vivify: Vivify = null, public param: FuncParam = null) {
   }
 
   static makeVar(raw: string): SimpleFuncDefPart {
     var names = raw.split(':'),
       varType = names[0],
       name = names.length == 2 ? names[1] : null,
-      vivify: Vivify[];
+      vivify: Vivify = null;
 
     if (varType === '$') {
-      vivify = [Vivify.NEVER];
+      vivify = Vivify.NEVER;
     } else if (varType === '$!!') {
-      vivify = [Vivify.ALWAYS];
+      vivify = Vivify.ALWAYS;
     } else if (varType === '$!') {
-      vivify = [Vivify.AUTO];
+      vivify = Vivify.AUTO;
     }
 
     if (name === null) {
-      return new SimpleFuncDefPart(['$'], vivify);
+      return new SimpleFuncDefPart('$', vivify);
     } else {
-      return new SimpleFuncDefPart(['$'], vivify, FuncParam.forVar(name));
+      return new SimpleFuncDefPart('$', vivify, FuncParam.forVar(name));
     }
   }
 
   static makeBare(raw: string): SimpleFuncDefPart {
-    return new SimpleFuncDefPart([raw], [])
-  }
-
-  static makeEmpty(): SimpleFuncDefPart {
-    return new SimpleFuncDefPart([], []);
+    return new SimpleFuncDefPart(raw);
   }
 }
 
@@ -152,9 +148,9 @@ export class Choice {
     var bits = raw.substr(1, end).split('|');
 
     // check for empty part
-    var emptyPart = null;
+    var emptyPart = false;
     if (bits[0] == "") {
-      emptyPart = SimpleFuncDefPart.makeEmpty();
+      emptyPart = true;
       bits.shift();
     }
 
@@ -176,8 +172,8 @@ export class Choice {
       return <SimpleFuncDefPart[]>(s.pieces);
     });
 
-    if (emptyPart !== null) {
-      this.options.unshift([emptyPart]);
+    if (emptyPart) {
+      this.options.unshift([]);
     }
   }
 }

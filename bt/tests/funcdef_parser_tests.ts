@@ -45,8 +45,7 @@ describe('a funcdef', function() {
 
             result.pieces[0]
               .should.be.an.instanceOf(SimpleFuncDefPart)
-                .with.property('tokens')
-                  .with.property('0', 'foo');
+                .with.property('token', 'foo');
         });
 
         it('can recognized named vars like $:foo', function() {
@@ -58,8 +57,7 @@ describe('a funcdef', function() {
 
             result.pieces[0]
               .should.be.an.instanceOf(SimpleFuncDefPart)
-                .with.property('tokens')
-                  .with.property('0', '$');
+                .with.property('token', '$');
 
             result.pieces[0].should.have.property('param');
             var param = result.pieces[0].param;
@@ -74,32 +72,32 @@ describe('a funcdef', function() {
             result.pieces.should.have.lengthOf(1);
             result.pieces[0].should.be.an.instanceOf(Choice);
 
-            (<Choice>result.pieces[0]).options[0][0].tokens[0].should.equal('foo');
-            (<Choice>result.pieces[0]).options[1][0].tokens[0].should.equal('bar');
+            (<Choice>result.pieces[0]).options[0][0].token.should.equal('foo');
+            (<Choice>result.pieces[0]).options[1][0].token.should.equal('bar');
         });
 
         it('can split up choices like <foo|bar>', function() {
           var result = new Choice('<foo|bar>');
           result.options.should.have.lengthOf(2);
 
-          result.options[0][0].tokens[0].should.equal('foo');
-          result.options[1][0].tokens[0].should.equal('bar');
+          result.options[0][0].token.should.equal('foo');
+          result.options[1][0].token.should.equal('bar');
         });
 
         it('can split up choices with empty parts like <|bar>', function() {
           var result = new Choice('<|bar>');
           result.options.should.have.lengthOf(2);
-          result.options[0].should.have.length(1);
-          result.options[1][0].tokens[0].should.equal('bar');
+          result.options[0].should.have.length(0);
+          result.options[1][0].token.should.equal('bar');
         });
 
         it('can split up choices that include vars like <foo|bar $:baz>', () => {
           var result = new Choice('<foo|bar $:baz>');
           result.options.should.have.length(2);
 
-          result.options[0][0].tokens[0].should.equal('foo');
-          result.options[1][0].tokens[0].should.equal('bar');
-          result.options[1][1].tokens[0].should.equal('$');
+          result.options[0][0].token.should.equal('foo');
+          result.options[1][0].token.should.equal('bar');
+          result.options[1][1].token.should.equal('$');
         });
     });
 
@@ -127,12 +125,8 @@ describe('a funcdef', function() {
         result.defs.length.should.equal(1);
 
         result.defs[0].isEmpty().should.not.be.ok;
-
-        result.defs[0].tokens.length.should.equal(1);
-        result.defs[0].tokens[0].should.equal('$');
-
-        result.defs[0].vivify.length.should.equal(1);
-        result.defs[0].vivify[0].should.equal(BT.Vivify.AUTO);
+        result.defs[0].tokens.should.eql(['$']);
+        result.defs[0].vivify.should.eql([BT.Vivify.AUTO]);
     });
 
     it('can name variables', function() {
@@ -142,11 +136,8 @@ describe('a funcdef', function() {
         var def = result.defs[0];
         def.isEmpty().should.not.be.ok;
 
-        def.tokens.length.should.equal(1);
-        def.tokens[0].should.equal('$');
-
-        def.vivify.length.should.equal(1);
-        def.vivify[0].should.equal(BT.Vivify.AUTO);
+        def.tokens.should.eql(['$']);
+        def.vivify.should.eql([BT.Vivify.AUTO]);
 
         def.params.length.should.equal(1);
         def.params[0].name.should.equal("cool");
@@ -174,18 +165,18 @@ describe('a funcdef', function() {
         var foobar = <Choice>(parsed.pieces[0]);
         foobar.param.name.should.equal('foobar');
         foobar.options.should.have.length(2);
-        foobar.options[0][0].tokens[0].should.equal('foo');
+        foobar.options[0][0].token.should.equal('foo');
         foobar.options[0].should.have.length(1);
-        foobar.options[1][0].tokens[0].should.equal('bar');
+        foobar.options[1][0].token.should.equal('bar');
         foobar.options[1].should.have.length(1);
 
         parsed.pieces[1].should.be.an.instanceOf(Choice);
         var foobaz = <Choice>(parsed.pieces[1]);
         foobaz.param.name.should.equal('foobaz');
         foobaz.options.should.have.length(2);
-        foobaz.options[0][0].tokens[0].should.equal('foo');
+        foobaz.options[0][0].token.should.equal('foo');
         foobaz.options[0].should.have.length(1);
-        foobaz.options[1][0].tokens[0].should.equal('baz');
+        foobaz.options[1][0].token.should.equal('baz');
         foobaz.options[1].should.have.length(1);
 
         var result = FuncDefCollection.fromString('<foo|bar>:foobar <foo|baz>:foobaz');

@@ -1,4 +1,9 @@
   {
     "buildOnSave": false,
-    "compileOnSave": false
+    "compileOnSave": false,
+    "exclude": [
+      "build",
+      "node_modules",
+      ".git"
+    ]
   }

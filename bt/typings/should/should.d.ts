@@ -90,6 +90,10 @@ interface ShouldInternal {
   exist(actual: any, msg?: string): void;
   exists(actual: any, msg?: string): void;
   not: ShouldInternal;
+
+  Assertion: {
+    add(name: string, impl: Function);
+  };
 }
 
 interface Internal extends ShouldInternal {

@@ -199,7 +199,7 @@ export class Compiler extends syntax.BaseVisitor {
 
   visitHangingCall(node: syntax.HangingCall) {
     // don't want to visit body as well
-    node.args.forEach((v) => v.accept(this));
+    node.acceptForArgs(this);
     this.push(new Instructions.CallHanging(node.name, node.body), node.code);
   }
 
@@ -253,7 +253,7 @@ export class Compiler extends syntax.BaseVisitor {
   visitCompoundExpression(node: syntax.CompoundExpression) {
     node.parts.forEach((part) => {
       part.accept(this);
-      this.push(Instructions.Express, node.code);
+      this.push(Instructions.Express, part.code);
     });
   }
 }

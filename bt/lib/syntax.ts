@@ -81,7 +81,7 @@ export interface Visitable {
 }
 
 class ASTItem {
-  public code: Code = new Code();
+  public code: Code = null;
 }
 
 export class AddOp extends ASTItem implements Visitable {
@@ -211,8 +211,12 @@ export class HangingCall extends ASTItem implements Visitable {
     return visitor.visitHangingCall.apply(visitor, [this].concat(args));
   }
 
-  acceptForChildren(v: Visitor, ...args: any[]): any {
+  acceptForArgs(v: Visitor, ...args: any[]): any {
     this.args.forEach((arg) => arg.accept(v, ...args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    this.acceptForArgs(v, ...args);
     this.body.accept(v, ...args);
   }
 }
@@ -303,6 +307,26 @@ export class Parser {
 //
 // Useful insight: the stack of LineCollectors creating each other will
 // mirror the call stack of the program when it is run.
+class LineNumSetter extends BaseVisitor {
+  private code: Code;
+
+  constructor(num: number) {
+    super();
+    this.code = new Code(num);
+  }
+
+  visitVisitable(v: Visitable): any {
+    v.code = this.code;
+    v.acceptForChildren(this);
+  }
+
+  visitHangingCall(v: HangingCall, ...args: any[]): any {
+    v.code = this.code;
+    // ignore v.body, which may not be set yet, and will be on separate lines anyway!
+    v.acceptForArgs(this);
+  }
+}
+
 class Line {
   indent: number
   ex: Visitable
@@ -311,7 +335,9 @@ class Line {
     line = line.line || line; // we may have a LineNode or a (BREAK line)
     this.indent = line.lead.textValue.length;
     this.ex = line.ex.transform();
-    this.ex.code.lineNumber = num;
+
+    // recursively set line numbers
+    this.ex.accept(new LineNumSetter(num));
   }
 }
 

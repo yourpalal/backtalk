@@ -29,12 +29,6 @@ export class SourceInfoCompiler extends VM.Compiler {
       return;
     }
 
-    // -1's are considered as part of the next line we see
-    let current = this.ranges[this.ranges.length - 1];
-    if (current.code.lineNumber == -1) {
-      current.code = code;
-    }
-
     if (current.code.lineNumber == code.lineNumber) {
       current.count++;
     } else {

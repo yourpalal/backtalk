@@ -31,43 +31,52 @@ export class ParseError extends BaseError {
 }
 
 export interface Visitor {
-  visitAddOp(AddOp, ...args: any[]): any;
-  visitSubOp(SubOp, ...args: any[]): any;
-  visitDivideOp(DivideOp, ...args: any[]): any;
-  visitMultOp(MultOp, ...args: any[]): any;
-  visitBinOpNode(BinOpNode, ...args: any[]): any;
-  visitLiteral(Literal, ...args: any[]): any;
-  visitBareWord(BareWord, ...args: any[]): any;
-  visitUnaryMinus(UnaryMinus, ...args: any[]): any;
-  visitRef(Ref, ...args: any[]): any;
-  visitCompoundExpression(CompoundExpression, ...args: any[]): any;
-  visitFuncArg(FuncArg, ...args: any[]): any;
-  visitHangingCall(HangingCall, ...args: any[]): any;
-  visitFuncCall(FuncCall, ...args: any[]): any;
+  visitAddOp(v: AddOp, ...args: any[]): any;
+  visitSubOp(v: SubOp, ...args: any[]): any;
+  visitDivideOp(v: DivideOp, ...args: any[]): any;
+  visitMultOp(v: MultOp, ...args: any[]): any;
+  visitBinOpNode(v: BinOpNode, ...args: any[]): any;
+  visitLiteral(v: Literal, ...args: any[]): any;
+  visitBareWord(v: BareWord, ...args: any[]): any;
+  visitUnaryMinus(v: UnaryMinus, ...args: any[]): any;
+  visitRef(v: Ref, ...args: any[]): any;
+  visitCompoundExpression(v: CompoundExpression, ...args: any[]): any;
+  visitFuncArg(v: FuncArg, ...args: any[]): any;
+  visitHangingCall(v: HangingCall, ...args: any[]): any;
+  visitFuncCall(v: FuncCall, ...args: any[]): any;
 }
 
 export class BaseVisitor implements Visitor {
-  visitAddOp(AddOp, ...args: any[]): any { throw new Error("visitAddOp not implemented"); }
-  visitSubOp(SubOp, ...args: any[]): any { throw new Error("visitSubOp not implemented"); }
-  visitDivideOp(DivideOp, ...args: any[]): any { throw new Error("visitDivideOp not implemented"); }
-  visitMultOp(MultOp, ...args: any[]): any { throw new Error("visitMultOp not implemented"); }
-  visitBinOpNode(BinOpNode, ...args: any[]): any { throw new Error("visitBinOpNode not implemented"); }
-  visitLiteral(Literal, ...args: any[]): any { throw new Error("visitLiteral not implemented"); }
-  visitBareWord(BareWord, ...args: any[]): any { throw new Error("visitBareWord not implemented"); }
-  visitUnaryMinus(UnaryMinus, ...args: any[]): any { throw new Error("visitUnaryMinus not implemented"); }
-  visitRef(Ref, ...args: any[]): any { throw new Error("visitRef not implemented"); }
-  visitFuncArg(FuncArg, ...args: any[]): any { throw new Error("visitFuncArg not implemented"); }
-  visitCompoundExpression(CompoundExpression, ...args: any[]): any { throw new Error("visitCompoundExpression not implemented"); }
-  visitHangingCall(HangingCall, ...args: any[]): any { throw new Error("visitHangingCall not implemented"); }
-  visitFuncCall(FuncCall, ...args: any[]): any { throw new Error("visitFuncCall not implemented"); }
+  visitAddOp(v: AddOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitSubOp(v: SubOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitDivideOp(v: DivideOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitMultOp(v: MultOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitBinOpNode(v: BinOpNode, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitLiteral(v: Literal, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitBareWord(v: BareWord, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitUnaryMinus(v: UnaryMinus, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitRef(v: Ref, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitFuncArg(v: FuncArg, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitCompoundExpression(v: CompoundExpression, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitHangingCall(v: HangingCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+  visitFuncCall(v: FuncCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+
+  protected visitVisitable(v: Visitable, ...args: any[]): any {
+    throw new Error(`visit ${v.constructor['name']} not implemented`);
+  }
 }
 
 export class Code {
-  constructor(public lineNumber: number = -1) {}
+  constructor(public lineNumber: number = -1, public chunk: string = "unnamed") {}
+
+  atLine(line: number): Code {
+    return new Code(line);
+  }
 }
 
 export interface Visitable {
-  accept(Visitor, ...args: any[]): any
+  accept(v: Visitor, ...args: any[]): any
+  acceptForChildren(v: Visitor, ...args: any[]): any
   code: Code;
 }
 
@@ -76,30 +85,46 @@ class ASTItem {
 }
 
 export class AddOp extends ASTItem implements Visitable {
-  constructor(public right: any) { super(); }
+  constructor(public right: BinOp) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitAddOp.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    return this.right.accept(v, ...args);
   }
 }
 
 export class SubOp extends ASTItem implements Visitable {
-  constructor(public right: any) { super(); }
+  constructor(public right: BinOp) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitSubOp.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    return this.right.accept(v, ...args);
   }
 }
 
 export class DivideOp extends ASTItem implements Visitable {
-  constructor(public right: any) { super(); }
+  constructor(public right: BinOp) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitDivideOp.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    return this.right.accept(v, ...args);
   }
 }
 
 export class MultOp extends ASTItem implements Visitable {
-  constructor(public right: any) { super(); }
+  constructor(public right: BinOp) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitMultOp.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    return this.right.accept(v, ...args);
   }
 }
 
@@ -110,13 +135,20 @@ export class BinOpNode extends ASTItem implements Visitable {
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitBinOpNode.apply(visitor, [this].concat(args));
   }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    this.left.accept(v, ...args);
+    this.ops.forEach((op) => op.accept(v, ...args));
+  }
 }
 
 export class Literal extends ASTItem implements Visitable {
-  constructor(public val: any) { super(); }
+  constructor(public val: string|number) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitLiteral.apply(visitor, [this].concat(args));
   }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {}
 }
 
 export class BareWord extends ASTItem implements Visitable {
@@ -124,12 +156,18 @@ export class BareWord extends ASTItem implements Visitable {
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitBareWord.apply(visitor, [this].concat(args));
   }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {}
 }
 
 export class UnaryMinus extends ASTItem implements Visitable {
-  constructor(public val: any) { super(); }
+  constructor(public val: Visitable) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitUnaryMinus.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    return this.val.accept(v, ...args);
   }
 }
 
@@ -138,12 +176,18 @@ export class Ref extends ASTItem implements Visitable {
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitRef.apply(visitor, [this].concat(args));
   }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {}
 }
 
 export class CompoundExpression extends ASTItem implements Visitable {
   constructor(public parts: Visitable[]) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitCompoundExpression.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    this.parts.forEach((part) => part.accept(v, ...args));
   }
 }
 
@@ -152,6 +196,10 @@ export class FuncArg extends ASTItem implements Visitable {
 
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitFuncArg.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    this.body.accept(v, ...args);
   }
 }
 
@@ -162,12 +210,21 @@ export class HangingCall extends ASTItem implements Visitable {
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitHangingCall.apply(visitor, [this].concat(args));
   }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    this.args.forEach((arg) => arg.accept(v, ...args));
+    this.body.accept(v, ...args);
+  }
 }
 
 export class FuncCall extends ASTItem implements Visitable {
   constructor(public name: string, public args: FuncArg[]) { super(); }
   accept(visitor: Visitor, ...args: any[]): any {
     return visitor.visitFuncCall.apply(visitor, [this].concat(args));
+  }
+
+  acceptForChildren(v: Visitor, ...args: any[]): any {
+    this.args.forEach((arg) => arg.accept(v, ...args));
   }
 }
 
@@ -289,17 +346,7 @@ export class LineCollector extends BaseVisitor {
     return new CompoundExpression(parts);
   }
 
-  visitAddOp(a: AddOp): any { return a; }
-  visitSubOp(a: SubOp): any { return a; }
-  visitDivideOp(a: DivideOp): any { return a; }
-  visitMultOp(a: MultOp): any { return a; }
-  visitBinOpNode(a: BinOpNode): any { return a; }
-  visitLiteral(a: Literal): any { return a; }
-  visitBareWord(a: BareWord): any { return a; }
-  visitUnaryMinus(a: UnaryMinus): any { return a; }
-  visitRef(a: Ref): any { return a; }
-  visitCompoundExpression(a: CompoundExpression): any { return a; }
-  visitFuncCall(a: FuncCall): any { return a; }
+  visitVisitable(a: Visitable): any { return a; }
 }
 
 // merge in our stuff

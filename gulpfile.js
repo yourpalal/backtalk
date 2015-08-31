@@ -36,11 +36,12 @@ var dieAfterFinish = function(message) {
   return function() {
     if (installed) return;
 
+    installed = true;
     this.on("end", function() {
         console.log(message);
         process.exit(1);
     });
-  }
+  };
 };
 
 

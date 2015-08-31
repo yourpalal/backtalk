@@ -25,6 +25,13 @@ describe("The BackTalker parser", () => {
     });
   });
 
+  it("provides names for chunks of code", () => {
+      let name = "test code";
+      let parsed = BT.parse("line 1\nline 2", name);
+      parsed.should.be.instanceOf(syntax.CompoundExpression);
+      (<syntax.CompoundExpression>parsed).parts[0].code.chunk.should.equal(name);
+  });
+
   describe("groups lines into hanging call bodies by leading whitespace", () => {
     var parsed = <syntax.CompoundExpression>BT.parse(`
     with $a as:

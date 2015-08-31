@@ -9,12 +9,12 @@ var _parser: Parser = null;
 
 /** @function syntax.parse
  * @param {string} source - the backtalk source code to parse.
- * @param [inspector] - optional funciton which is called with the raw Canopy AST
- * before it's turnd into a backtalk AST.
+ * @param [inspector] - optional function which is called with the raw Canopy AST
+ * before it's turned into a backtalk AST.
  */
-export function parse(source: string, inspector?: (p: grammar.ParserNode) => void) {
+export function parse(source: string, chunkName?: string): Visitable {
   _parser = _parser || new Parser();
-  return _parser.fromSource(source, inspector);
+  return _parser.parse(source, chunkName);
 }
 
 export class ParseError extends BaseError {
@@ -264,18 +264,34 @@ export class FuncCallMaker {
 }
 
 export class Parser {
-  fromSource = function(source: string, inspector?: (p: grammar.ParserNode) => void) {
-    var parse_tree;
-      try {
-        parse_tree = grammar.parse(source);
-      } catch (e) {
-        throw new ParseError(e);
-      }
-      if (inspector) {
-        inspector(parse_tree);
-      }
-    return <Visitable>parse_tree.transform();
-  };
+  inspect(p: grammar.ParserNode): void {
+  }
+
+  parse(source: string, chunkName: string = "unnamed"): Visitable {
+    try {
+      var parse_tree = grammar.parse(source);
+    } catch (e) {
+      throw new ParseError(e);
+    }
+
+    this.inspect(parse_tree);
+    let ast = <Visitable>parse_tree.transform();
+    ast.accept(new ChunkNamer(chunkName));
+    return ast;
+  }
+}
+
+class ChunkNamer extends BaseVisitor {
+  constructor(private name: string) {
+    super();
+  }
+
+  visitVisitable(v: Visitable, ...args: any[]): any {
+    if (v.code !== null) {
+      v.code.chunk = this.name;
+    }
+    v.acceptForChildren(this);
+  }
 }
 
 // LineCollector collects lines based on indentation into

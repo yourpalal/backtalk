@@ -10,10 +10,45 @@ import * as BT from '../lib/back_talker';
 import {Shell} from '../lib/shell';
 
 
-class REPL {
-  print_parse = false
-  print_ast = false
+class REPLParser extends BT.Syntax.Parser {
+  print_parse: boolean = false;
+  print_ast: boolean = false;
 
+  constructor() {
+    super()
+  }
+
+  inspect(parse_tree) {
+    if (this.print_parse) {
+      REPLParser.print_parse_tree(parse_tree);
+    }
+  }
+
+  parse(source: string, chunkName: string = "unknown"): BT.Syntax.Visitable {
+    let ast = super.parse(source, chunkName);
+
+    if (this.print_ast) {
+      console.log(JSON.stringify(ast, REPLParser.json_replacer, 2));
+    }
+    return ast;
+  }
+
+  static json_replacer(k: string, v: any) {
+    if (k === "code") {
+      return undefined
+    }
+    return v;
+  }
+
+  static print_parse_tree(pt, prefix = "") {
+    console.log(prefix + "<" + (pt.isa || "unknown")  + ">" + '"' + pt.textValue + '"');
+    pt.elements.forEach(e => REPLParser.print_parse_tree(e, prefix + "  "));
+  }
+}
+
+
+class REPL {
+  parser: REPLParser;
   rl: readline.ReadLine;
   evaluator: BT.Evaluator;
   shell: Shell;
@@ -25,7 +60,8 @@ class REPL {
       output: process.stdout
     });
 
-    this.print_ast = argparser.nonvals("ast").parse().ast
+    this.parser = new REPLParser();
+    this.parser.print_ast = argparser.nonvals("ast").parse().ast
 
     this.evaluator = new BT.Evaluator(),
     this.scope = this.evaluator.scope,
@@ -35,19 +71,9 @@ class REPL {
     this.init_scope();
   }
 
-  static json_replacer(k: string, v: any) {
-    if (k === "code") {
-      return undefined
-    }
-    return v;
-  }
-
   shell_eval(source) {
     try {
-      var ast = BT.parse(source, (a) => this.print_parse_tree(a));
-      if (this.print_ast) {
-        console.log(JSON.stringify(ast, REPL.json_replacer, 2));
-      }
+      var ast = this.parser.parse(source);
       var result = this.shell.evaluator.eval(ast);
       if (typeof result !== 'undefined') {
         console.log(result);
@@ -61,16 +87,6 @@ class REPL {
     }
   }
 
-  print_parse_tree(pt, prefix = "") {
-    if (!this.print_parse) {
-      return;
-    }
-
-    console.log(prefix + "<" + (pt.isa || "unknown")  + ">" + '"' + pt.textValue + '"');
-
-    pt.elements.forEach(e => this.print_parse_tree(e, prefix + "  "));
-  }
-
   init_scope() {
     this.scope.addFunc(['q'], () => {
       console.log('goodbye!');
@@ -81,9 +97,9 @@ class REPL {
     this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args) => {
         let on = args.choose('on', [true, false, false]);
         if (args.named['what'] == 0) {
-          this.print_ast = on;
+          this.parser.print_ast = on;
         } else {
-          this.print_parse = on;
+          this.parser.print_parse = on;
         }
     });
 

@@ -1,7 +1,7 @@
 import {FuncDef, FuncDefCollection, FuncParameterizer} from "./funcdefs";
 import {FuncParams, FuncResult} from "./functions";
-import {AutoVar, Vivify} from "./vars";
 import {Trie} from "./trie";
+import {AutoVar, Vivify} from "./vars";
 
 /** @module scope */
 

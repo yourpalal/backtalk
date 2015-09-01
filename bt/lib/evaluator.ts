@@ -1,12 +1,11 @@
-import * as vars from "./vars";
-import * as scopes from "./scope";
+import {BaseError} from "./errors";
+import {FuncResult} from "./functions";
+import {FuncHandle, Scope} from "./scope";
 import * as stdLib from "./standard_lib";
 import * as AST from "./parser/ast";
 import * as parser from "./parser/parser";
+import * as vars from "./vars";
 import * as VM from "./vm";
-import {FuncResult} from "./functions";
-
-import {BaseError} from "./errors";
 
 /**
  * @module evaluator
@@ -34,7 +33,7 @@ export class FunctionNameError extends BaseError {
  * @description Evaluates a string or AST within a scope.
  * @returns {FuncResult} result of the backtalk code.
  */
-export function evalBT(source: string | AST.Visitable, scope?: scopes.Scope): FuncResult {
+export function evalBT(source: string | AST.Visitable, scope?: Scope): FuncResult {
   var parsed;
   if (typeof (source) === 'string') {
     parsed = parser.parse(<string>source, null);
@@ -61,10 +60,10 @@ export class Evaluator {
 
   /**
    * @constructor
-   * @param {scopes.Scope} (optional) scope in which to evaluate BT code.
+   * @param {scope.Scope} (optional) scope in which to evaluate BT code.
    */
-  constructor(public scope?: scopes.Scope) {
-    this.scope = scope || stdLib.inScope(new scopes.Scope());
+  constructor(public scope?: Scope) {
+    this.scope = scope || stdLib.inScope(new Scope());
     this.newSubEval = false;
   }
 
@@ -86,13 +85,13 @@ export class Evaluator {
   }
 
   makeSubEvaluator(body: AST.Visitable): Evaluator {
-    var subEval = new Evaluator(new scopes.Scope(this.scope));
+    var subEval = new Evaluator(new Scope(this.scope));
     subEval.newSubEval = true;
     subEval.body = body;
     return subEval;
   }
 
-  findFuncOrThrow(name: string): scopes.FuncHandle {
+  findFuncOrThrow(name: string): FuncHandle {
     var func = this.scope.findFunc(name);
     if (func === null || typeof func === 'undefined') {
       throw new FunctionNameError(name);
@@ -100,7 +99,7 @@ export class Evaluator {
     return func;
   }
 
-  vivifyArgs(func: scopes.FuncHandle, args: any[]): any[] {
+  vivifyArgs(func: FuncHandle, args: any[]): any[] {
     for (var i = 0; i < func.vivification.length; i++) {
       var viv = func.vivification[i]
         , isAuto = (args[i] instanceof vars.AutoVar);
@@ -130,14 +129,14 @@ export class Evaluator {
     return args;
   }
 
-  hangingCall(func: scopes.FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
+  hangingCall(func: FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
     let result = new FuncResult();
     func.impl.call(this.makeSubEvaluator(body), func.parameterize(args), result);
     return result;
   }
 
-  simpleCall(func: scopes.FuncHandle, args: any[]): FuncResult {
+  simpleCall(func: FuncHandle, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
     this.newSubEval = false;
     let result = new FuncResult();

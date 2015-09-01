@@ -1,7 +1,8 @@
 import * as vars from "./vars";
 import * as scopes from "./scope";
 import * as stdLib from "./standard_lib";
-import * as syntax from "./syntax";
+import * as AST from "./parser/ast";
+import * as parser from "./parser/parser";
 import * as VM from "./vm";
 import {FuncResult} from "./functions";
 
@@ -33,10 +34,10 @@ export class FunctionNameError extends BaseError {
  * @description Evaluates a string or AST within a scope.
  * @returns {FuncResult} result of the backtalk code.
  */
-export function evalBT(source: string | syntax.Visitable, scope?: scopes.Scope): FuncResult {
+export function evalBT(source: string | AST.Visitable, scope?: scopes.Scope): FuncResult {
   var parsed;
   if (typeof (source) === 'string') {
-    parsed = syntax.parse(<string>source, null);
+    parsed = parser.parse(<string>source, null);
   } else {
     parsed = source;
   }
@@ -56,7 +57,7 @@ export class Evaluator {
    * hanging call.
    */
   public newSubEval: boolean;
-  public body: syntax.Visitable;
+  public body: AST.Visitable;
 
   /**
    * @constructor
@@ -68,23 +69,23 @@ export class Evaluator {
   }
 
   evalString(source: string): FuncResult {
-    return this.eval(syntax.parse(source));
+    return this.eval(parser.parse(source));
   }
 
-  eval(node: syntax.Visitable): FuncResult {
+  eval(node: AST.Visitable): FuncResult {
     let expresser = new VM.ResultExpresser();
     this.evalExpressions(node, expresser);
     return expresser.result;
   }
 
-  evalExpressions(node: syntax.Visitable, expresser: VM.Expresser): void {
+  evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
     this.body = node;
     let compiled = VM.Compiler.compile(node);
     let vm = new VM.VM(compiled, this, expresser);
     vm.resume();
   }
 
-  makeSubEvaluator(body: syntax.Visitable): Evaluator {
+  makeSubEvaluator(body: AST.Visitable): Evaluator {
     var subEval = new Evaluator(new scopes.Scope(this.scope));
     subEval.newSubEval = true;
     subEval.body = body;
@@ -129,7 +130,7 @@ export class Evaluator {
     return args;
   }
 
-  hangingCall(func: scopes.FuncHandle, body: syntax.Visitable, args: any[]): FuncResult {
+  hangingCall(func: scopes.FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
     let result = new FuncResult();
     func.impl.call(this.makeSubEvaluator(body), func.parameterize(args), result);

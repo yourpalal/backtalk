@@ -17,7 +17,7 @@ var gulp = require("gulp"),
     mocha = require('gulp-mocha')
 ;
 
-var GRAMMAR_FILE = "bt/lib/grammar.peg";
+var GRAMMAR_FILE = "bt/lib/parser/peg_grammar.peg";
 
 
 var project = typescript.createProject({
@@ -54,13 +54,13 @@ gulp.task("canopy", function(end) {
       cb();
     }))
     .pipe(sourcemaps.init()) // make a sourcemap so node-sourcemaps doesn't flip out
-    .pipe(concat('grammar.js'))
+    .pipe(concat('peg_grammar.js'))
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('build/js/lib'));
+    .pipe(gulp.dest('build/js/lib/parser/'));
 });
 
 gulp.task('scripts', function(cb) {
-    return gulp.src(['bt/bin/**.ts', 'bt/lib/**.ts', 'bt/tests/**.ts'], {'base': 'bt/'})
+    return gulp.src(['bt/bin/*.ts', 'bt/lib/**/*.ts', 'bt/tests/**/*.ts'], {'base': 'bt/'})
       .pipe(sourcemaps.init())
       .pipe(typescript(project)).js
       .on('error', dieAfterFinish("typescript failed"))

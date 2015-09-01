@@ -178,7 +178,7 @@ describe('BackTalker function calls', function() {
         planet.should.equal("sarkon");
         gravity.should.equal(3);
 
-        bodySyntax.should.be.an.instanceOf(BT.Syntax.CompoundExpression);
+        bodySyntax.should.be.an.instanceOf(BT.AST.CompoundExpression);
     });
 
     describe("return via promise-like the FuncResult, which", function() {

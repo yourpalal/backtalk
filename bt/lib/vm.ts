@@ -2,7 +2,7 @@ import {Evaluator} from "./evaluator";
 export * from "./expressers";
 import {Expresser, ConsoleExpresser} from "./expressers";
 import {FuncDef} from "./funcdefs";
-import * as syntax from "./syntax";
+import * as AST from "./parser/ast";
 
 
 export class VM {
@@ -126,7 +126,7 @@ export module Instructions {
   }
 
   export class CallHanging {
-      constructor(private name: string, private body: syntax.CompoundExpression) {
+      constructor(private name: string, private body: AST.CompoundExpression) {
       }
 
       execute(vm: VM, evaluator: Evaluator) {
@@ -164,21 +164,21 @@ export module Instructions {
   }
 }
 
-class ArgsCompiler extends syntax.BaseVisitor {
+class ArgsCompiler extends AST.BaseVisitor {
   constructor(private compiler: Compiler) { super(); }
 
-  visitVisitable(a: syntax.Visitable): any { return a.accept(this.compiler); }
+  visitVisitable(a: AST.Visitable): any { return a.accept(this.compiler); }
 
-  visitFuncArg(node: syntax.FuncArg) {
+  visitFuncArg(node: AST.FuncArg) {
     node.body.accept(this);
   }
 
-  visitRef(node: syntax.Ref) {
+  visitRef(node: AST.Ref) {
     this.compiler.push(new Instructions.GetVivifiable(node.name), node.code);
   }
 }
 
-export class Compiler extends syntax.BaseVisitor {
+export class Compiler extends AST.BaseVisitor {
   instructions: Instructions.Instruction[] = [];
   private argsCompiler: ArgsCompiler;
 
@@ -187,70 +187,70 @@ export class Compiler extends syntax.BaseVisitor {
     this.argsCompiler = new ArgsCompiler(this);
   }
 
-  static compile(ast: syntax.Visitable): Instructions.Instruction[] {
+  static compile(ast: AST.Visitable): Instructions.Instruction[] {
     var c = new Compiler();
     ast.accept(c);
     return c.instructions;
   }
 
-  push(i: Instructions.Instruction, code: syntax.Code) {
+  push(i: Instructions.Instruction, code: AST.Code) {
     this.instructions.push(i);
   }
 
-  visitHangingCall(node: syntax.HangingCall) {
+  visitHangingCall(node: AST.HangingCall) {
     // don't want to visit body as well
     node.acceptForArgs(this);
     this.push(new Instructions.CallHanging(node.name, node.body), node.code);
   }
 
-  visitFuncCall(node: syntax.FuncCall) {
+  visitFuncCall(node: AST.FuncCall) {
     node.acceptForChildren(this);
     this.push(new Instructions.CallFunc(node.name), node.code);
   }
 
-  visitBinOpNode(node: syntax.BinOpNode) {
+  visitBinOpNode(node: AST.BinOpNode) {
     node.acceptForChildren(this);
   }
 
-  visitAddOp(node: syntax.AddOp) {
+  visitAddOp(node: AST.AddOp) {
     node.acceptForChildren(this);
     this.push(Instructions.Add, node.code);
   }
 
-  visitSubOp(node: syntax.SubOp) {
+  visitSubOp(node: AST.SubOp) {
     node.acceptForChildren(this);
     this.push(Instructions.Sub, node.code);
   }
 
-  visitDivideOp(node: syntax.DivideOp) {
+  visitDivideOp(node: AST.DivideOp) {
     node.acceptForChildren(this);
     this.push(Instructions.Div, node.code);
   }
 
-  visitMultOp(node: syntax.MultOp) {
+  visitMultOp(node: AST.MultOp) {
     node.acceptForChildren(this);
     this.push(Instructions.Mult, node.code);
   }
 
-  visitLiteral(node: syntax.Literal) {
+  visitLiteral(node: AST.Literal) {
     this.push(new Instructions.Push(node.val), node.code);
   }
 
-  visitUnaryMinus(node: syntax.UnaryMinus) {
+  visitUnaryMinus(node: AST.UnaryMinus) {
     this.push(Instructions.PushZero, node.code);
     node.acceptForChildren(this);
     this.push(Instructions.Sub, node.code);
   }
 
-  visitFuncArg(node: syntax.FuncArg) {
+  visitFuncArg(node: AST.FuncArg) {
     node.acceptForChildren(this.argsCompiler);
   }
 
-  visitRef(node: syntax.Ref) {
+  visitRef(node: AST.Ref) {
     this.push(new Instructions.Get(node.name), node.code);
   }
 
-  visitCompoundExpression(node: syntax.CompoundExpression) {
+  visitCompoundExpression(node: AST.CompoundExpression) {
     node.parts.forEach((part) => {
       part.accept(this);
       this.push(Instructions.Express, part.code);

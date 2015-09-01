@@ -1,8 +1,6 @@
 /// <reference path="../typings/argparser.d.ts" />
 /// <reference path="../typings/tsd.d.ts" />
 
-'use strict';
-
 import * as argparser from 'argparser';
 import * as readline from 'readline';
 
@@ -10,7 +8,7 @@ import * as BT from '../lib/back_talker';
 import {Shell} from '../lib/shell';
 
 
-class REPLParser extends BT.Syntax.Parser {
+class REPLParser extends BT.Parser {
   print_parse: boolean = false;
   print_ast: boolean = false;
 
@@ -24,7 +22,7 @@ class REPLParser extends BT.Syntax.Parser {
     }
   }
 
-  parse(source: string, chunkName: string = "unknown"): BT.Syntax.Visitable {
+  parse(source: string, chunkName: string = "unknown"): BT.AST.Visitable {
     let ast = super.parse(source, chunkName);
 
     if (this.print_ast) {

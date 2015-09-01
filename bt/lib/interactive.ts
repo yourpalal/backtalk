@@ -1,14 +1,14 @@
 
 import {Evaluator} from "./evaluator";
 import {EventEmitter} from "./events";
-import * as syntax from "./syntax" ;
+import * as AST from "./parser/ast" ;
 import * as VM from "./vm";
 
 /**
  *  CodeRange ties instructions to lines
  */
 export class CodeRange {
-    constructor(public start: number, public count:number, public code: syntax.Code) {}
+    constructor(public start: number, public count:number, public code: AST.Code) {}
 
     includes(i: number): boolean {
       return (this.start <= i && i <= this.start + this.count);
@@ -21,7 +21,7 @@ export class CodeRange {
 export class SourceInfoCompiler extends VM.Compiler {
   ranges: CodeRange[] = [];
 
-  push(i: VM.Instructions.Instruction, code: syntax.Code) {
+  push(i: VM.Instructions.Instruction, code: AST.Code) {
     super.push(i, code);
 
     if (this.ranges.length == 0) {
@@ -85,7 +85,7 @@ export class InteractiveEvaluator extends Evaluator {
     ]);
   }
 
-  evalExpressions(node: syntax.Visitable, expresser: VM.Expresser): void {
+  evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
     this.body = node;
     let compiler = new SourceInfoCompiler();
     node.accept(compiler);

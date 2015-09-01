@@ -39,33 +39,96 @@ export class SourceInfoCompiler extends VM.Compiler {
 };
 
 export class InteractiveVM extends VM.VM {
-  events: EventEmitter;
+  private events: EventEmitter;
+
+  private broken: boolean = false;
+  private codeRangeIndex: number = 0;
 
   constructor(instructions: VM.Instructions.Instruction[],
-            evaluator: Evaluator,
+            private ranges: CodeRange[],
+            evaluator: InteractiveEvaluator,
             expresser: VM.Expresser = new VM.ConsoleExpresser()) {
     super(instructions, evaluator, expresser);
-    this.events = new EventEmitter(['ready']);
+    this.events = evaluator.events;
   }
 
-  isReady(): boolean {
-    return !this.waiting;
+  position(): AST.Code {
+    return this.ranges[this.codeRangeIndex].code;
   }
 
-  step(): number {
+  step() {
     this.instructions[this.ip++].execute(this, this.evaluator);
-    return this.ip;
-  }
-
-  resume() {
-    this.waiting = false;
     if (this.isFinished()) {
       this.finish();
     }
 
-    this.events.emitAsync('ready', this, this.ip);
+    if (!this.ranges[this.codeRangeIndex].includes(this.ip)) {
+      this.codeRangeIndex++;
+      this.events.emit('line-changed', this.evaluator, this.position(), this);
+    }
+  }
+
+  break() {
+    this.broken = true;
+  }
+
+  continue() {
+    this.broken = false;
+    setTimeout(() => {
+      while (!this.broken && !this.waiting && !this.isFinished()) {
+        this.step();
+      }
+    }, 0);
+  }
+
+  // are we waiting for an async operation to complete?
+  isReady(): boolean {
+    return !this.waiting;
+  }
+
+  // async operation has completed
+  resume() {
+    this.waiting = false;
+    if (!this.broken) {
+      this.continue();
+    }
   }
 };
+
+class BreakpointManager {
+    private breakpoints: AST.Code[] = [];
+    private lineChangedListener: {(code: AST.Code, vm: InteractiveVM): void};
+
+    constructor(private evaluator: InteractiveEvaluator) {
+      let self = this;
+      this.lineChangedListener = function(code: AST.Code, vm: InteractiveVM) {
+        // this is an evaluator
+        self.onLineChanged(this, code, vm);
+      };
+
+      evaluator.on('line-changed', this.lineChangedListener);
+    }
+
+    add(breakpoint: AST.Code) {
+      this.breakpoints.push(breakpoint);
+    }
+
+    hasMatchingBreakpoint(current: AST.Code): boolean {
+      for (var bp of this.breakpoints) {
+        if (current.lineNumber === bp.lineNumber && current.chunk === bp.chunk) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    onLineChanged(evaluator: InteractiveEvaluator, code: AST.Code, vm: InteractiveVM) {
+      if (this.hasMatchingBreakpoint(code)) {
+        vm.break();
+        evaluator.events.emit('breakpoint-reached', evaluator, vm.position(), vm);
+      }
+    }
+}
 
 /**
  * @class InteractiveEvaluator
@@ -74,15 +137,16 @@ export class InteractiveVM extends VM.VM {
  * @extends Evaluator
  */
 export class InteractiveEvaluator extends Evaluator {
-  private events: EventEmitter;
-
-  private currentLine: number = 0;
+  public breakpoints: BreakpointManager;
+  public events: EventEmitter;
 
   constructor() {
     super();
     this.events = new EventEmitter([
-      'line-changed'
+      'line-changed',
+      'breakpoint-reached'
     ]);
+    this.breakpoints = new BreakpointManager(this);
   }
 
   evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
@@ -90,29 +154,8 @@ export class InteractiveEvaluator extends Evaluator {
     let compiler = new SourceInfoCompiler();
     node.accept(compiler);
 
-    let vm = new InteractiveVM(compiler.instructions, this, expresser);
-
-    let codeRangeIndex = 0;
-    this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
-
-    let step = () => {
-      if (vm.isFinished()) {
-        return;
-      }
-
-      if (!compiler.ranges[codeRangeIndex].includes(vm.step())) {
-        codeRangeIndex++;
-        this.events.emit('line-changed', this, compiler.ranges[codeRangeIndex].code.lineNumber);
-      }
-
-      // trigger a "ready" event manually
-      if (vm.isReady()) {
-        vm.wait();
-        vm.resume();
-      }
-    }
-
-    vm.events.on("ready", step);
+    let vm = new InteractiveVM(compiler.instructions, compiler.ranges, this, expresser);
+    this.events.emit('line-changed', this, vm.position(), vm);
     vm.resume();
   }
 

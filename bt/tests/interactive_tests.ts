@@ -39,15 +39,15 @@ describe('The BackTalker InteractiveEvaluator', () => {
     evaluator.on('line-changed', lineSpy);
     evaluator.eval(BT.parse(code)).then(() => {
       lineSpy.called.should.be.ok;
-      lineSpy.firstCall.calledWith(1).should.be.ok;
+      lineSpy.firstCall.args[0].lineNumber.should.equal(1);
       lineSpy.firstCall.calledBefore(spyFunc.firstCall).should.be.ok;
       spyFunc.firstCall.calledBefore(lineSpy.secondCall);
 
-      lineSpy.secondCall.calledWith(2).should.be.ok;
+      lineSpy.secondCall.args[0].lineNumber.should.equal(2);
       lineSpy.secondCall.calledBefore(spyFunc.secondCall).should.be.ok;
       spyFunc.secondCall.calledBefore(lineSpy.thirdCall);
 
-      lineSpy.thirdCall.calledWith(3).should.be.ok;
+      lineSpy.thirdCall.args[0].lineNumber.should.equal(3);
       lineSpy.thirdCall.calledBefore(spyFunc.thirdCall).should.be.ok;
 
       done();
@@ -63,17 +63,42 @@ describe('The BackTalker InteractiveEvaluator', () => {
     evaluator.on('line-changed', lineSpy);
     evaluator.eval(BT.parse(code)).then(() => {
       lineSpy.called.should.be.ok;
-      lineSpy.firstCall.calledWith(1).should.be.ok;
+      lineSpy.firstCall.args[0].lineNumber.should.equal(1);
       lineSpy.firstCall.calledBefore(spyFunc.firstCall).should.be.ok;
       spyFunc.firstCall.calledBefore(lineSpy.secondCall);
 
-      lineSpy.secondCall.calledWith(2).should.be.ok;
+      lineSpy.secondCall.args[0].lineNumber.should.equal(2);
       lineSpy.secondCall.calledBefore(asyncSpyFunc.firstCall).should.be.ok;
       asyncSpyFunc.firstCall.calledBefore(lineSpy.thirdCall);
 
-      lineSpy.thirdCall.calledWith(3).should.be.ok;
+      lineSpy.thirdCall.args[0].lineNumber.should.equal(3);
       lineSpy.thirdCall.calledBefore(asyncSpyFunc.secondCall).should.be.ok;
 
+      done();
+    });
+  });
+
+  it("can have breakpoints set with the BreakPointManager", (done) => {
+    let code = `spy on "1"
+    spy async on "2"
+    spy async on "3"`;
+
+    let ast = BT.parse(code);
+    evaluator.breakpoints.add(new BT.AST.Code(2, ast.code.chunk));
+
+    let lineSpy = sinon.spy((line: number) => line);
+    let breakpointSpy = sinon.spy((code, vm) => {
+      lineSpy.calledOnce.should.be.ok;
+      vm.continue();
+    });
+
+    evaluator.on('breakpoint-reached', breakpointSpy);
+    evaluator.on('line-changed', lineSpy);
+
+    evaluator.eval(ast).then(() => {
+      lineSpy.callCount.should.equal(3);
+      breakpointSpy.calledOnce.should.be.ok;
+      lineSpy.secondCall.calledAfter(breakpointSpy);
       done();
     });
   });

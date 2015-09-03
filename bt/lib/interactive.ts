@@ -2,6 +2,7 @@
 import {Evaluator} from "./evaluator";
 import {EventEmitter} from "./events";
 import * as AST from "./parser/ast" ;
+import {Scope} from "./scope";
 import * as VM from "./vm";
 
 /**
@@ -140,12 +141,12 @@ export class InteractiveEvaluator extends Evaluator {
   public breakpoints: BreakpointManager;
   public events: EventEmitter;
 
-  constructor() {
-    super();
+  constructor(scope?: Scope, parent?: InteractiveEvaluator) {
+    super(scope);
     this.events = new EventEmitter([
       'line-changed',
       'breakpoint-reached'
-    ]);
+    ], parent === undefined ? undefined : parent.events);
     this.breakpoints = new BreakpointManager(this);
   }
 
@@ -157,6 +158,13 @@ export class InteractiveEvaluator extends Evaluator {
     let vm = new InteractiveVM(compiler.instructions, compiler.ranges, this, expresser);
     this.events.emit('line-changed', this, vm.position(), vm);
     vm.resume();
+  }
+
+  makeSubEvaluator(body: AST.Visitable): Evaluator {
+    var subEval = new InteractiveEvaluator(new Scope(this.scope), this);
+    subEval.newSubEval = true;
+    subEval.body = body;
+    return subEval;
   }
 
   /**

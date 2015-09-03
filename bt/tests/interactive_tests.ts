@@ -102,4 +102,30 @@ describe('The BackTalker InteractiveEvaluator', () => {
       done();
     });
   });
+
+  it("can catch breakpoints in sub-evaluators", (done) => {
+    let code = `spy async on "1":
+        spy on "2"
+        spy on "3"`;
+
+    let ast = BT.parse(code);
+    evaluator.breakpoints.add(new BT.AST.Code(2, ast.code.chunk));
+
+    let lineSpy = sinon.spy((line: number) => line);
+    let breakpointSpy = sinon.spy((code, vm) => {
+      lineSpy.calledOnce.should.be.ok;
+      vm.continue();
+    });
+
+    evaluator.on('breakpoint-reached', breakpointSpy);
+    evaluator.on('line-changed', lineSpy);
+
+    evaluator.eval(ast).then(() => {
+      lineSpy.callCount.should.equal(3);
+      breakpointSpy.calledOnce.should.be.ok;
+      lineSpy.secondCall.calledAfter(breakpointSpy);
+      done();
+    });
+
+  });
 });

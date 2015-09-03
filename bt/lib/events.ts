@@ -6,7 +6,7 @@
 export class EventEmitter {
   private listeners : { [s:string]: Function[] } = {};
 
-  constructor(names: string[]) {
+  constructor(names: string[], private forwardTo: EventEmitter = null) {
     names.forEach((n:string) => this.listeners[n] = []);
   }
 
@@ -22,11 +22,18 @@ export class EventEmitter {
 
   emit(name: string, thisArg: any, ...args) {
     this.listeners[name].forEach((l) => l.apply(thisArg, args));
+    if (this.forwardTo !== null) {
+      this.forwardTo.emit(name, thisArg, ...args);
+    }
   }
 
   emitAsync(name: string, thisArg: any, ...args) {
     setTimeout(() => {
       this.listeners[name].forEach((l) => l.apply(thisArg, args));
     }, 0);
+    
+    if (this.forwardTo !== null) {
+      this.forwardTo.emitAsync(name, thisArg, ...args);
+    }
   }
 }

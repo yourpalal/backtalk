@@ -8,31 +8,31 @@ import {addSpyToScope} from './util';
 import {FuncResult} from '../lib/functions';
 
 
-describe('BackTalker function calls', function() {
+describe('BackTalker function calls', () => {
     var scope: BT.Scope, evaluator: BT.Evaluator;
 
-    beforeEach(function() {
+    beforeEach(() => {
         evaluator = new BT.Evaluator();
         scope = evaluator.scope;
     });
 
-    describe("are comprised of bare words and expressions", function() {
+    describe("are comprised of bare words and expressions", () => {
         BT.parse("like this");
 
-        it("which can include number literals as parameters", function() {
+        it("which can include number literals as parameters", () => {
             BT.parse("like this 1");
         });
 
-        it("which can include strings literals as parameters", function() {
+        it("which can include strings literals as parameters", () => {
             BT.parse('this is like "great"');
         });
 
-        it("which can include parenthesized function calls as parameters", function() {
+        it("which can include parenthesized function calls as parameters", () => {
             BT.parse("I love this (not)");
         });
     });
 
-    it("can retrieve arguments by name", function() {
+    it("can retrieve arguments by name", () => {
         var spyFunc = addSpyToScope(scope);
         var result = evaluator.evalString("spy on 3 4").get();
         result.named.should.have.property("a", 3);
@@ -40,20 +40,20 @@ describe('BackTalker function calls', function() {
         spyFunc.calledOnce.should.be.ok;
     });
 
-    it("can check for the existence of arguments by name", function() {
+    it("can check for the existence of arguments by name", () => {
         addSpyToScope(scope, (args, ret) => ret.set(args.has("a")));
         evaluator.evalString("spy on 3").get().should.be.ok;
         evaluator.evalString("spy").get().should.not.be.ok;
     });
 
-    it("can call a function with no arguments", function() {
+    it("can call a function with no arguments", () => {
         var func = addSpyToScope(scope, (a, ret) => ret.set("cool"));
 
         evaluator.evalString("spy").get().should.equal("cool");
         func.calledOnce.should.be.ok;
     });
 
-    it("can call a function with arguments", function() {
+    it("can call a function with arguments", () => {
         var func = addSpyToScope(scope, (a, ret) => ret.set(a.passed[0]));
 
         scope.set("cake", "yum!");
@@ -61,14 +61,14 @@ describe('BackTalker function calls', function() {
         func.calledOnce.should.be.ok;
     });
 
-    it("can call a function compoundly", function() {
+    it("can call a function compoundly", () => {
         var func = addSpyToScope(scope, (a, ret) => ret.set(a.passed[0]));
         scope.set("cake", "yum!");
         evaluator.evalString("spy on $cake\nspy on $cake").get().should.equal("yum!");
         func.calledTwice.should.be.ok;
     });
 
-    it("can name choices and find which was used", function() {
+    it("can name choices and find which was used", () => {
         var func = sinon.spy((a, ret) => { ret.set(a.named.target); });
         scope.addFunc(["bake <cake|pie>:target"], func);
 
@@ -80,8 +80,8 @@ describe('BackTalker function calls', function() {
         (() => evaluator.evalString("bake pants")).should.throw();
     });
 
-    describe("can save you typing with patterns", function() {
-        it("can allow choices of barewords like <foo|bar>", function() {
+    describe("can save you typing with patterns", () => {
+        it("can allow choices of barewords like <foo|bar>", () => {
             scope.addFunc(["bake <cake|pie> $"], (a, ret) => ret.set(a.passed[0]));
 
             evaluator.evalString('bake cake "?"').get()
@@ -90,7 +90,7 @@ describe('BackTalker function calls', function() {
               should.equal("?");
         });
 
-        it("can allow spaces in <|> like <foo or|foo and>", function() {
+        it("can allow spaces in <|> like <foo or|foo and>", () => {
             scope.addFunc(["bake <cake and|pie or > $"], (a, ret) => ret.set(a.passed[0]));
 
             evaluator.evalString('bake cake and "pie"').get()
@@ -100,13 +100,13 @@ describe('BackTalker function calls', function() {
         });
     });
 
-    it("is called with 'this' being the backtalker instance", function() {
+    it("is called with 'this' being the backtalker instance", () => {
         addSpyToScope(scope, function(a, ret) { ret.set(this); });
         evaluator.evalString('spy on "this"').get()
           .should.be.an.instanceOf(BT.Evaluator);
     });
 
-    it('can allow for auto-vivified variables', function() {
+    it('can allow for auto-vivified variables', () => {
         var func = sinon.spy(function(args, ret) {
             ret.set(args.passed[0]);
         });
@@ -122,14 +122,14 @@ describe('BackTalker function calls', function() {
         func.calledTwice.should.be.ok;
     });
 
-    it('can disallow autovivification', function() {
+    it('can disallow autovivification', () => {
         scope.addFunc(["no"], () => false);
-        should.throws(function() {
+        should.throws(() => {
             evaluator.evalString('no $vivification');
         }, Error);
     })
 
-    it('can tell if it is making a block by checking newSubEval', function() {
+    it('can tell if it is making a block by checking newSubEval', () => {
         var newSubEval = false;
 
         scope.addFunc(["cool"], function(args, ret) {
@@ -151,7 +151,7 @@ describe('BackTalker function calls', function() {
         newSubEval.should.not.be.ok;
     });
 
-    it('can create a new scope for a block of code', function() {
+    it('can create a new scope for a block of code', () => {
         var bodySyntax = null,
             gravity = 0,
             planet = null,
@@ -181,16 +181,16 @@ describe('BackTalker function calls', function() {
         bodySyntax.should.be.an.instanceOf(BT.AST.CompoundExpression);
     });
 
-    describe("return via promise-like the FuncResult, which", function() {
-      it('can be used synchronously with get()', function() {
+    describe("return via promise-like the FuncResult, which", () => {
+      it('can be used synchronously with get()', () => {
         let result = new FuncResult();
         result.set("wow");
         result.get().should.equal("wow");
       });
 
-      it('throws an error if get() is called before set()', function() {
+      it('throws an error if get() is called before set()', () => {
         let result = new FuncResult();
-        (function() {
+        (() => {
           console.log(result.get());
         }).should.throw();
       });

@@ -10,7 +10,7 @@ import {addAsyncSpyToScope, addSpyToScope} from "./util";
 
 describe('The BackTalker InteractiveEvaluator', () => {
   var evaluator: InteractiveEvaluator, scope: BT.Scope, spyFunc, asyncSpyFunc;
-  beforeEach(function() {
+  beforeEach(() => {
       evaluator = new InteractiveEvaluator();
       scope = evaluator.scope;
       spyFunc = addSpyToScope(scope);

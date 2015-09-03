@@ -4,14 +4,14 @@ import * as should from 'should';
 import * as BT from '../lib/back_talker';
 
 
-describe('BackTalker scopes', function() {
+describe('BackTalker scopes', () => {
     var scope;
 
-    beforeEach(function() {
+    beforeEach(() => {
         scope = BT.StdLib.inScope(new BT.Scope());
     });
 
-    it('can inherit from their parents', function() {
+    it('can inherit from their parents', () => {
         scope.set("weird", 5);
         scope.has("weird").should.be.ok;
         scope.get("weird").should.equal(5);
@@ -20,7 +20,7 @@ describe('BackTalker scopes', function() {
         sub.get("weird").should.equal(5);
     });
 
-    it('can override the parent scope', function() {
+    it('can override the parent scope', () => {
         scope.set("weird", 5);
         scope.get("weird").should.equal(5);
 
@@ -30,7 +30,7 @@ describe('BackTalker scopes', function() {
         scope.get("weird").should.equal(5);
     });
 
-    it('can modify scope in BT', function() {
+    it('can modify scope in BT', () => {
         BT.eval('with $test as 3', scope);
         scope.get("test").should.equal(3);
 
@@ -38,7 +38,7 @@ describe('BackTalker scopes', function() {
         BT.eval("$test", scope).get().should.equal(5);
     });
 
-    it('can change values', function() {
+    it('can change values', () => {
         BT.eval('with $test as 3', scope).get().should.equal(3);
         scope.get("test").should.equal(3);
 
@@ -46,7 +46,7 @@ describe('BackTalker scopes', function() {
         scope.get("test").should.equal(5);
     });
 
-    it('can do math with references', function() {
+    it('can do math with references', () => {
         BT.eval('with $test as 3', scope);
         BT.eval('with $a as 7', scope);
         scope.get("test").should.equal(3);
@@ -59,7 +59,7 @@ describe('BackTalker scopes', function() {
         BT.eval('$test * $a', scope).get().should.equal(21);
     });
 
-    it('can use scope in compound expressions', function() {
+    it('can use scope in compound expressions', () => {
         BT.eval('with $test as 3\n$test', scope).get().should.equal(3);
         BT.eval('with $test as 3\n$test + 5', scope).get().should.equal(8);
         BT.eval('with $test as 3\n\n$test + 5', scope).get().should.equal(8);

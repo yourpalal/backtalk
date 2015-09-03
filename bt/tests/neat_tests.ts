@@ -5,10 +5,10 @@ import * as sinon from 'sinon';
 import * as BT from '../lib/back_talker';
 
 
-describe('BackTalker can', function() {
+describe('BackTalker can', () => {
     var scope, evaluator;
 
-    before(function() {
+    before(() => {
         evaluator = new BT.Evaluator();
         scope = evaluator.scope;
     });

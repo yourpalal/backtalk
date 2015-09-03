@@ -25,7 +25,7 @@ class FuncCallMaker {
 
   build(): { name: string; args: AST.FuncArg[] } {
     var args: AST.FuncArg[] = [],
-      name = this.parts.map(function(p) {
+      name = this.parts.map((p) => {
         var result = <string>p.accept(new FuncCallNameMaker());
         if (result === "$") { args.push(new AST.FuncArg(p)); }
         return result;
@@ -158,7 +158,7 @@ function make_bin_op_parser(name, ops) {
     transform: function() {
       // example: 3+4+5+6
       // ls:3 , elements[1][0] = {op:'+',rs: '4'}
-      var rights = this.parts.elements.map(function(v) {
+      var rights = this.parts.elements.map((v) => {
         return new (ops[v.op.textValue])(v.rs.transform());
       });
 
@@ -220,7 +220,7 @@ module grammarParserFuncCallNode {
 
     builder.addPart(this.elements[0].transform());
 
-    this.parts.elements.map(function(v) {
+    this.parts.elements.map((v) => {
       builder.addPart(v.elements[1].transform());
     });
 

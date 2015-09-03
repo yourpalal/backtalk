@@ -44,9 +44,9 @@ describe('a funcdef collection', () => {
   });
 });
 
-describe('a funcdef', function() {
-    describe('is parsed by a system that', function() {
-        it('can recognize barewords like foo', function() {
+describe('a funcdef', () => {
+    describe('is parsed by a system that', () => {
+        it('can recognize barewords like foo', () => {
             var result = parseFD('foo');
             result.should.be.an.instanceOf(Seq);
 
@@ -58,7 +58,7 @@ describe('a funcdef', function() {
                 .with.property('token', 'foo');
         });
 
-        it('can recognized named vars like $:foo', function() {
+        it('can recognized named vars like $:foo', () => {
             var result = parseFD('$:foo');
             result.should.be.an.instanceOf(Seq);
 
@@ -72,7 +72,7 @@ describe('a funcdef', function() {
             result.pieces[0].param.should.beVarParam('foo');
         });
 
-        it('can recognize choices like <foo|bar>', function() {
+        it('can recognize choices like <foo|bar>', () => {
             var result = parseFD('<foo|bar>');
             result.should.be.an.instanceOf(Seq);
 
@@ -80,11 +80,11 @@ describe('a funcdef', function() {
             result.pieces[0].should.be.choiceOf(null, ['foo'], ['bar']);
         });
 
-        it('can split up choices like <foo|bar>', function() {
+        it('can split up choices like <foo|bar>', () => {
           new Choice('<foo|bar>').should.be.choiceOf(null, ['foo'], ['bar']);
         });
 
-        it('can split up choices with empty parts like <|bar>', function() {
+        it('can split up choices with empty parts like <|bar>', () => {
           var result = new Choice('<|bar>');
           result.should.be.choiceOf(null, [], ['bar']);
         });
@@ -95,20 +95,20 @@ describe('a funcdef', function() {
         });
     });
 
-    it('can contain a single bareword', function() {
+    it('can contain a single bareword', () => {
         var result = FuncDefCollection.fromString('wow');
         result.defs.should.have.lengthOf(1);
         result.defs[0].should.haveSignature('wow');
     });
 
-    it('can contain two barewords', function() {
+    it('can contain two barewords', () => {
         var result = FuncDefCollection.fromString('oh no');
 
         result.defs.should.have.length(1);
         result.defs[0].should.haveSignature('oh no');
     });
 
-    it('can contain variables', function() {
+    it('can contain variables', () => {
         var result = FuncDefCollection.fromString('$!');
         result.defs.should.have.length(1);
 
@@ -116,7 +116,7 @@ describe('a funcdef', function() {
         result.defs[0].vivify.should.eql([BT.Vivify.AUTO]);
     });
 
-    it('can name variables', function() {
+    it('can name variables', () => {
         var result = FuncDefCollection.fromString('$!:cool');
         result.defs.should.have.length(1);
 
@@ -126,12 +126,12 @@ describe('a funcdef', function() {
         def.should.haveVarParam(0, "cool");
     });
 
-    it('can contain simple choices like <foo|bar>', function() {
+    it('can contain simple choices like <foo|bar>', () => {
         FuncDefCollection.fromString('<foo|bar>').should
           .haveSignatures('foo', 'bar');
     });
 
-    it('can have multiple named choices like <foo|bar>:foobar <foo|baz>:foobaz', function() {
+    it('can have multiple named choices like <foo|bar>:foobar <foo|baz>:foobaz', () => {
         var parsed = parseFD('<foo|bar>:foobar <foo|baz>:foobaz');
         parsed.pieces.should.be.have.property('length', 2);
 
@@ -153,7 +153,7 @@ describe('a funcdef', function() {
         result.defs[0].should.haveChoiceParam(1, 'foobaz', 0);
     });
 
-    it('can name choices like <foo|bar>:foobar', function() {
+    it('can name choices like <foo|bar>:foobar', () => {
         var result = FuncDefCollection.fromString('<foo|bar>:foobar');
         result.should.haveSignatures('foo', 'bar');
 
@@ -162,7 +162,7 @@ describe('a funcdef', function() {
         result.defs[1].should.haveChoiceParam(0, 'foobar', 1);
     });
 
-    it('can contain big choices like <foo faa|bar>', function() {
+    it('can contain big choices like <foo faa|bar>', () => {
         var result = FuncDefCollection.fromString('<foo faa|bar>');
         result.should.haveSignatures("foo faa", "bar");
     });

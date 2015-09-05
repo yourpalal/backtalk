@@ -73,7 +73,7 @@ export class Evaluator {
     vm.resume();
   }
 
-  makeSubEvaluator(): Evaluator {
+  makeSub(): Evaluator {
     return new Evaluator(new Scope(this.scope));
   }
 

@@ -1,27 +1,32 @@
+import {Evaluator} from "./evaluator";
 import {StackExpresser} from "./expressers";
 
 var parts = [
   { // assignment
     patterns: ['with $!!:ref as $:val', 'with $!!:ref as:'],
     impl: function(args, ret) {
+      let self = <Evaluator>this;
+
       if (args.body) {
-        return this.makeSubEvaluator().eval(args.body).now((val) => {
-          this.scope.set(args.named.ref.name, val);
+        return self.makeSub().eval(args.body).now((val) => {
+          self.scope.set(args.named.ref.name, val);
           ret.set(val);
         });
       }
 
       let val = args.named.val;
-      this.scope.set(args.named.ref.name, val);
+      self.scope.set(args.named.ref.name, val);
       return ret.set(val);
     }
   },
   { // list constructor
     patterns: ['list of:'],
     impl: function(args, ret) {
+      let self = <Evaluator>this;
+
       // StackExpresser calls 'push' on each result
       var parts = [];
-      this.evalExpressions(args.body, new StackExpresser(parts));
+      self.evalExpressions(args.body, new StackExpresser(parts));
 
       return ret.set(parts);
     }

@@ -13,7 +13,7 @@ export function addSpyToScope(scope: Scope, hook: Function = ident) {
   var spyFunc = sinon.spy(function(a, ret) {
       var self = <Evaluator>this;
       if (a.body) {
-        ret.resolve(self.makeSubEvaluator().eval(a.body));
+        ret.resolve(self.makeSub().eval(a.body));
       } else {
         hook.call(this, a, ret);
       }
@@ -29,7 +29,7 @@ export function addAsyncSpyToScope(scope: Scope, hook: Function = ident) {
   var spyFunc = sinon.spy(function(a, ret) {
       var self = <Evaluator>this;
       if (a.body) {
-        setTimeout(() => ret.resolve(self.makeSubEvaluator().eval(a.body)), 0);
+        setTimeout(() => ret.resolve(self.makeSub().eval(a.body)), 0);
       } else {
         setTimeout(() => hook.call(this, a, ret), 0);
       }

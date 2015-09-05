@@ -136,7 +136,7 @@ describe('BackTalker function calls', () => {
           body = args.body !== null;
           let self = <BT.Evaluator>this;
           if (body) {
-            ret.resolve(self.makeSubEvaluator().eval(args.body));
+            ret.resolve(self.makeSub().eval(args.body));
           } else {
             ret.set(null);
           }
@@ -164,7 +164,7 @@ describe('BackTalker function calls', () => {
                 bodySyntax = args.body;
 
                 self.scope.addFunc(["I jump"], (args, ret) => ret.set("jumped"));
-                let subEval = self.makeSubEvaluator();
+                let subEval = self.makeSub();
                 let result = subEval.eval(args.body).get();
                 gravity = subEval.scope.get('gravity');
                 ret.set(result);

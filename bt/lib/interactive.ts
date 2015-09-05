@@ -159,7 +159,7 @@ export class InteractiveEvaluator extends Evaluator {
     vm.resume();
   }
 
-  makeSubEvaluator(): Evaluator {
+  makeSub(): Evaluator {
     return new InteractiveEvaluator(new Scope(this.scope), this);
   }
 

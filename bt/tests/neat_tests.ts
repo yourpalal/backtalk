@@ -16,6 +16,8 @@ describe('BackTalker can', () => {
 
     it("make loops", function(done) {
         scope.addFunc(["for $!:name from $:low to $:high"], function(args, ret) {
+            let self = <BT.Evaluator>this;
+
             let low = args.named.low,
                 high = args.named.high,
                 name = args.named.name,
@@ -27,8 +29,8 @@ describe('BackTalker can', () => {
                 return ret.set(results);
               }
 
-              this.scope.set("i", i);
-              this.makeSubEvaluator().eval(args.body).then((value) => {
+              self.scope.set("i", i);
+              self.makeSub().eval(args.body).then((value) => {
                 results[i] = value;
                 i++;
                 step();

@@ -14,7 +14,7 @@ grammar BackTalk
 
     comment     <-          "--" [^\n]* <Comment>
 
-    func_call   <-          bare parts:(SPACE (ref / bare / sum / product / number / string / paren_expr) )* colon:(SPACE? ":")? <FuncCallNode>
+    func_call   <-          bare parts:(SPACE (ref / bare / sum / product / number / string / paren_expr) )* colon:(SPACE? ":" SPACE?)? <FuncCallNode>
 
     ref         <-          "$" id:[a-zA-z_]+ <RefNode>
     bare        <-          [a-zA-z]+ <BareNode>

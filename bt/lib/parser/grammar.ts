@@ -225,7 +225,7 @@ module grammarParserFuncCallNode {
     });
 
     var callParts = builder.build();
-    if (this.colon.textValue === ':') {
+    if (this.colon.textValue !== '') {
       return new AST.HangingCall(callParts.name + ' :', callParts.args);
     }
     return new AST.FuncCall(callParts.name, callParts.args);

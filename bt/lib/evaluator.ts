@@ -121,14 +121,14 @@ export class Evaluator {
     let params = func.parameterize(args);
     params.body = body;
 
-    func.impl.call(this, params, result);
+    func.impl.call(this, params, result, this);
     return result;
   }
 
   simpleCall(func: FuncHandle, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
     let result = new FuncResult();
-    func.impl.call(this, func.parameterize(args), result);
+    func.impl.call(this, func.parameterize(args), result, this);
     return result;
   }
 }

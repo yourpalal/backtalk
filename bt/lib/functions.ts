@@ -3,7 +3,7 @@ import {EventEmitter} from './events';
 import {Visitable as ASTVisitable} from './parser/ast';
 
 export class FuncParams {
-  named: { [key: string]: any };
+  named: any;
   body: ASTVisitable = null;
 
   constructor(public passed: any[], params: FuncParam[]) {

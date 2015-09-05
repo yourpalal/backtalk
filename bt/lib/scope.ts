@@ -2,11 +2,12 @@ import {FuncDef, FuncDefCollection, FuncParameterizer} from "./funcdefs";
 import {FuncParams, FuncResult} from "./functions";
 import {Trie} from "./trie";
 import {AutoVar, Vivify} from "./vars";
+import {Evaluator} from "./evaluator";
 
 /** @module scope */
 
 interface Func {
-  (p: FuncParams, r: FuncResult): any;
+  (p: FuncParams, r: FuncResult, e: Evaluator): any;
 }
 
 export class FuncHandle {

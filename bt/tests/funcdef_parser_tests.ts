@@ -89,6 +89,10 @@ describe('a funcdef', () => {
           result.should.be.choiceOf(null, [], ['bar']);
         });
 
+        it('can split up choices with empty parts and colons like <|:>', () => {
+          new Choice('<|:>').should.be.choiceOf(null, [], [':']);
+        });
+
         it('can split up choices that include vars like <foo|bar $:baz>', () => {
           var result = new Choice('<foo|bar $:baz>');
           result.should.be.choiceOf(null, ['foo'], ['bar', '$']);
@@ -179,5 +183,13 @@ describe('a funcdef', () => {
         // foo $:barvar
         params = new FuncParams(["barvalue"], result.defs[1].params);
         params.should.have.namedParam('barvar', "barvalue");
+    });
+
+    it('can finish with a colon to match hanging invocations', () => {
+      FuncDefCollection.fromString('foo :').should.haveSignatures('foo :');
+    });
+
+    it('can optionally match hanging invocations via <|:>', () => {
+      FuncDefCollection.fromString('foo <|:>').should.haveSignatures('foo', 'foo :');
     });
 });

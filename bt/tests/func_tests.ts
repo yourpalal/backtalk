@@ -107,7 +107,7 @@ describe('BackTalker function calls', () => {
     });
 
     it('can allow for auto-vivified variables', () => {
-        var func = sinon.spy(function(args, ret) {
+        var func = sinon.spy((args, ret) => {
             ret.set(args.passed[0]);
         });
         scope.addFunc(["on the planet $!"], func);
@@ -129,12 +129,21 @@ describe('BackTalker function calls', () => {
         }, Error);
     })
 
+    it('can allow for hanging calls by ending with :', () => {
+      let hangingSpy = sinon.spy((args, ret) => ret.set("hanging"));
+      let noHangingSpy = sinon.spy((args, ret) => ret.set("simple"));
+      scope.addFunc(["test func :"], hangingSpy);
+      scope.addFunc(["test func"], noHangingSpy);
+
+      evaluator.evalString("test func").get().should.equal("simple");
+      evaluator.evalString("test func:\n   5").get().should.equal("hanging");
+    });
+
     it('can tell if it is making a block by checking args.body', () => {
         var body = false;
 
-        scope.addFunc(["cool"], function(args, ret) {
+        scope.addFunc(["cool <|:>"], (args, ret, self: BT.Evaluator) => {
           body = args.body !== null;
-          let self = <BT.Evaluator>this;
           if (body) {
             ret.resolve(self.makeSub().eval(args.body));
           } else {
@@ -170,7 +179,7 @@ describe('BackTalker function calls', () => {
                 ret.set(result);
             });
 
-        scope.addFunc(["on the planet $"], func);
+        scope.addFunc(["on the planet $ :"], func);
 
         var code = ['on the planet "sarkon":',
                     '   with $gravity as 3 -- m/s/s',

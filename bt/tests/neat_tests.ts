@@ -15,7 +15,7 @@ describe('BackTalker can', () => {
 
 
     it("make loops", function(done) {
-        scope.addFunc(["for $!:name from $:low to $:high"], function(args, ret) {
+        scope.addFunc(["for $!:name from $:low to $:high :"], function(args, ret) {
             let self = <BT.Evaluator>this;
 
             let low = args.named.low,

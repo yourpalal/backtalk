@@ -19,7 +19,7 @@ export function addSpyToScope(scope: Scope, hook: Function = ident) {
       }
   });
 
-  let pattern = ["spy <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d>"];
+  let pattern = ["spy <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d> <|:>"];
   scope.addFunc(pattern, spyFunc);
 
   return spyFunc;
@@ -35,7 +35,7 @@ export function addAsyncSpyToScope(scope: Scope, hook: Function = ident) {
       }
   });
 
-  let pattern = ["spy async <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d>"];
+  let pattern = ["spy async <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d> <|:>"];
   scope.addFunc(pattern, spyFunc);
 
   return spyFunc;

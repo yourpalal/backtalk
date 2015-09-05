@@ -90,7 +90,8 @@ export function parse(pattern: string): Seq {
   // (:[a-zA-Z]+)? matches the tag that can come after a choice
   // [a-zA-Z]+ matches bare words
   // \$\!?\!? matches vars (and they can be tagged like choices)
-  var pieces = pattern.match(/<[a-zA-Z |$!:]+>(:[a-zA-Z]+)?|[a-zA-Z]+|\$\!?\!?(:[a-zA-Z]+)?/g)
+  // :$ matches ":" at the end of the pattern
+  var pieces = pattern.match(/<[a-zA-Z |$!:]+>(:[a-zA-Z]+)?|[a-zA-Z]+|\$\!?\!?(:[a-zA-Z]+)?|\:$/g)
     .map((piece) => {
     if (piece.indexOf('<') == 0) {
       return new Choice(piece);
@@ -145,7 +146,7 @@ export class Choice {
   // raw ~ <some stuff|like this|wow>:cool
   constructor(raw: string) {
     var end = raw.lastIndexOf(">");
-    var bits = raw.substr(1, end).split('|');
+    var bits = raw.substr(1, end - 1).split('|');
 
     // check for empty part
     var emptyPart = false;

@@ -44,6 +44,37 @@ class REPLParser extends BT.Parser {
   }
 }
 
+class REPLShell extends Shell {
+  constructor(private repl: REPL) {
+    super(repl.evaluator);
+  }
+
+  eval(source: string) {
+    try {
+      let ast = this.repl.parser.parse(source);
+
+      this.waiting = true;
+      this.evaluator.eval(ast).then((val) => {
+        if (val !== undefined) {
+          console.log(val);
+        }
+        this.resume();
+      });
+    } catch (e) {
+      if (e instanceof BT.BaseError) {
+        console.log(e.toString());
+        this.resume();
+      } else {
+          throw e;
+      }
+    }
+  }
+
+  resume() {
+    this.repl.resume();
+    super.resume();
+  }
+}
 
 class REPL {
   parser: REPLParser;
@@ -63,26 +94,9 @@ class REPL {
 
     this.evaluator = new BT.Evaluator(),
     this.scope = this.evaluator.scope,
-    this.shell = new Shell(this.evaluator);
-    this.shell.eval = (source) => this.shell_eval(source);
+    this.shell = new REPLShell(this);
 
     this.init_scope();
-  }
-
-  shell_eval(source) {
-    try {
-      var ast = this.parser.parse(source);
-      var result = this.shell.evaluator.eval(ast);
-      if (typeof result !== 'undefined') {
-        console.log(result);
-      }
-    } catch (e) {
-      if (e instanceof BT.BaseError) {
-        console.log(e.toString());
-      } else {
-          throw e;
-      }
-    }
   }
 
   init_scope() {
@@ -92,7 +106,9 @@ class REPL {
       process.exit();
     });
 
-    this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args) => {
+    this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args, ret) => {
+        ret.set();
+
         let on = args.choose('on', [true, false, false]);
         if (args.named['what'] == 0) {
           this.parser.print_ast = on;
@@ -101,12 +117,16 @@ class REPL {
         }
     });
 
-    this.scope.addFunc(["repl ls", "help"], (args) => {
+    this.scope.addFunc(["repl ls", "help"], (args, ret) => {
+      ret.set();
+
       this.scope.funcs.each((k, v) => console.log(k));
     });
 
-    this.scope.addFunc(["repl scope"], (args) => {
-        console.log(this.scope.names);
+    this.scope.addFunc(["repl scope"], (args, ret) => {
+      ret.set();
+
+      console.log(this.scope.names);
     });
   }
 
@@ -121,8 +141,14 @@ class REPL {
       } else {
         this.rl.setPrompt("::>");
       }
-      this.rl.prompt();
+      if (!this.shell.waiting) {
+        this.rl.prompt();
+      }
     });
+  }
+
+  resume() {
+    this.rl.prompt();
   }
 }
 

@@ -4,9 +4,9 @@ var parts = [
   { // assignment
     patterns: ['with $!!:ref as $:val', 'with $!!:ref as:'],
     impl: function(args, ret) {
-      if (this.newSubEval) {
-        return this.eval(this.body).now((val) => {
-          this.scope.parent.set(args.named.ref.name, val);
+      if (args.body) {
+        return this.makeSubEvaluator().eval(args.body).now((val) => {
+          this.scope.set(args.named.ref.name, val);
           ret.set(val);
         });
       }
@@ -21,7 +21,7 @@ var parts = [
     impl: function(args, ret) {
       // StackExpresser calls 'push' on each result
       var parts = [];
-      this.evalExpressions(this.body, new StackExpresser(parts));
+      this.evalExpressions(args.body, new StackExpresser(parts));
 
       return ret.set(parts);
     }

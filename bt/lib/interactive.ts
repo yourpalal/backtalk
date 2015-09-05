@@ -151,7 +151,6 @@ export class InteractiveEvaluator extends Evaluator {
   }
 
   evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
-    this.body = node;
     let compiler = new SourceInfoCompiler();
     node.accept(compiler);
 
@@ -160,11 +159,8 @@ export class InteractiveEvaluator extends Evaluator {
     vm.resume();
   }
 
-  makeSubEvaluator(body: AST.Visitable): Evaluator {
-    var subEval = new InteractiveEvaluator(new Scope(this.scope), this);
-    subEval.newSubEval = true;
-    subEval.body = body;
-    return subEval;
+  makeSubEvaluator(): Evaluator {
+    return new InteractiveEvaluator(new Scope(this.scope), this);
   }
 
   /**

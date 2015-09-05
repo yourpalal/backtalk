@@ -12,8 +12,8 @@ function ident(a, ret) {
 export function addSpyToScope(scope: Scope, hook: Function = ident) {
   var spyFunc = sinon.spy(function(a, ret) {
       var self = <Evaluator>this;
-      if (self.newSubEval) {
-        ret.resolve(self.eval(self.body));
+      if (a.body) {
+        ret.resolve(self.makeSubEvaluator().eval(a.body));
       } else {
         hook.call(this, a, ret);
       }
@@ -28,8 +28,8 @@ export function addSpyToScope(scope: Scope, hook: Function = ident) {
 export function addAsyncSpyToScope(scope: Scope, hook: Function = ident) {
   var spyFunc = sinon.spy(function(a, ret) {
       var self = <Evaluator>this;
-      if (self.newSubEval) {
-        setTimeout(() => ret.resolve(self.eval(self.body)), 0);
+      if (a.body) {
+        setTimeout(() => ret.resolve(self.makeSubEvaluator().eval(a.body)), 0);
       } else {
         setTimeout(() => hook.call(this, a, ret), 0);
       }

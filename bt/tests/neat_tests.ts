@@ -28,7 +28,7 @@ describe('BackTalker can', () => {
               }
 
               this.scope.set("i", i);
-              this.eval(this.body).then((value) => {
+              this.makeSubEvaluator().eval(args.body).then((value) => {
                 results[i] = value;
                 i++;
                 step();

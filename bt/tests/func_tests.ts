@@ -129,26 +129,28 @@ describe('BackTalker function calls', () => {
         }, Error);
     })
 
-    it('can tell if it is making a block by checking newSubEval', () => {
-        var newSubEval = false;
+    it('can tell if it is making a block by checking args.body', () => {
+        var body = false;
 
         scope.addFunc(["cool"], function(args, ret) {
-          var self = <evaluator.Evaluator>this;
-          newSubEval = self.newSubEval;
-          if (self.newSubEval) {
-              ret.resolve(self.eval(self.body));
+          body = args.body !== null;
+          let self = <BT.Evaluator>this;
+          if (body) {
+            ret.resolve(self.makeSubEvaluator().eval(args.body));
+          } else {
+            ret.set(null);
           }
         });
 
         evaluator.evalString("cool");
-        newSubEval.should.not.be.ok;
+        body.should.not.be.ok;
 
         evaluator.evalString("cool:\n    5").get().should.equal(5);
-        newSubEval.should.be.ok;
+        body.should.be.ok;
 
-        // newSubEval false when called not with a block
+        // body false when called not with a block
         evaluator.evalString("cool:\n    cool");
-        newSubEval.should.not.be.ok;
+        body.should.not.be.ok;
     });
 
     it('can create a new scope for a block of code', () => {
@@ -156,12 +158,15 @@ describe('BackTalker function calls', () => {
             gravity = 0,
             planet = null,
             func = sinon.spy(function(args, ret) {
-                planet = args.passed[0];
-                bodySyntax = this.body;
+                let self = <BT.Evaluator>this;
 
-                this.scope.addFunc(["I jump"], (args, ret) => ret.set("jumped"));
-                var result = this.eval(this.body).get();
-                gravity = this.scope.get("gravity");
+                planet = args.passed[0];
+                bodySyntax = args.body;
+
+                self.scope.addFunc(["I jump"], (args, ret) => ret.set("jumped"));
+                let subEval = self.makeSubEvaluator();
+                let result = subEval.eval(args.body).get();
+                gravity = subEval.scope.get('gravity');
                 ret.set(result);
             });
 

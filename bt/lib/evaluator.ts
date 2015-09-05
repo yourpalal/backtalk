@@ -51,20 +51,10 @@ export function evalBT(source: string | AST.Visitable, scope?: Scope): FuncResul
  */
 export class Evaluator {
   /**
-   * @member evaluator.Evaluator#newSubEval is true if this evaluator was created to evaluate the body of a
-   * hanging call. If newSubEval is true, then `body` will hold the body of the
-   * hanging call.
-   */
-  public newSubEval: boolean;
-  public body: AST.Visitable;
-
-  /**
    * @constructor
    * @param {scope.Scope} (optional) scope in which to evaluate BT code.
    */
-  constructor(public scope?: Scope) {
-    this.scope = scope || stdLib.inScope(new Scope());
-    this.newSubEval = false;
+  constructor(public scope: Scope = stdLib.inScope(new Scope())) {
   }
 
   evalString(source: string): FuncResult {
@@ -78,17 +68,13 @@ export class Evaluator {
   }
 
   evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
-    this.body = node;
     let compiled = VM.Compiler.compile(node);
     let vm = new VM.VM(compiled, this, expresser);
     vm.resume();
   }
 
-  makeSubEvaluator(body: AST.Visitable): Evaluator {
-    var subEval = new Evaluator(new Scope(this.scope));
-    subEval.newSubEval = true;
-    subEval.body = body;
-    return subEval;
+  makeSubEvaluator(): Evaluator {
+    return new Evaluator(new Scope(this.scope));
   }
 
   findFuncOrThrow(name: string): FuncHandle {
@@ -132,13 +118,15 @@ export class Evaluator {
   hangingCall(func: FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
     let result = new FuncResult();
-    func.impl.call(this.makeSubEvaluator(body), func.parameterize(args), result);
+    let params = func.parameterize(args);
+    params.body = body;
+
+    func.impl.call(this, params, result);
     return result;
   }
 
   simpleCall(func: FuncHandle, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
-    this.newSubEval = false;
     let result = new FuncResult();
     func.impl.call(this, func.parameterize(args), result);
     return result;

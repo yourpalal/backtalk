@@ -49,7 +49,7 @@ export interface Visitable {
   code: Code;
 }
 
-class ASTItem {
+export class ASTItem {
   public code: Code = null;
 }
 
@@ -97,7 +97,7 @@ export class MultOp extends ASTItem implements Visitable {
   }
 }
 
-type BinOp = AddOp | SubOp | DivideOp | MultOp;
+export type BinOp = AddOp | SubOp | DivideOp | MultOp;
 
 export class BinOpNode extends ASTItem implements Visitable {
   constructor(public left: any, public ops: BinOp[]) { super(); }

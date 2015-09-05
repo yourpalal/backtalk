@@ -96,7 +96,7 @@ export class InteractiveVM extends VM.VM {
   }
 };
 
-class BreakpointManager {
+export class BreakpointManager {
     private breakpoints: AST.Code[] = [];
     private lineChangedListener: {(code: AST.Code, vm: InteractiveVM): void};
 

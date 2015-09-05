@@ -6,7 +6,7 @@ import {Evaluator} from "./evaluator";
 
 /** @module scope */
 
-interface Func {
+export interface Func {
   (p: FuncParams, r: FuncResult, e: Evaluator): any;
 }
 

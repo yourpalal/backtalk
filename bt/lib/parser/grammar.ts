@@ -1,5 +1,6 @@
-import * as grammar from "./peg_grammar";
 import * as AST from "./ast";
+import {MissingBodyError} from "./parser";
+import * as grammar from "./peg_grammar";
 
 export = grammar;
 
@@ -108,6 +109,10 @@ class LineCollector extends AST.BaseVisitor {
   visitHangingCall(func: AST.HangingCall): any {
     var c = new LineCollector(this.lines, this.i + 1, this.lines[this.i].indent + 1);
     func.body = c.collect();
+    if (func.body.parts.length == 0) {
+      throw new MissingBodyError(func.code);
+    }
+
     this.i = c.i;
       // we start up where the other collector left off
       // (this.i is the last line they included), and in the next iteration of

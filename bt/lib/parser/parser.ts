@@ -28,6 +28,12 @@ export class ParseError extends BaseError {
   }
 }
 
+export class MissingBodyError extends BaseError {
+  constructor(public location: AST.Code) {
+    super(`Missing body for hanging functoin call at ${location.chunk}:${location.lineNumber}`);
+  }
+}
+
 export class Parser {
   inspect(p: grammar.ParserNode): void {
   }

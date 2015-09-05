@@ -4,6 +4,7 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/back_talker';
 import * as AST from '../lib/parser/ast';
+import {MissingBodyError} from '../lib/parser/parser';
 
 
 describe("The BackTalker parser", () => {
@@ -43,5 +44,13 @@ describe("The BackTalker parser", () => {
 
     parsed.parts[0].should.be.an.instanceOf(AST.HangingCall);
     (<AST.HangingCall>parsed.parts[0]).body.parts.should.have.length(2);
+  });
+
+  it("throws an error when it encounters an empty haning call body", () => {
+    let attempt = () => <AST.CompoundExpression>BT.parse(`
+    with $a as:
+    print 2`);
+
+    attempt.should.throw(MissingBodyError);
   });
 });

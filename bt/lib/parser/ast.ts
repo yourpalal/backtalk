@@ -152,7 +152,7 @@ export class Ref extends ASTItem implements Visitable {
 export class CompoundExpression extends ASTItem implements Visitable {
   constructor(public parts: Visitable[]) {
     super();
-    this.code = parts[0].code;
+    this.code = parts.length > 0 ? parts[0].code : null;
   }
 
   accept(visitor: Visitor, ...args: any[]): any {

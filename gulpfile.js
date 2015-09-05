@@ -28,6 +28,7 @@ var project = typescript.createProject({
     module: 'commonjs',
     noEmitOnError: true,
     removeComments: false,
+    declaration: true,
 });
 
 var dieAfterFinish = function(message) {
@@ -60,12 +61,17 @@ gulp.task("canopy", function(end) {
 });
 
 gulp.task('scripts', function(cb) {
-    return gulp.src(['bt/bin/*.ts', 'bt/lib/**/*.ts', 'bt/tests/**/*.ts'], {'base': 'bt/'})
+    var ts = gulp.src(['bt/bin/*.ts', 'bt/lib/**/*.ts', 'bt/tests/**/*.ts'], {'base': 'bt/'})
       .pipe(sourcemaps.init())
-      .pipe(typescript(project)).js
-      .on('error', dieAfterFinish("typescript failed"))
-      .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('build/js'));
+      .pipe(typescript(project));
+
+    return merge([
+      ts.dts.pipe(gulp.dest('build/dts/')),
+      ts.js.on('error', dieAfterFinish("typescript failed"))
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest('build/js/'))
+
+    ]);
 });
 
 gulp.task('docs', ['scripts'], function() {

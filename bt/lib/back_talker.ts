@@ -3,6 +3,7 @@ export {Scope} from "./scope";
 export import StdLib = require("./standard_lib");
 export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";
+export {FuncParams, FuncResult} from "./functions";
 
 export {parse, Parser} from "./parser/parser";
 export import AST = require("./parser/ast");

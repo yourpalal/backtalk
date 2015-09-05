@@ -40,6 +40,8 @@ class MultiLineProcessor implements LineProcessor {
  */
 export class Shell {
   private processor: LineProcessor;
+  private queue: string[] = [];
+  public waiting = false;
   public multiline = false;
 
   constructor(public evaluator: Evaluator) {
@@ -47,11 +49,29 @@ export class Shell {
   }
 
   eval(source: string) {
-    this.evaluator.evalString(source);
+    this.waiting = true;
+    this.evaluator.evalString(source).now((val) => {
+        this.resume();
+    });
+  }
+
+  resume() {
+    this.waiting = false;
+    while (!this.waiting && this.queue.length > 0) {
+      this.dequeueString();
+    }
   }
 
   processLine(line: string) {
-    var colon = line.match(/:\s*$/);
+    this.queue.push(line);
+    if (!this.waiting) {
+      this.dequeueString();
+    }
+  }
+
+  private dequeueString() {
+    let line = this.queue.shift();
+    let colon = line.match(/:\s*$/);
 
     if (this.processor == null && colon) {
       this.multiline = true;

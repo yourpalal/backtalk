@@ -17,7 +17,6 @@ describe('The BackTalker Shell', () => {
 
       shell = new Shell(new BT.Evaluator(scope));
       sinon.spy(shell, "eval");
-      addSpyToScope(scope);
     });
 
     it('can have one expression per line', () => {
@@ -33,6 +32,7 @@ describe('The BackTalker Shell', () => {
     });
 
     it('can have multiline expressions, which are ended via a blank line', () => {
+      let spy = addSpyToScope(scope);
       shell.processLine("spy:");
       shell.multiline.should.be.ok;
       shell.processLine(" spy on 1");
@@ -47,5 +47,26 @@ describe('The BackTalker Shell', () => {
       shell.eval.calledWithExactly("spy:\n spy on 1\n spy on 2").should.be.ok;
 
       shell.multiline.should.not.be.ok;
+    });
+
+    it('can handle async code', (done) => {
+      var asyncResult: BT.FuncResult;
+
+      let spy = addSpyToScope(scope, () => {
+        // make sure we are not called too early
+        asyncResult.isFulfilled().should.be.ok;
+        done();
+      });
+
+      scope.addFunc(["test async"], (args, ret) => { asyncResult = ret; });
+
+      shell.processLine("test async");
+      shell.waiting.should.be.ok;
+
+      shell.processLine("spy on 1");
+      shell.waiting.should.be.ok;
+
+      spy.calledOnce.should.not.be.ok;
+      asyncResult.set(3);
     });
 });

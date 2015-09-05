@@ -27,7 +27,9 @@ Drawing.Context = function() {
 Drawing.makeObjectContext = function(object, scope) {
     scope.addFunc(['a <bit|pixel>:which <left of|right of|above|below>:direction center',
                    'at $:count <pixel|pixels> <left of|right of|above|below>:direction center'],
-        function(args) {
+        function(args, ret) {
+            ret.set(object);
+
             var count = args.choose("which", [5, 1], args.get("count"));
             if (args.named.direction % 2 == 0) {
               // left, above = -
@@ -47,15 +49,16 @@ Drawing.makeObjectContext = function(object, scope) {
 Drawing.Context.prototype.register = function(btcontext) {
     var ctx = this;
 
-    btcontext.addFunc(['a <small|big>:size <red|yellow|green|blue>:colour circle'],
-        function(args) {
+    btcontext.addFunc(['a <small|big>:size <red|yellow|green|blue>:colour circle :'],
+        function(args, ret, evaluator) {
             var circle = new Drawing.Circle(args.choose("size", [5, 30]), args.choose("colour", ["red", "yellow", "green", "blue"]));
             ctx.gfx.push(circle);
 
-            Drawing.makeObjectContext(circle, this.scope);
-
-            if (this.newSubEval) {
-                this.eval(this.body);
+            if (args.body) {
+              Drawing.makeObjectContext(circle, this.scope);
+              ret.resolve(evaluator.makeSub().eval(args.body));
+            } else {
+              ret.set(circle);
             }
         });
 

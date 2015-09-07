@@ -3,18 +3,22 @@ var gulp = require("gulp"),
     concat = require("gulp-concat"),
     connect = require("gulp-connect"),
     jsdoc = require("gulp-jsdoc"),
+    filter = require("gulp-filter"),
+    rename = require("gulp-rename"),
     typescript = require("gulp-typescript"),
     sourcemaps = require('gulp-sourcemaps'),
     merge = require('merge2'),
 
     browserify = require('browserify'),
-    source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
+    source = require('vinyl-source-stream'),
 
-    through = require('through2'),
     canopy = require('canopy'),
+    through = require('through2'),
 
     mocha = require('gulp-mocha')
+
+    path = require('path')
 ;
 
 var GRAMMAR_FILE = "bt/lib/parser/peg_grammar.peg";
@@ -66,7 +70,19 @@ gulp.task('scripts', function(cb) {
       .pipe(typescript(project));
 
     return merge([
-      ts.dts.pipe(gulp.dest('build/dts/')),
+      // save lib definition files to dist
+      ts.dts
+        .pipe(filter(['bt/lib/**/*.d.ts']))
+        .pipe(rename(function(filePath) {
+          var parts = filePath.dirname.split(path.sep);
+          parts.shift(); // remove 'lib'
+          filePath.dirname = path.join.apply(path, parts);
+        }))
+        .pipe(gulp.dest('build/dist/dts/')),
+      // save peg-Grammar.d.ts too
+      gulp.src(['bt/lib/**/*.d.ts'])
+        .pipe(gulp.dest('build/dist/dts/')),
+      // and compile to javascript
       ts.js.on('error', dieAfterFinish("typescript failed"))
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('build/js/'))

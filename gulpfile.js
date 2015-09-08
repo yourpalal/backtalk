@@ -70,18 +70,12 @@ gulp.task('scripts', function(cb) {
       .pipe(typescript(project));
 
     return merge([
-      // save lib definition files to dist
+      // save lib definition files
       ts.dts
-        .pipe(filter(['bt/lib/**/*.d.ts']))
-        .pipe(rename(function(filePath) {
-          var parts = filePath.dirname.split(path.sep);
-          parts.shift(); // remove 'lib'
-          filePath.dirname = path.join.apply(path, parts);
-        }))
-        .pipe(gulp.dest('build/dist/dts/')),
+        .pipe(gulp.dest('build/js/')),
       // save peg-Grammar.d.ts too
       gulp.src(['bt/lib/**/*.d.ts'])
-        .pipe(gulp.dest('build/dist/dts/')),
+        .pipe(gulp.dest('build/js/lib/')),
       // and compile to javascript
       ts.js.on('error', dieAfterFinish("typescript failed"))
         .pipe(sourcemaps.write('./'))

@@ -2,7 +2,7 @@
 import * as should from 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib/back_talker';
+import * as BT from '../lib';
 import {Shell} from '../lib/shell';
 
 

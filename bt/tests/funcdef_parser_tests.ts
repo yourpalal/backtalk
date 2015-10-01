@@ -3,7 +3,7 @@
 
 import * as should from 'should';
 
-import * as BT from '../lib/back_talker';
+import * as BT from '../lib';
 import {FuncParams} from '../lib/functions';
 import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/funcdefs';
 

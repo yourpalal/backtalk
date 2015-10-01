@@ -1,7 +1,7 @@
 /// <reference path="../typings/tsd.d.ts" />
 import * as should from 'should';
 
-import * as BT from '../lib/back_talker';
+import * as BT from '../lib';
 
 describe('BackTalker code', () => {
     it('can have one expression per line', () => {

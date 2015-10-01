@@ -2,7 +2,7 @@
 import * as should from 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib/back_talker';
+import * as BT from '../lib';
 
 import {CodeRange, InteractiveEvaluator, SourceInfoCompiler} from "../lib/interactive";
 import {addAsyncSpyToScope, addSpyToScope} from "./util";

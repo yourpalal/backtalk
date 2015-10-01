@@ -4,7 +4,7 @@
 import * as argparser from 'argparser';
 import * as readline from 'readline';
 
-import * as BT from '../lib/back_talker';
+import * as BT from '../lib';
 import {Shell} from '../lib/shell';
 
 

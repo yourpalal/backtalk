@@ -91,7 +91,7 @@ gulp.task('docs', ['scripts'], function() {
 
 gulp.task('dist', ['scripts', 'canopy'], function() {
   var b = browserify({
-    entries: './build/js/lib/back_talker.js',
+    entries: './build/js/lib/index.js',
     standalone: 'BackTalker',
   });
 

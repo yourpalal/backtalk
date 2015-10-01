@@ -107,7 +107,7 @@ class REPL {
     });
 
     this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args, ret) => {
-        ret.set();
+        ret.sync();
 
         let on = args.choose('on', [true, false, false]);
         if (args.named['what'] == 0) {
@@ -118,13 +118,13 @@ class REPL {
     });
 
     this.scope.addFunc(["repl ls", "help"], (args, ret) => {
-      ret.set();
+      ret.sync();
 
       this.scope.funcs.each((k, v) => console.log(k));
     });
 
     this.scope.addFunc(["repl scope"], (args, ret) => {
-      ret.set();
+      ret.sync();
 
       console.log(this.scope.names);
     });

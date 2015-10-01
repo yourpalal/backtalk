@@ -120,7 +120,10 @@ describe('The BackTalker InteractiveEvaluator', () => {
     evaluator.on('breakpoint-reached', breakpointSpy);
     evaluator.on('line-changed', lineSpy);
 
-    evaluator.eval(ast).then(() => {
+    evaluator.eval(ast).then((value) => {
+      spyFunc.calledTwice.should.be.ok;
+      asyncSpyFunc.calledOnce.should.be.ok;
+
       lineSpy.callCount.should.equal(3);
       breakpointSpy.calledOnce.should.be.ok;
       lineSpy.secondCall.calledAfter(breakpointSpy);

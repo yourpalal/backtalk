@@ -90,6 +90,35 @@ export class TooEagerError extends BaseError {
   }
 }
 
+
+/**
+ * @class FutureResult
+ * @description FuncResult wrapper that separates async behaviour from sync.
+ */
+export class FutureResult {
+  constructor(private result: FuncResult) {
+      // we really wanted package-private, anyway
+      (<any>result as FuncResultPrivateFields).beganAsync = true;
+  }
+
+  resolve(r: FuncResult) {
+    r.now((value) => this.set(value));
+    return this;
+  }
+
+  set(v?: any) {
+    this.result.setAsyncViaFuture(v, this);
+  }
+}
+
+interface FuncResultPrivateFields {
+    value: any;
+    haveValue: boolean;
+    beganAsync: boolean;
+    emitter: EventEmitter;
+}
+
+
 /**
  * @class FuncResult
  * @description FuncResult is much like a promise, with the exception that it
@@ -98,6 +127,7 @@ export class TooEagerError extends BaseError {
 export class FuncResult {
   private value: any;
   private haveValue: boolean = false;
+  private beganAsync: boolean = false;
 
   private emitter: EventEmitter;
 
@@ -105,7 +135,7 @@ export class FuncResult {
     this.emitter = new EventEmitter(['set']);
   }
 
-  set(v?: any) {
+  sync(v?: any) {
     this.value = v;
     this.haveValue = true;
 
@@ -113,9 +143,20 @@ export class FuncResult {
     return this;
   }
 
-  resolve(r: FuncResult) {
-    r.now((value) => this.set(value));
+  setAsyncViaFuture(v: any, future: FutureResult) {
+    this.value = v;
+    this.haveValue = true;
+
+    this.emitter.emitAsync('set', this, this.value);
     return this;
+  }
+
+  isAsync(): boolean {
+    return this.beganAsync;
+  }
+
+  isVoid(): boolean {
+    return !this.haveValue && !this.beganAsync;
   }
 
   isFulfilled(): boolean {
@@ -127,6 +168,10 @@ export class FuncResult {
       throw new TooEagerError();
     }
     return this.value;
+  }
+
+  beginAsync(): FutureResult {
+    return new FutureResult(this);
   }
 
   /**

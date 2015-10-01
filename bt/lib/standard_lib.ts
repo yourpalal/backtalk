@@ -9,13 +9,13 @@ var parts = [
       if (args.body) {
         return self.makeSub().eval(args.body).now((val) => {
           self.scope.set(args.named.ref.name, val);
-          ret.set(val);
+          ret.sync(val);
         });
       }
 
       let val = args.named.val;
       self.scope.set(args.named.ref.name, val);
-      return ret.set(val);
+      return ret.sync(val);
     }
   },
   { // list constructor
@@ -25,14 +25,14 @@ var parts = [
       var parts = [];
       self.evalExpressions(args.body, new StackExpresser(parts));
 
-      return ret.set(parts);
+      return ret.sync(parts);
     }
   },
   { // list accessor
     patterns: ['item $:count of $:list'],
     impl: function(args: FuncParams, ret: FuncResult, self: Evaluator) {
       var count = args.getNumber("count");
-      return ret.set(args.named.list[count - 1]);
+      return ret.sync(args.named.list[count - 1]);
     }
   },
   { // printer
@@ -40,7 +40,7 @@ var parts = [
     impl: function(args: FuncParams, ret: FuncResult, self: Evaluator) {
       console.log(args.named.arg);
 
-      return ret.set(args.named.arg);
+      return ret.sync(args.named.arg);
     }
   }
 

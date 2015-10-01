@@ -1,4 +1,4 @@
-import {FuncResult} from './functions';
+import {FuncResult, FutureResult} from './functions';
 
 export interface Expresser {
   express(result: any);
@@ -19,14 +19,21 @@ export class StackExpresser implements Expresser {
 
 export class ResultExpresser implements Expresser {
   private interimResult: any = null;
-  public result: FuncResult = new FuncResult();
+
+  public result: FuncResult;
+  public future: FutureResult;
+
+  constructor() {
+      this.result = new FuncResult();
+      this.future = this.result.beginAsync();
+  }
 
   express(current: any) {
     this.interimResult = current;
   }
 
   finish() {
-    this.result.set(this.interimResult);
+    this.future.set(this.interimResult);
   }
 }
 

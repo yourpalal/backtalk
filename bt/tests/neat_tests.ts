@@ -24,9 +24,10 @@ describe('BackTalker can', () => {
                 i = 0,
                 results = new Array(high - low - 1);
 
+            let future = ret.beginAsync();
             let step = () => {
               if (low + i >=  high) {
-                return ret.set(results);
+                return future.set(results);
               }
 
               self.scope.set("i", i);

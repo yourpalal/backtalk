@@ -1,6 +1,7 @@
 import {Evaluator} from "./evaluator";
 export * from "./expressers";
 import {Expresser, ConsoleExpresser} from "./expressers";
+import {FuncResult} from "./functions";
 import {FuncDef} from "./funcdefs";
 import * as AST from "./parser/ast";
 
@@ -112,8 +113,15 @@ export module Instructions {
       execute(vm: VM, evaluator: Evaluator) {
         var func = evaluator.findFuncOrThrow(this.name),
             args = vm.yoink(func.vivification.length),
-            result = evaluator.simpleCall(func, args)
-        if (result.isFulfilled()) {
+            result = evaluator.simpleCall(func, args);
+
+          CallFunc.handleFuncResult(vm, evaluator, result);
+      }
+
+      static handleFuncResult(vm: VM, evaluator: Evaluator, result: FuncResult) {
+        if (result.isVoid()) {
+          return vm.push(undefined);
+        } else if (result.isFulfilled()) {
           return vm.push(result.get());
         }
 
@@ -133,15 +141,8 @@ export module Instructions {
         var func = evaluator.findFuncOrThrow(this.name),
             args = vm.yoink(func.vivification.length),
             result = evaluator.hangingCall(func, this.body, args);
-        if (result.isFulfilled()) {
-          return vm.push(result.get());
-        }
 
-        vm.wait();
-        result.then((value) => {
-          vm.push(value);
-          vm.resume();
-        });
+        CallFunc.handleFuncResult(vm, evaluator, result);
       }
   }
 

@@ -41,20 +41,20 @@ describe('BackTalker function calls', () => {
     });
 
     it("can check for the existence of arguments by name", () => {
-        addSpyToScope(scope, (args, ret) => ret.set(args.has("a")));
+        addSpyToScope(scope, (args, ret) => ret.sync(args.has("a")));
         evaluator.evalString("spy on 3").get().should.be.ok;
         evaluator.evalString("spy").get().should.not.be.ok;
     });
 
     it("can call a function with no arguments", () => {
-        var func = addSpyToScope(scope, (a, ret) => ret.set("cool"));
+        var func = addSpyToScope(scope, (a, ret) => ret.sync("cool"));
 
         evaluator.evalString("spy").get().should.equal("cool");
         func.calledOnce.should.be.ok;
     });
 
     it("can call a function with arguments", () => {
-        var func = addSpyToScope(scope, (a, ret) => ret.set(a.passed[0]));
+        var func = addSpyToScope(scope, (a, ret) => ret.sync(a.passed[0]));
 
         scope.set("cake", "yum!");
         evaluator.evalString("spy on $cake").get().should.equal("yum!");
@@ -62,14 +62,14 @@ describe('BackTalker function calls', () => {
     });
 
     it("can call a function compoundly", () => {
-        var func = addSpyToScope(scope, (a, ret) => ret.set(a.passed[0]));
+        var func = addSpyToScope(scope, (a, ret) => ret.sync(a.passed[0]));
         scope.set("cake", "yum!");
         evaluator.evalString("spy on $cake\nspy on $cake").get().should.equal("yum!");
         func.calledTwice.should.be.ok;
     });
 
     it("can name choices and find which was used", () => {
-        var func = sinon.spy((a, ret) => { ret.set(a.named.target); });
+        var func = sinon.spy((a, ret) => { ret.sync(a.named.target); });
         scope.addFunc(["bake <cake|pie>:target"], func);
 
         evaluator.evalString("bake cake").get()
@@ -82,7 +82,7 @@ describe('BackTalker function calls', () => {
 
     describe("can save you typing with patterns", () => {
         it("can allow choices of barewords like <foo|bar>", () => {
-            scope.addFunc(["bake <cake|pie> $"], (a, ret) => ret.set(a.passed[0]));
+            scope.addFunc(["bake <cake|pie> $"], (a, ret) => ret.sync(a.passed[0]));
 
             evaluator.evalString('bake cake "?"').get()
               .should.equal("?");
@@ -91,7 +91,7 @@ describe('BackTalker function calls', () => {
         });
 
         it("can allow spaces in <|> like <foo or|foo and>", () => {
-            scope.addFunc(["bake <cake and|pie or > $"], (a, ret) => ret.set(a.passed[0]));
+            scope.addFunc(["bake <cake and|pie or > $"], (a, ret) => ret.sync(a.passed[0]));
 
             evaluator.evalString('bake cake and "pie"').get()
               .should.equal("pie");
@@ -101,14 +101,14 @@ describe('BackTalker function calls', () => {
     });
 
     it("is called with 'this' being the backtalker instance", () => {
-        addSpyToScope(scope, function(a, ret) { ret.set(this); });
+        addSpyToScope(scope, function(a, ret) { ret.sync(this); });
         evaluator.evalString('spy on "this"').get()
           .should.be.an.instanceOf(BT.Evaluator);
     });
 
     it('can allow for auto-vivified variables', () => {
         var func = sinon.spy((args, ret) => {
-            ret.set(args.passed[0]);
+            ret.sync(args.passed[0]);
         });
         scope.addFunc(["on the planet $!"], func);
 
@@ -130,8 +130,8 @@ describe('BackTalker function calls', () => {
     })
 
     it('can allow for hanging calls by ending with :', () => {
-      let hangingSpy = sinon.spy((args, ret) => ret.set("hanging"));
-      let noHangingSpy = sinon.spy((args, ret) => ret.set("simple"));
+      let hangingSpy = sinon.spy((args, ret) => ret.sync("hanging"));
+      let noHangingSpy = sinon.spy((args, ret) => ret.sync("simple"));
       scope.addFunc(["test func :"], hangingSpy);
       scope.addFunc(["test func"], noHangingSpy);
 
@@ -142,12 +142,12 @@ describe('BackTalker function calls', () => {
     it('can tell if it is making a block by checking args.body', () => {
         var body = false;
 
-        scope.addFunc(["cool <|:>"], (args, ret, self: BT.Evaluator) => {
+        scope.addFunc(["cool <|:>"], (args, ret: FuncResult, self: BT.Evaluator) => {
           body = args.body !== null;
           if (body) {
-            ret.resolve(self.makeSub().eval(args.body));
+            ret.beginAsync().resolve(self.makeSub().eval(args.body));
           } else {
-            ret.set(null);
+            ret.sync(null);
           }
         });
 
@@ -172,11 +172,11 @@ describe('BackTalker function calls', () => {
                 planet = args.passed[0];
                 bodySyntax = args.body;
 
-                self.scope.addFunc(["I jump"], (args, ret) => ret.set("jumped"));
+                self.scope.addFunc(["I jump"], (args, ret) => ret.sync("jumped"));
                 let subEval = self.makeSub();
                 let result = subEval.eval(args.body).get();
                 gravity = subEval.scope.get('gravity');
-                ret.set(result);
+                ret.sync(result);
             });
 
         scope.addFunc(["on the planet $ :"], func);
@@ -198,7 +198,7 @@ describe('BackTalker function calls', () => {
     describe("return via promise-like the FuncResult, which", () => {
       it('can be used synchronously with get()', () => {
         let result = new FuncResult();
-        result.set("wow");
+        result.sync("wow");
         result.get().should.equal("wow");
       });
 
@@ -209,12 +209,12 @@ describe('BackTalker function calls', () => {
         }).should.throw();
       });
 
-      it('can be resolved via another FuncResult', function(done) {
+      it('can be resolved via another FuncResult', (done) => {
         let result = new FuncResult();
         let other = new FuncResult();
-        result.resolve(other);
+        result.beginAsync().resolve(other);
 
-        other.set("wow");
+        other.sync("wow");
 
         result.then((value) => {
           value.should.equal("wow");
@@ -223,13 +223,33 @@ describe('BackTalker function calls', () => {
       });
     });
 
-    it('can be listened to asyncrhonously with then', function(done) {
+    it('can be listened to asyncrhonously with then', (done) => {
         let result = new FuncResult();
 
         result.then((value) => {
           value.should.equal("wow");
           done();
         });
-        result.set("wow");
+        result.sync("wow");
+    });
+
+    it('can distinguish between void sync functions and async functions', () => {
+      let result = new FuncResult();
+
+      result.isAsync().should.not.be.ok;
+      result.isVoid().should.be.ok;
+
+      let future = result.beginAsync();
+      result.isAsync().should.be.ok;
+
+      future.set("wow");
+      result.isFulfilled().should.be.ok;
+    });
+
+    it('can call void functions without hanging', (done) => {
+        var spyFunc = addSpyToScope(scope, () => null);
+        var result = evaluator.evalString("spy on 3 4").then(() => {
+          done();
+        });
     });
 });

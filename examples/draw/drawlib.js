@@ -28,7 +28,7 @@ Drawing.makeObjectContext = function(object, scope) {
     scope.addFunc(['a <bit|pixel>:which <left of|right of|above|below>:direction center',
                    'at $:count <pixel|pixels> <left of|right of|above|below>:direction center'],
         function(args, ret) {
-            ret.set(object);
+            ret.sync(object);
 
             var count = args.choose("which", [5, 1], args.get("count"));
             if (args.named.direction % 2 == 0) {
@@ -58,7 +58,7 @@ Drawing.Context.prototype.register = function(btcontext) {
               Drawing.makeObjectContext(circle, this.scope);
               ret.resolve(evaluator.makeSub().eval(args.body));
             } else {
-              ret.set(circle);
+              ret.sync(circle);
             }
         });
 

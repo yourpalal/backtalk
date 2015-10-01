@@ -50,15 +50,19 @@ describe('The BackTalker Shell', () => {
     });
 
     it('can handle async code', (done) => {
-      var asyncResult: BT.FuncResult;
+      var result: BT.FuncResult;
+      var asyncResult: BT.FutureResult;
 
       let spy = addSpyToScope(scope, () => {
         // make sure we are not called too early
-        asyncResult.isFulfilled().should.be.ok;
+        result.isFulfilled().should.be.ok;
         done();
       });
 
-      scope.addFunc(["test async"], (args, ret) => { asyncResult = ret; });
+      scope.addFunc(["test async"], (args, ret) => {
+        result = ret;
+        asyncResult = ret.beginAsync();
+      });
 
       shell.processLine("test async");
       shell.waiting.should.be.ok;

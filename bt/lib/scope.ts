@@ -7,7 +7,7 @@ import {Evaluator} from "./evaluator";
 /** @module scope */
 
 export interface Func {
-  (p: FuncParams, r: FuncResult, e: Evaluator): any;
+  (p: FuncParams, e: Evaluator): FuncResult|void;
 }
 
 export class FuncHandle {

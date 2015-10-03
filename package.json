@@ -36,6 +36,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
-    "argparser": "^0.2.2"
+    "argparser": "^0.2.2",
+    "promise": "^7.0.4"
   }
 }

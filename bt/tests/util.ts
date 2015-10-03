@@ -2,24 +2,24 @@
 import * as sinon from 'sinon';
 import * as should from 'should';
 
-import {FuncParams, FuncResult, FutureResult} from "../lib/functions";
+import {FuncParams, FuncResult} from "../lib/functions";
 import {Evaluator} from "../lib/evaluator";
 import {Scope} from "../lib/scope";
 
-function ident(a: FuncParams, ret: FuncResult) {
-  ret.sync(a);
+function ident(a: FuncParams) {
+  return a;
 };
 
-function identAsync(a: FuncParams, future: FutureResult) {
-  future.set(a);
+function identAsync(a: FuncParams) {
+  return Promise.resolve(a);
 };
 
 export function addSpyToScope(scope: Scope, hook: Function = ident) {
-  var spyFunc = sinon.spy((a: FuncParams, ret: FuncResult, self: Evaluator) => {
+  var spyFunc = sinon.spy((a: FuncParams, self: Evaluator) => {
       if (a.body) {
-        ret.beginAsync().resolve(self.makeSub().eval(a.body));
+        return self.makeSub().eval(a.body);
       } else {
-        hook.call(self, a, ret, self);
+        return hook.call(self, a, self);
       }
   });
 
@@ -30,13 +30,14 @@ export function addSpyToScope(scope: Scope, hook: Function = ident) {
 }
 
 export function addAsyncSpyToScope(scope: Scope, hook: Function = identAsync) {
-  var spyFunc = sinon.spy((a: FuncParams, ret: FuncResult, self: Evaluator) => {
-      let future = ret.beginAsync();
-      if (a.body) {
-        setTimeout(() => future.resolve(self.makeSub().eval(a.body)), 0);
-      } else {
-        setTimeout(() => hook.call(self, a, future, self), 0);
-      }
+  var spyFunc = sinon.spy((a: FuncParams, self: Evaluator) => {
+      return new Promise((resolve, reject) => {
+        if (a.body) {
+          setTimeout(() => resolve(self.makeSub().eval(a.body)), 0);
+        } else {
+          setTimeout(() => resolve(hook.call(self, a, self)), 0);
+        }
+      });
   });
 
   let pattern = ["spy async <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d> <|:>"];

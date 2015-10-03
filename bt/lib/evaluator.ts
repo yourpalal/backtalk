@@ -117,18 +117,14 @@ export class Evaluator {
 
   hangingCall(func: FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
-    let result = new FuncResult();
     let params = func.parameterize(args);
     params.body = body;
 
-    func.impl.call(this, params, result, this);
-    return result;
+    return func.impl.call(this, params, this);
   }
 
   simpleCall(func: FuncHandle, args: any[]): FuncResult {
     args = this.vivifyArgs(func, args);
-    let result = new FuncResult();
-    func.impl.call(this, func.parameterize(args), result, this);
-    return result;
+    return func.impl.call(this, func.parameterize(args), this);
   }
 }

@@ -15,7 +15,7 @@ describe('BackTalker can', () => {
 
 
     it("make loops", function(done) {
-        scope.addFunc(["for $!:name from $:low to $:high :"], function(args, ret) {
+        scope.addFunc(["for $!:name from $:low to $:high :"], function(args) {
             let self = <BT.Evaluator>this;
 
             let low = args.named.low,
@@ -24,21 +24,23 @@ describe('BackTalker can', () => {
                 i = 0,
                 results = new Array(high - low - 1);
 
-            let future = ret.beginAsync();
-            let step = () => {
-              if (low + i >=  high) {
-                return future.set(results);
-              }
+            return new Promise((resolve) => {
+              let step = () => {
+                if (low + i >=  high) {
+                  return resolve(results);
+                }
 
-              self.scope.set("i", i);
-              self.makeSub().eval(args.body).then((value) => {
-                results[i] = value;
-                i++;
-                step();
-              });
-            };
+                self.scope.set("i", i);
+                BT.Immediate.wrap(self.makeSub().eval(args.body)).then((value) => {
+                  results[i] = value;
+                  i++;
+                  step();
+                });
+              };
 
-            step();
+              step();
+            });
+
         });
 
         var result = evaluator.evalString(`

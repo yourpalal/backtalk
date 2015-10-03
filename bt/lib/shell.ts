@@ -1,4 +1,5 @@
 import {Evaluator} from "./evaluator";
+import {Immediate} from "./functions";
 
 /** @module shell */
 
@@ -50,7 +51,7 @@ export class Shell {
 
   eval(source: string) {
     this.waiting = true;
-    this.evaluator.evalString(source).now((val) => {
+    Immediate.wrap(this.evaluator.evalString(source)).then((val) => {
         this.resume();
     });
   }

@@ -50,19 +50,18 @@ describe('The BackTalker Shell', () => {
     });
 
     it('can handle async code', (done) => {
-      var asyncResult: BT.FuncResult;
-      var future: BT.FutureResult;
+      let resolve = null;
+      let resolved = false;
 
       let spy = addSpyToScope(scope, () => {
-        // the test ends in this function
-        // make sure we are not called too early
-        asyncResult.isFulfilled().should.be.ok;
+        resolved.should.be.ok;
         done();
       });
 
-      scope.addFunc(["test async"], (args, ret) => {
-        asyncResult = ret;
-        future = ret.beginAsync();
+      scope.addFunc(["test async"], (args) => {
+        return new Promise((r) => {
+          resolve = r;
+        });
       });
 
       shell.processLine("test async");
@@ -72,6 +71,7 @@ describe('The BackTalker Shell', () => {
       shell.waiting.should.be.ok;
 
       spy.calledOnce.should.not.be.ok;
-      future.set(3);
+      resolve(3);
+      resolved = true;
     });
 });

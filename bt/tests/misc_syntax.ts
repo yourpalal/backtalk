@@ -13,7 +13,7 @@ describe('BackTalker code', () => {
     });
 
     it('can have string literals', () => {
-        BT.eval('"neat"').get().should.equal('neat');
+        BT.eval('"neat"').should.equal('neat');
     });
 
     it('can have spaces before/after the colon in hanging calls', () => {

@@ -11,7 +11,7 @@ describe('When doing math', () => {
     beforeEach(() => {
         var evaluator = new BT.Evaluator();
         scope = evaluator.scope;
-        bt_eval = (s) => evaluator.evalString(s).get();
+        bt_eval = (s) => evaluator.evalString(s);
     });
 
     it('can understand integer literals', () => {

@@ -67,6 +67,7 @@ export class FuncParams {
   }
 }
 
+
 export class FuncParam {
     constructor(public name: string, public value: any, public fromVar: boolean) {
     }
@@ -84,6 +85,7 @@ export class FuncParam {
     }
 }
 
+
 export class TooEagerError extends BaseError {
   constructor() {
     super("Attempted to get FuncResult value before it was fulfilled");
@@ -91,117 +93,31 @@ export class TooEagerError extends BaseError {
 }
 
 
-/**
- * @class FutureResult
- * @description FuncResult wrapper that separates async behaviour from sync.
- */
-export class FutureResult {
-  constructor(private result: FuncResult) {
-      // we really wanted package-private, anyway
-      (<any>result as FuncResultPrivateFields).beganAsync = true;
-  }
+export class Immediate<T> implements FuncResult {
+    constructor(private value: T) {
+    }
 
-  resolve(r: FuncResult) {
-    r.now((value) => this.set(value));
-    return this;
-  }
+    static wrap<V>(value: Thenable<V>|FuncResult): Thenable<V> {
+      if (value !== undefined && value !== null && value.then !== undefined) {
+        return <Thenable<V>>value;
+      }
+      return new Immediate(value);
+    }
 
-  set(v?: any) {
-    this.result.setAsyncViaFuture(v, this);
-  }
-}
+    static defaultOnFulfilled<T>(value: T) {
+      return value;
+    }
 
-interface FuncResultPrivateFields {
-    value: any;
-    haveValue: boolean;
-    beganAsync: boolean;
-    emitter: EventEmitter;
+    static defaultOnRejected(err: any) {
+      throw err;
+    }
+
+    then<V>(onFulfilled: (T) => V = Immediate.defaultOnFulfilled): V {
+      return onFulfilled(this.value);
+    }
 }
 
 
-/**
- * @class FuncResult
- * @description FuncResult is much like a promise, with the exception that it
- *  can sometimes be used synchronously.
- */
-export class FuncResult {
-  private value: any;
-  private haveValue: boolean = false;
-  private beganAsync: boolean = false;
-
-  private emitter: EventEmitter;
-
-  constructor() {
-    this.emitter = new EventEmitter(['set']);
-  }
-
-  sync(v?: any) {
-    this.value = v;
-    this.haveValue = true;
-
-    this.emitter.emitAsync('set', this, this.value);
-    return this;
-  }
-
-  setAsyncViaFuture(v: any, future: FutureResult) {
-    this.value = v;
-    this.haveValue = true;
-
-    this.emitter.emitAsync('set', this, this.value);
-    return this;
-  }
-
-  isAsync(): boolean {
-    return this.beganAsync;
-  }
-
-  isVoid(): boolean {
-    return !this.haveValue && !this.beganAsync;
-  }
-
-  isFulfilled(): boolean {
-    return this.haveValue;
-  }
-
-  get() {
-    if (!this.isFulfilled()) {
-      throw new TooEagerError();
-    }
-    return this.value;
-  }
-
-  beginAsync(): FutureResult {
-    return new FutureResult(this);
-  }
-
-  /**
-   * Like then, but it might execute the callback synchronously.
-   * @param  {any} onFulfilled callback, called with the value
-   * @returns {FuncResult} this
-   */
-  now(onFulfilled: {(any): any}): FuncResult {
-    if (this.isFulfilled()) {
-      onFulfilled.call(this, this.value);
-    } else {
-      this.emitter.on('set', onFulfilled);
-    }
-    return this;
-  }
-
-  /**
-   * Add a callback to be run when the FuncResult is fulfilled. The
-   * callback will always run async, but may run very soon if the result is
-   * already set.
-   *
-   * @param  {{(any} onFulfilled [description]
-   * @return {any}               [description]
-   */
-  then(onFulfilled: {(any): any}): FuncResult {
-    if (this.isFulfilled()) {
-      setTimeout(() => onFulfilled.call(this, this.value), 0);
-    } else {
-      this.emitter.on('set', onFulfilled);
-    }
-    return this;
-  }
+export interface FuncResult {
+  then?(onFulfilled: (any) => any, onRejected?: (any) => any): any;
 }

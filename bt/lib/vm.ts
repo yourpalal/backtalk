@@ -119,10 +119,8 @@ export module Instructions {
       }
 
       static handleFuncResult(vm: VM, evaluator: Evaluator, result: FuncResult) {
-        if (result.isVoid()) {
-          return vm.push(undefined);
-        } else if (result.isFulfilled()) {
-          return vm.push(result.get());
+        if (result === undefined || result === null || result.then === undefined) {
+          return vm.push(result);
         }
 
         vm.wait();

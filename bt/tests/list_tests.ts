@@ -20,8 +20,7 @@ describe('BackTalker lists', () => {
           "Ricky"
           "Victor"`;
 
-      var result = BT.eval(code, scope).get();
-      result.should.have.lengthOf(6);
+      BT.eval(code, scope).should.have.lengthOf(6);
     });
 
     it('can be assigned to a var via block form of "with as" ', () => {
@@ -35,7 +34,7 @@ describe('BackTalker lists', () => {
           "Ricky"
           "Victor"`;
 
-      var result = BT.eval(code, scope).get();
+      var result = BT.eval(code, scope);
       result.should.have.lengthOf(6);
 
       scope.has("cast").should.be.ok;
@@ -49,6 +48,6 @@ describe('BackTalker lists', () => {
           "a"
           "b"
       item 1 of $letters`;
-      BT.eval(code, scope).get().should.equal("a");
+      BT.eval(code, scope).should.equal("a");
     });
 });

@@ -17,12 +17,12 @@ describe('the BackTalker func params obj', () => {
     params = new FuncParams([0, "wow"], spec);
   });
 
-  it('can check if paramuments exist', () => {
+  it('can check if parameters exist', () => {
     params.has("int").should.be.ok;
     params.has("nope").should.not.be.ok;
   });
 
-  it('can make sure paramuments are correctly typed', () => {
+  it('can make sure parameters are correctly typed', () => {
     params.hasNumber("int").should.be.ok;
     params.hasNumber("string").should.not.be.ok;
     params.hasNumber("nope").should.not.be.ok;

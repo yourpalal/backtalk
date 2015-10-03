@@ -46,7 +46,7 @@ describe("The BackTalker parser", () => {
     (<AST.HangingCall>parsed.parts[0]).body.parts.should.have.length(2);
   });
 
-  it("throws an error when it encounters an empty haning call body", () => {
+  it("throws an error when it encounters an empty hanging call body", () => {
     let attempt = () => <AST.CompoundExpression>BT.parse(`
     with $a as:
     print 2`);

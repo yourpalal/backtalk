@@ -2,7 +2,7 @@
 import * as should from 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib';
+import * as BT from '../lib/';
 import {Shell} from '../lib/shell';
 
 
@@ -50,18 +50,19 @@ describe('The BackTalker Shell', () => {
     });
 
     it('can handle async code', (done) => {
-      var result: BT.FuncResult;
-      var asyncResult: BT.FutureResult;
+      var asyncResult: BT.FuncResult;
+      var future: BT.FutureResult;
 
       let spy = addSpyToScope(scope, () => {
+        // the test ends in this function
         // make sure we are not called too early
-        result.isFulfilled().should.be.ok;
+        asyncResult.isFulfilled().should.be.ok;
         done();
       });
 
       scope.addFunc(["test async"], (args, ret) => {
-        result = ret;
-        asyncResult = ret.beginAsync();
+        asyncResult = ret;
+        future = ret.beginAsync();
       });
 
       shell.processLine("test async");
@@ -71,6 +72,6 @@ describe('The BackTalker Shell', () => {
       shell.waiting.should.be.ok;
 
       spy.calledOnce.should.not.be.ok;
-      asyncResult.set(3);
+      future.set(3);
     });
 });

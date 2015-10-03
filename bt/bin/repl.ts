@@ -54,7 +54,7 @@ class REPLShell extends Shell {
       let ast = this.repl.parser.parse(source);
 
       this.waiting = true;
-      this.evaluator.eval(ast).then((val) => {
+      Promise.resolve(this.evaluator.eval(ast)).then((val) => {
         if (val !== undefined) {
           console.log(val);
         }

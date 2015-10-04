@@ -41,7 +41,7 @@ export class Evaluator {
     }
 
     enableStandardLibrary() {
-        stdLib.in(this.scope);
+        stdLib.inScope(this.scope);
     }
 
     evalString(source: string): FuncResult {

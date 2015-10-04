@@ -187,6 +187,13 @@ describe('BackTalker function calls', () => {
         bodySyntax.should.be.an.instanceOf(BT.AST.CompoundExpression);
     });
 
+    it('can communicate with other functions by modifying scope.env', () => {
+        scope.addFunc(["set the secret"], (args, self) => self.scope.env['secret'] = "wow");
+        scope.addFunc(["get the secret"], (args, self) => self.scope.env['secret']);
+
+        evaluator.evalString("set the secret\nget the secret").should.eql("wow");
+    });
+
     it('can call void functions without hanging', (done) => {
         addSpyToScope(scope, () => undefined);
         Immediate.wrap(evaluator.evalString("spy on 3 4")).then(() => {

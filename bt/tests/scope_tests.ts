@@ -64,4 +64,13 @@ describe('BackTalker scopes', () => {
         BT.eval('with $test as 3\n$test + 5', scope).should.equal(8);
         BT.eval('with $test as 3\n\n$test + 5', scope).should.equal(8);
     });
+
+    describe('provides an env member', () => {
+        it('has prototype inheritance too', () => {
+            var sub = scope.createSubScope();
+
+            scope.env['wow'] = 3;
+            sub.env['wow'].should.eql(3);
+        });
+    });
 });

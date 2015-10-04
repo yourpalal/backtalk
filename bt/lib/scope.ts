@@ -81,12 +81,15 @@ export class FuncHandle {
  */
 export class Scope {
     names: { [key: string]: any };
+    env: { [key: string]: any };
     funcs: Trie<FuncHandle>;
 
     constructor(public parent: Scope = null) {
         if (this.parent !== null) {
             this.names = Object.create(parent.names);
+            this.env = Object.create(parent.env);
         } else {
+            this.env =  <{ [key: string]: any }>new Object();
             this.names = <{ [key: string]: any }>new Object();
         }
         this.funcs = new Trie<FuncHandle>();

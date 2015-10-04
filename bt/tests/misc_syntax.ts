@@ -17,9 +17,9 @@ describe('BackTalker code', () => {
     });
 
     it('can have spaces before/after the colon in hanging calls', () => {
-      let scope = BT.StdLib.inScope(new BT.Scope());
-      BT.eval('with $wow as :\n   4', scope);
+        let scope = BT.StdLib.inScope(new BT.Scope());
+        BT.eval('with $wow as :\n   4', scope);
 
-      scope.get('wow').should.equal(4);
+        scope.get('wow').should.equal(4);
     });
 });

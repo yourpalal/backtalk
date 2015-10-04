@@ -6,12 +6,12 @@ import {Trie} from '../lib/trie';
 
 describe('the Trie', () => {
     it('can store things', () => {
-      var t = new Trie<number>();
-      t.put("wow", 5);
-      t.get("wow").should.equal(5);
+        var t = new Trie<number>();
+        t.put("wow", 5);
+        t.get("wow").should.equal(5);
 
-      t.put("yay", 6);
-      t.get("yay").should.equal(6);
+        t.put("yay", 6);
+        t.get("yay").should.equal(6);
     });
 
     it('can iterate over items', () => {
@@ -22,7 +22,7 @@ describe('the Trie', () => {
         t.put("yay", 6);
 
         t.each((key, val) => {
-          results[key] = val;
+            results[key] = val;
         });
 
         results.should.have.property("wow", 5);
@@ -33,13 +33,13 @@ describe('the Trie', () => {
         var t = new Trie<number>(),
             results = {};
 
-          t.put("we like this", 1);
-          t.put("we think it is cool", 2);
-          t.put("we say woah!!!", 3);
+        t.put("we like this", 1);
+        t.put("we think it is cool", 2);
+        t.put("we say woah!!!", 3);
 
-          t.getChild("we ").each((key, val) => {
-              results[key] = val;
-          });
+        t.getChild("we ").each((key, val) => {
+            results[key] = val;
+        });
 
         results.should.have.property("like this", 1);
         results.should.have.property("think it is cool", 2);
@@ -48,7 +48,7 @@ describe('the Trie', () => {
 
     it('can merge two tries', () => {
         var t = new Trie<number>(),
-          other = new Trie<number>();
+            other = new Trie<number>();
 
         t.put("wow", 5);
         other.put("yay", 6);

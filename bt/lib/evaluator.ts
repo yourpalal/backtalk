@@ -19,13 +19,13 @@ import * as VM from "./vm";
  *   the current scope.
  */
 export class FunctionNameError extends BaseError {
-  constructor(name) {
-    super(`function "${name}" called but undefined`);
-  }
+    constructor(name) {
+        super(`function "${name}" called but undefined`);
+    }
 
-  toString(): string {
-    return this.msg;
-  }
+    toString(): string {
+        return this.msg;
+    }
 }
 
 /**
@@ -34,13 +34,13 @@ export class FunctionNameError extends BaseError {
  * @returns {FuncResult} result of the backtalk code.
  */
 export function evalBT(source: string | AST.Visitable, scope?: Scope): FuncResult {
-  var parsed;
-  if (typeof (source) === 'string') {
-    parsed = parser.parse(<string>source, null);
-  } else {
-    parsed = source;
-  }
-  return (new Evaluator(scope)).eval(parsed);
+    var parsed;
+    if (typeof (source) === 'string') {
+        parsed = parser.parse(<string>source, null);
+    } else {
+        parsed = source;
+    }
+    return (new Evaluator(scope)).eval(parsed);
 }
 
 /**
@@ -50,81 +50,81 @@ export function evalBT(source: string | AST.Visitable, scope?: Scope): FuncResul
  *
  */
 export class Evaluator {
-  /**
-   * @constructor
-   * @param {scope.Scope} (optional) scope in which to evaluate BT code.
-   */
-  constructor(public scope: Scope = stdLib.inScope(new Scope())) {
-  }
-
-  evalString(source: string): FuncResult {
-    return this.eval(parser.parse(source));
-  }
-
-  eval(node: AST.Visitable): FuncResult {
-    let expresser = new VM.ResultExpresser();
-    this.evalExpressions(node, expresser);
-    return expresser.result;
-  }
-
-  evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
-    let compiled = VM.Compiler.compile(node);
-    let vm = new VM.VM(compiled, this, expresser);
-    vm.resume();
-  }
-
-  makeSub(): Evaluator {
-    return new Evaluator(new Scope(this.scope));
-  }
-
-  findFuncOrThrow(name: string): FuncHandle {
-    var func = this.scope.findFunc(name);
-    if (func === null || typeof func === 'undefined') {
-      throw new FunctionNameError(name);
+    /**
+     * @constructor
+     * @param {scope.Scope} (optional) scope in which to evaluate BT code.
+     */
+    constructor(public scope: Scope = stdLib.inScope(new Scope())) {
     }
-    return func;
-  }
 
-  vivifyArgs(func: FuncHandle, args: any[]): any[] {
-    for (var i = 0; i < func.vivification.length; i++) {
-      var viv = func.vivification[i]
-        , isAuto = (args[i] instanceof vars.AutoVar);
+    evalString(source: string): FuncResult {
+        return this.eval(parser.parse(source));
+    }
 
-      if (viv === vars.Vivify.ALWAYS) {
-        if (isAuto) {
-          continue;
-        } else {
-          throw Error("value used in place of variable in call to '" + func.name + "'");
+    eval(node: AST.Visitable): FuncResult {
+        let expresser = new VM.ResultExpresser();
+        this.evalExpressions(node, expresser);
+        return expresser.result;
+    }
+
+    evalExpressions(node: AST.Visitable, expresser: VM.Expresser): void {
+        let compiled = VM.Compiler.compile(node);
+        let vm = new VM.VM(compiled, this, expresser);
+        vm.resume();
+    }
+
+    makeSub(): Evaluator {
+        return new Evaluator(new Scope(this.scope));
+    }
+
+    findFuncOrThrow(name: string): FuncHandle {
+        var func = this.scope.findFunc(name);
+        if (func === null || typeof func === 'undefined') {
+            throw new FunctionNameError(name);
         }
-      }
-
-      if (!isAuto) {
-        continue;
-      }
-
-      if (args[i].defined) {
-        args[i] = args[i].value;
-        continue;
-      }
-
-      if (viv === vars.Vivify.NEVER) {
-        throw Error("undefined variable $" + args[i].name + " used in place of defined variable in call to '" + name + "'");
-      }
+        return func;
     }
 
-    return args;
-  }
+    vivifyArgs(func: FuncHandle, args: any[]): any[] {
+        for (var i = 0; i < func.vivification.length; i++) {
+            var viv = func.vivification[i]
+                , isAuto = (args[i] instanceof vars.AutoVar);
 
-  hangingCall(func: FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
-    args = this.vivifyArgs(func, args);
-    let params = func.parameterize(args);
-    params.body = body;
+            if (viv === vars.Vivify.ALWAYS) {
+                if (isAuto) {
+                    continue;
+                } else {
+                    throw Error("value used in place of variable in call to '" + func.name + "'");
+                }
+            }
 
-    return func.impl.call(this, params, this);
-  }
+            if (!isAuto) {
+                continue;
+            }
 
-  simpleCall(func: FuncHandle, args: any[]): FuncResult {
-    args = this.vivifyArgs(func, args);
-    return func.impl.call(this, func.parameterize(args), this);
-  }
+            if (args[i].defined) {
+                args[i] = args[i].value;
+                continue;
+            }
+
+            if (viv === vars.Vivify.NEVER) {
+                throw Error("undefined variable $" + args[i].name + " used in place of defined variable in call to '" + name + "'");
+            }
+        }
+
+        return args;
+    }
+
+    hangingCall(func: FuncHandle, body: AST.Visitable, args: any[]): FuncResult {
+        args = this.vivifyArgs(func, args);
+        let params = func.parameterize(args);
+        params.body = body;
+
+        return func.impl.call(this, params, this);
+    }
+
+    simpleCall(func: FuncHandle, args: any[]): FuncResult {
+        args = this.vivifyArgs(func, args);
+        return func.impl.call(this, func.parameterize(args), this);
+    }
 }

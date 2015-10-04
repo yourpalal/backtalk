@@ -25,20 +25,20 @@ describe('BackTalker can', () => {
                 results = new Array(high - low - 1);
 
             return new Promise((resolve) => {
-              let step = () => {
-                if (low + i >=  high) {
-                  return resolve(results);
-                }
+                let step = () => {
+                    if (low + i >= high) {
+                        return resolve(results);
+                    }
 
-                self.scope.set("i", i);
-                BT.Immediate.wrap(self.makeSub().eval(args.body)).then((value) => {
-                  results[i] = value;
-                  i++;
-                  step();
-                });
-              };
+                    self.scope.set("i", i);
+                    BT.Immediate.wrap(self.makeSub().eval(args.body)).then((value) => {
+                        results[i] = value;
+                        i++;
+                        step();
+                    });
+                };
 
-              step();
+                step();
             });
 
         });
@@ -48,8 +48,8 @@ describe('BackTalker can', () => {
            $i + 5`);
 
         result.then((value) => {
-          value.should.eql([5,6,7,8,9,10,11,12,13,14]);
-          done();
+            value.should.eql([5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+            done();
         });
     });
 });

@@ -8,8 +8,10 @@ import * as evaluator from '../lib/evaluator';
 import {FuncParams, FuncResult, Immediate} from '../lib/functions';
 import {addSpyToScope} from './util';
 
+
 class TestError extends BaseError {
 }
+
 
 describe('BackTalker function calls', () => {
     var scope: BT.Scope, evaluator: BT.Evaluator;
@@ -50,7 +52,7 @@ describe('BackTalker function calls', () => {
     });
 
     it("can call a function with no arguments", () => {
-        var func = addSpyToScope(scope, (a)  => "cool");
+        var func = addSpyToScope(scope, (a) => "cool");
 
         evaluator.evalString("spy").should.equal("cool");
         func.calledOnce.should.be.ok;
@@ -123,25 +125,25 @@ describe('BackTalker function calls', () => {
     })
 
     it('can allow for hanging calls by ending with :', () => {
-      let hangingSpy = sinon.spy((args) => "hanging");
-      let noHangingSpy = sinon.spy((args) => "simple");
-      scope.addFunc(["test func :"], hangingSpy);
-      scope.addFunc(["test func"], noHangingSpy);
+        let hangingSpy = sinon.spy((args) => "hanging");
+        let noHangingSpy = sinon.spy((args) => "simple");
+        scope.addFunc(["test func :"], hangingSpy);
+        scope.addFunc(["test func"], noHangingSpy);
 
-      evaluator.evalString("test func").should.equal("simple");
-      evaluator.evalString("test func:\n   5").should.equal("hanging");
+        evaluator.evalString("test func").should.equal("simple");
+        evaluator.evalString("test func:\n   5").should.equal("hanging");
     });
 
     it('can tell if it is making a block by checking args.body', () => {
         var body = false;
 
         scope.addFunc(["cool <|:>"], (args, self: BT.Evaluator) => {
-          body = args.body !== null;
-          if (body) {
-            return self.makeSub().eval(args.body);
-          } else {
-            return null;
-          }
+            body = args.body !== null;
+            if (body) {
+                return self.makeSub().eval(args.body);
+            } else {
+                return null;
+            }
         });
 
         evaluator.evalString("cool");
@@ -173,9 +175,9 @@ describe('BackTalker function calls', () => {
         scope.addFunc(["on the planet $ :"], func);
 
         var code = ['on the planet "sarkon":',
-                    '   with $gravity as 3 -- m/s/s',
-                    '   I jump -- very high into the air'].join("\n")
-            ,result = evaluator.evalString(code);
+            '   with $gravity as 3 -- m/s/s',
+            '   I jump -- very high into the air'].join("\n")
+            , result = evaluator.evalString(code);
 
         func.calledOnce.should.be.ok;
 
@@ -189,7 +191,7 @@ describe('BackTalker function calls', () => {
     it('can call void functions without hanging', (done) => {
         var spyFunc = addSpyToScope(scope);
         var result = Immediate.wrap(evaluator.evalString("spy on 3 4")).then(() => {
-          done();
+            done();
         });
     });
 });

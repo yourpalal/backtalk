@@ -11,56 +11,56 @@ var _parser: Parser = null;
  * before it's turned into a backtalk AST.
  */
 export function parse(source: string, chunkName?: string): AST.Visitable {
-  _parser = _parser || new Parser();
-  return _parser.parse(source, chunkName);
+    _parser = _parser || new Parser();
+    return _parser.parse(source, chunkName);
 }
 
 export class ParseError extends BaseError {
-  public inner: any
+    public inner: any
 
-  constructor(err) {
-    super(`ParseError: ${err.message}`);
-    this.inner = err;
-  }
+    constructor(err) {
+        super(`ParseError: ${err.message}`);
+        this.inner = err;
+    }
 
-  toString() {
-    return this.inner;
-  }
+    toString() {
+        return this.inner;
+    }
 }
 
 export class MissingBodyError extends BaseError {
-  constructor(public location: AST.Code) {
-    super(`Missing body for hanging functoin call at ${location.chunk}:${location.lineNumber}`);
-  }
+    constructor(public location: AST.Code) {
+        super(`Missing body for hanging functoin call at ${location.chunk}:${location.lineNumber}`);
+    }
 }
 
 export class Parser {
-  inspect(p: grammar.ParserNode): void {
-  }
-
-  parse(source: string, chunkName: string = "unnamed"): AST.Visitable {
-    try {
-      var parse_tree = grammar.parse(source);
-    } catch (e) {
-      throw new ParseError(e);
+    inspect(p: grammar.ParserNode): void {
     }
 
-    this.inspect(parse_tree);
-    let ast = <AST.Visitable>parse_tree.transform();
-    ast.accept(new ChunkNamer(chunkName));
-    return ast;
-  }
+    parse(source: string, chunkName: string = "unnamed"): AST.Visitable {
+        try {
+            var parse_tree = grammar.parse(source);
+        } catch (e) {
+            throw new ParseError(e);
+        }
+
+        this.inspect(parse_tree);
+        let ast = <AST.Visitable>parse_tree.transform();
+        ast.accept(new ChunkNamer(chunkName));
+        return ast;
+    }
 }
 
 class ChunkNamer extends AST.BaseVisitor {
-  constructor(private name: string) {
-    super();
-  }
-
-  visitVisitable(v: AST.Visitable, ...args: any[]): any {
-    if (v.code !== null) {
-      v.code.chunk = this.name;
+    constructor(private name: string) {
+        super();
     }
-    v.acceptForChildren(this);
-  }
+
+    visitVisitable(v: AST.Visitable, ...args: any[]): any {
+        if (v.code !== null) {
+            v.code.chunk = this.name;
+        }
+        v.acceptForChildren(this);
+    }
 }

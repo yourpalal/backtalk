@@ -12,7 +12,7 @@ describe('BackTalker lists', () => {
     });
 
     it('can be constructed via a block', () => {
-      var code = `list of:
+        var code = `list of:
           "Miss Lesa"
           "Jerry"
           "Roy"
@@ -20,11 +20,11 @@ describe('BackTalker lists', () => {
           "Ricky"
           "Victor"`;
 
-      BT.eval(code, scope).should.have.lengthOf(6);
+        BT.eval(code, scope).should.have.lengthOf(6);
     });
 
     it('can be assigned to a var via block form of "with as" ', () => {
-      var code = `
+        var code = `
       with $cast as:
         list of:
           "Miss Lesa"
@@ -34,20 +34,20 @@ describe('BackTalker lists', () => {
           "Ricky"
           "Victor"`;
 
-      var result = BT.eval(code, scope);
-      result.should.have.lengthOf(6);
+        var result = BT.eval(code, scope);
+        result.should.have.lengthOf(6);
 
-      scope.has("cast").should.be.ok;
-      scope.get("cast")[0].should.equal("Miss Lesa");
+        scope.has("cast").should.be.ok;
+        scope.get("cast")[0].should.equal("Miss Lesa");
     });
 
     it('individual items can be accessed using `item $ of $`', () => {
-      var code = `
+        var code = `
       with $letters as:
         list of:
           "a"
           "b"
       item 1 of $letters`;
-      BT.eval(code, scope).should.equal("a");
+        BT.eval(code, scope).should.equal("a");
     });
 });

@@ -9,39 +9,39 @@ import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} fro
 
 
 describe('a funcdef collection', () => {
-  it('can be forked by choices', () => {
-    var funcs = new FuncDefCollection();
+    it('can be forked by choices', () => {
+        var funcs = new FuncDefCollection();
 
-    funcs = funcs.fork(new Choice("<foo|bar>:foobar"));
-    funcs.should.haveSignatures('foo', 'bar');
+        funcs = funcs.fork(new Choice("<foo|bar>:foobar"));
+        funcs.should.haveSignatures('foo', 'bar');
 
-    funcs = funcs.fork(new Choice("<foo|baz>:foobaz"));
-    funcs.should.haveSignatures('foo foo', 'bar foo', 'foo baz', 'bar baz');
+        funcs = funcs.fork(new Choice("<foo|baz>:foobaz"));
+        funcs.should.haveSignatures('foo foo', 'bar foo', 'foo baz', 'bar baz');
 
-    funcs = funcs.fork(new Choice("<foo bar|baz>:foobarz"));
-    funcs.should.haveSignatures(
-      'foo foo foo bar',
-      'bar foo foo bar',
-      'foo baz foo bar',
-      'bar baz foo bar',
+        funcs = funcs.fork(new Choice("<foo bar|baz>:foobarz"));
+        funcs.should.haveSignatures(
+            'foo foo foo bar',
+            'bar foo foo bar',
+            'foo baz foo bar',
+            'bar baz foo bar',
 
-      'foo foo baz',
-      'bar foo baz',
-      'foo baz baz',
-      'bar baz baz');
-  });
+            'foo foo baz',
+            'bar foo baz',
+            'foo baz baz',
+            'bar baz baz');
+    });
 
-  it('can be concatenated with new pieces', () => {
-    var funcs = new FuncDefCollection();
+    it('can be concatenated with new pieces', () => {
+        var funcs = new FuncDefCollection();
 
-    funcs = funcs.concat(SimpleFuncDefPart.makeBare("foo"));
-    funcs.defs.should.have.length(1);
+        funcs = funcs.concat(SimpleFuncDefPart.makeBare("foo"));
+        funcs.defs.should.have.length(1);
 
-    funcs = funcs.concat(SimpleFuncDefPart.makeBare("bar"));
-    funcs.defs.should.have.length(1);
+        funcs = funcs.concat(SimpleFuncDefPart.makeBare("bar"));
+        funcs.defs.should.have.length(1);
 
-    funcs.defs[0].should.haveSignature("foo bar");
-  });
+        funcs.defs[0].should.haveSignature("foo bar");
+    });
 });
 
 describe('a funcdef', () => {
@@ -54,7 +54,7 @@ describe('a funcdef', () => {
             result.pieces.should.have.lengthOf(1)
 
             result.pieces[0]
-              .should.be.an.instanceOf(SimpleFuncDefPart)
+                .should.be.an.instanceOf(SimpleFuncDefPart)
                 .with.property('token', 'foo');
         });
 
@@ -66,7 +66,7 @@ describe('a funcdef', () => {
             result.pieces.should.have.lengthOf(1)
 
             result.pieces[0]
-              .should.be.an.instanceOf(SimpleFuncDefPart)
+                .should.be.an.instanceOf(SimpleFuncDefPart)
                 .with.property('token', '$');
 
             result.pieces[0].param.should.beVarParam('foo');
@@ -81,21 +81,21 @@ describe('a funcdef', () => {
         });
 
         it('can split up choices like <foo|bar>', () => {
-          new Choice('<foo|bar>').should.be.choiceOf(null, ['foo'], ['bar']);
+            new Choice('<foo|bar>').should.be.choiceOf(null, ['foo'], ['bar']);
         });
 
         it('can split up choices with empty parts like <|bar>', () => {
-          var result = new Choice('<|bar>');
-          result.should.be.choiceOf(null, [], ['bar']);
+            var result = new Choice('<|bar>');
+            result.should.be.choiceOf(null, [], ['bar']);
         });
 
         it('can split up choices with empty parts and colons like <|:>', () => {
-          new Choice('<|:>').should.be.choiceOf(null, [], [':']);
+            new Choice('<|:>').should.be.choiceOf(null, [], [':']);
         });
 
         it('can split up choices that include vars like <foo|bar $:baz>', () => {
-          var result = new Choice('<foo|bar $:baz>');
-          result.should.be.choiceOf(null, ['foo'], ['bar', '$']);
+            var result = new Choice('<foo|bar $:baz>');
+            result.should.be.choiceOf(null, ['foo'], ['bar', '$']);
         });
     });
 
@@ -132,7 +132,7 @@ describe('a funcdef', () => {
 
     it('can contain simple choices like <foo|bar>', () => {
         FuncDefCollection.fromString('<foo|bar>').should
-          .haveSignatures('foo', 'bar');
+            .haveSignatures('foo', 'bar');
     });
 
     it('can have multiple named choices like <foo|bar>:foobar <foo|baz>:foobaz', () => {
@@ -142,14 +142,14 @@ describe('a funcdef', () => {
         parsed.pieces[0].should.be.choiceOf('foobar',
             ['foo'],
             ['bar']
-        );
+            );
 
         parsed.pieces[1].should.be.an.instanceOf(Choice);
         var foobaz = <Choice>(parsed.pieces[1]);
         foobaz.should.be.choiceOf('foobaz',
-          ['foo'],
-          ['baz']
-        );
+            ['foo'],
+            ['baz']
+            );
 
         var result = FuncDefCollection.fromString('<foo|bar>:foobar <foo|baz>:foobaz');
         result.should.haveSignatures('foo foo', 'bar foo', 'foo baz', 'bar baz');
@@ -186,10 +186,10 @@ describe('a funcdef', () => {
     });
 
     it('can finish with a colon to match hanging invocations', () => {
-      FuncDefCollection.fromString('foo :').should.haveSignatures('foo :');
+        FuncDefCollection.fromString('foo :').should.haveSignatures('foo :');
     });
 
     it('can optionally match hanging invocations via <|:>', () => {
-      FuncDefCollection.fromString('foo <|:>').should.haveSignatures('foo', 'foo :');
+        FuncDefCollection.fromString('foo <|:>').should.haveSignatures('foo', 'foo :');
     });
 });

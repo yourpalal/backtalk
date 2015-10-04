@@ -63,24 +63,24 @@ describe('When doing math', () => {
 
     it('can deal with parens', () => {
         bt_eval('(3+4)').should.equal(7);
-        bt_eval('(3+4)*(7*23)').should.equal(7*7*23);
+        bt_eval('(3+4)*(7*23)').should.equal(7 * 7 * 23);
     });
 
     it('can do mixed operations', () => {
-        bt_eval('1.23*2-10').should.equal(1.23*2-10);
-        bt_eval('1.23-2*10').should.equal(1.23-2*10);
-        bt_eval('1.23-2*10').should.equal(1.23-2*10);
-        bt_eval('2-8*3+4').should.equal(2-8*3+4);
-        bt_eval('10/2-8*3+4/7-6').should.equal(10/2-8*3+4/7-6);
-        bt_eval('10/(3*2-8)*3+4/7-6').should.equal(10/(3*2-8)*3+4/7-6);
+        bt_eval('1.23*2-10').should.equal(1.23 * 2 - 10);
+        bt_eval('1.23-2*10').should.equal(1.23 - 2 * 10);
+        bt_eval('1.23-2*10').should.equal(1.23 - 2 * 10);
+        bt_eval('2-8*3+4').should.equal(2 - 8 * 3 + 4);
+        bt_eval('10/2-8*3+4/7-6').should.equal(10 / 2 - 8 * 3 + 4 / 7 - 6);
+        bt_eval('10/(3*2-8)*3+4/7-6').should.equal(10 / (3 * 2 - 8) * 3 + 4 / 7 - 6);
     });
 
     it('can do mixed operations WITH SPACES', () => {
-        bt_eval('1.23 * 2 - 10').should.equal(1.23*2 - 10);
-        bt_eval('1.23 - 2 * 10').should.equal(1.23 - 2*10);
-        bt_eval('1.23 - 2 * 10').should.equal(1.23 - 2*10);
-        bt_eval('2 - 8 * 3 + 4').should.equal(2 - 8*3+4);
-        bt_eval('10 / 2 - 8 * 3 + 4 / 7 - 6').should.equal(10/2 - 8*3+4/7 - 6);
-        bt_eval('10 / (3 * 2 - 8) * 3 + 4 / 7 - 6').should.equal(10/(3*2 - 8)*3+4/7 - 6);
+        bt_eval('1.23 * 2 - 10').should.equal(1.23 * 2 - 10);
+        bt_eval('1.23 - 2 * 10').should.equal(1.23 - 2 * 10);
+        bt_eval('1.23 - 2 * 10').should.equal(1.23 - 2 * 10);
+        bt_eval('2 - 8 * 3 + 4').should.equal(2 - 8 * 3 + 4);
+        bt_eval('10 / 2 - 8 * 3 + 4 / 7 - 6').should.equal(10 / 2 - 8 * 3 + 4 / 7 - 6);
+        bt_eval('10 / (3 * 2 - 8) * 3 + 4 / 7 - 6').should.equal(10 / (3 * 2 - 8) * 3 + 4 / 7 - 6);
     });
 });

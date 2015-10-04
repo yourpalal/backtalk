@@ -40,6 +40,10 @@ export class Evaluator {
     constructor(public scope: Scope = stdLib.inScope(new Scope())) {
     }
 
+    enableStandardLibrary() {
+        stdLib.in(this.scope);
+    }
+
     evalString(source: string): FuncResult {
         return this.eval(parser.parse(source));
     }

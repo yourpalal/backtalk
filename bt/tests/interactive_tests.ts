@@ -1,10 +1,10 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
+import 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 
-import {CodeRange, InteractiveEvaluator, SourceInfoCompiler} from "../lib/interactive";
+import {InteractiveEvaluator, SourceInfoCompiler} from "../lib/interactive";
 import {addAsyncSpyToScope, addSpyToScope} from "./util";
 
 
@@ -79,11 +79,11 @@ describe('The BackTalker InteractiveEvaluator', () => {
     });
 
     it("can have breakpoints set with the BreakPointManager", (done) => {
-        let code = `spy on "1"
+        let source = `spy on "1"
             spy async on "2"
             spy async on "3"`;
 
-        let ast = BT.parse(code);
+        let ast = BT.parse(source);
         evaluator.breakpoints.add(new BT.AST.Code(2, ast.code.chunk));
 
         let lineSpy = sinon.spy((line: number) => line);
@@ -104,11 +104,11 @@ describe('The BackTalker InteractiveEvaluator', () => {
     });
 
     it("can catch breakpoints in sub-evaluators", (done) => {
-        let code = `spy async on "1":
+        let source = `spy async on "1":
             spy on "2"
             spy on "3"`;
 
-        let ast = BT.parse(code);
+        let ast = BT.parse(source);
         evaluator.breakpoints.add(new BT.AST.Code(2, ast.code.chunk));
 
         let lineSpy = sinon.spy((line: number) => line);

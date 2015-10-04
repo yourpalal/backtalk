@@ -3,7 +3,7 @@ import * as AST from "./ast";
 
 import * as grammar from "./grammar";
 
-var _parser: Parser = null;
+var parser: Parser = null;
 
 /** @function syntax.parse
  * @param {string} source - the backtalk source code to parse.
@@ -11,12 +11,12 @@ var _parser: Parser = null;
  * before it's turned into a backtalk AST.
  */
 export function parse(source: string, chunkName?: string): AST.Visitable {
-    _parser = _parser || new Parser();
-    return _parser.parse(source, chunkName);
+    parser = parser || new Parser();
+    return parser.parse(source, chunkName);
 }
 
 export class ParseError extends BaseError {
-    public inner: any
+    public inner: any;
 
     constructor(err) {
         super(`ParseError: ${err.message}`);
@@ -40,13 +40,13 @@ export class Parser {
 
     parse(source: string, chunkName: string = "unnamed"): AST.Visitable {
         try {
-            var parse_tree = grammar.parse(source);
+            var parseTree = grammar.parse(source);
         } catch (e) {
             throw new ParseError(e);
         }
 
-        this.inspect(parse_tree);
-        let ast = <AST.Visitable>parse_tree.transform();
+        this.inspect(parseTree);
+        let ast = <AST.Visitable>parseTree.transform();
         ast.accept(new ChunkNamer(chunkName));
         return ast;
     }

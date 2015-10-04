@@ -1,3 +1,5 @@
+/* tslint:disable:variable-name */
+
 declare module grammar {
 
     export function Parser(): void
@@ -5,7 +7,7 @@ declare module grammar {
 
     export interface ParserNode {
         isa: string;
-        transform: () => any
+        transform: () => any;
     }
 
     module Parser {
@@ -29,4 +31,4 @@ declare module grammar {
     }
 }
 
-export = grammar
+export = grammar;

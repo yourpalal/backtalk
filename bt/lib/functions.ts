@@ -1,5 +1,4 @@
 import {BadTypeError, BaseError} from './errors';
-import {EventEmitter} from './events';
 import {Visitable as ASTVisitable} from './parser/ast';
 
 export class FuncParams {
@@ -9,7 +8,7 @@ export class FuncParams {
     constructor(public passed: any[], params: FuncParam[]) {
         this.named = {};
         if (params === null) {
-            return
+            return;
         }
 
         var i = 0;

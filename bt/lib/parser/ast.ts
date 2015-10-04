@@ -44,8 +44,8 @@ export class BaseVisitor implements Visitor {
 }
 
 export interface Visitable {
-    accept(v: Visitor, ...args: any[]): any
-    acceptForChildren(v: Visitor, ...args: any[]): any
+    accept(v: Visitor, ...args: any[]): any;
+    acceptForChildren(v: Visitor, ...args: any[]): any;
     code: Code;
 }
 

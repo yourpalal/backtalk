@@ -52,7 +52,7 @@ should.Assertion.add('haveSignatures', function(...sigs: string[]) {
         expected: sigs,
         actual: actual,
         showDiff: true,
-    }
+    };
 
     actual.should.eql(sigs);
 });
@@ -65,7 +65,7 @@ should.Assertion.add('haveSignature', function(sig: string) {
         expected: sig,
         actual: actual,
         showDiff: true,
-    }
+    };
     this.obj.isEmpty().should.not.be.ok;
 });
 
@@ -92,7 +92,7 @@ should.Assertion.add('namedParam', function(name: string, value: any) {
     this.params = {
         operator: 'have the property',
         expected: 'name -> ' + value
-    }
+    };
 
     this.be.instanceOf(FuncParams);
     this.obj.named.should.have.property(name, value);

@@ -87,8 +87,8 @@ class LineNumSetter extends AST.BaseVisitor {
 // Useful insight: the stack of LineCollectors creating each other will
 // mirror the call stack of the program when it is run.
 class Line {
-    indent: number
-    ex: AST.Visitable
+    indent: number;
+    ex: AST.Visitable;
 
     constructor(num: number, line: any) {
         line = line.line || line; // we may have a LineNode or a (BREAK line)
@@ -103,7 +103,7 @@ class Line {
 class LineCollector extends AST.BaseVisitor {
     // i is the index of the line we are processing
     constructor(public lines: Line[], public i: number, public indent: number) {
-        super()
+        super();
     }
 
     visitHangingCall(func: AST.HangingCall): any {
@@ -125,7 +125,7 @@ class LineCollector extends AST.BaseVisitor {
 
         for (; this.i < this.lines.length; this.i++) {
             if (this.lines[this.i].indent < this.indent) {
-                this.i--
+                this.i--;
                 break;
             }
 
@@ -169,14 +169,14 @@ function make_bin_op_parser(name, ops) {
 
             return new AST.BinOpNode(this.ls.transform(), rights);
         }
-    }
+    };
 };
 
 make_bin_op_parser('SumNode', { '+': AST.AddOp, '-': AST.SubOp });
 make_bin_op_parser('ProductNode', { '*': AST.MultOp, '/': AST.DivideOp });
 
 module grammarParserParenNode {
-    export var isa = 'ParenNode'
+    export var isa = 'ParenNode';
     export function transform() {
         return this.ex.transform();
     }
@@ -185,7 +185,7 @@ grammar.Parser.ParenNode = grammarParserParenNode;
 
 
 module grammarParserRefNode {
-    export var isa = 'RefNode'
+    export var isa = 'RefNode';
     export function transform() {
         return new AST.Ref(this.id.textValue);
     }
@@ -193,7 +193,7 @@ module grammarParserRefNode {
 grammar.Parser.RefNode = grammarParserRefNode;
 
 module grammarParserBareNode {
-    export var isa = 'BareNode'
+    export var isa = 'BareNode';
     export function transform() {
         return new AST.BareWord(this.textValue);
     }
@@ -201,7 +201,7 @@ module grammarParserBareNode {
 grammar.Parser.BareNode = grammarParserBareNode;
 
 module grammarParserCompoundNode {
-    export var isa = 'CompoundNode'
+    export var isa = 'CompoundNode';
     export function transform() {
         // line numbering: starts from 1
         // the first line is from this.ls, second and up are from this.rs
@@ -219,7 +219,7 @@ module grammarParserCompoundNode {
 grammar.Parser.CompoundNode = grammarParserCompoundNode;
 
 module grammarParserFuncCallNode {
-    export var isa = 'FuncCallNode'
+    export var isa = 'FuncCallNode';
     export function transform() {
         var builder = new FuncCallMaker();
 

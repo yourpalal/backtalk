@@ -1,5 +1,5 @@
 import {Evaluator} from "./evaluator";
-import {FuncParams, FuncResult, Immediate} from "./functions";
+import {FuncParams, Immediate} from "./functions";
 import {StackExpresser} from "./expressers";
 
 var parts = [
@@ -22,10 +22,10 @@ var parts = [
         patterns: ['list of:'],
         impl: function(args: FuncParams, self: Evaluator) {
             // StackExpresser calls 'push' on each result
-            var parts = [];
-            self.evalExpressions(args.body, new StackExpresser(parts));
+            var list = [];
+            self.evalExpressions(args.body, new StackExpresser(list));
 
-            return parts;
+            return list;
         }
     },
     { // list accessor

@@ -26,7 +26,7 @@ export class FuncHandle {
  *  visible within child scopes. Function names are handled specially.
  */
 export class Scope {
-    names: { [key: string]: any }
+    names: { [key: string]: any };
     funcs: Trie<FuncHandle>;
 
     constructor(public parent: Scope = null) {

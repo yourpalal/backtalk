@@ -1,8 +1,7 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
-import * as sinon from 'sinon';
+import 'should';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 import * as AST from '../lib/parser/ast';
 import {MissingBodyError} from '../lib/parser/parser';
 

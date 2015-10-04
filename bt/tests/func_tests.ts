@@ -2,10 +2,9 @@
 import * as should from 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 import {BaseError} from '../lib/errors';
-import * as evaluator from '../lib/evaluator';
-import {FuncParams, FuncResult, Immediate} from '../lib/functions';
+import {FuncParams, Immediate} from '../lib/functions';
 import {addSpyToScope} from './util';
 
 
@@ -122,7 +121,7 @@ describe('BackTalker function calls', () => {
         should.throws(() => {
             evaluator.evalString('no $vivification');
         }, Error);
-    })
+    });
 
     it('can allow for hanging calls by ending with :', () => {
         let hangingSpy = sinon.spy((args) => "hanging");
@@ -165,7 +164,7 @@ describe('BackTalker function calls', () => {
                 planet = args.passed[0];
                 bodySyntax = args.body;
 
-                self.scope.addFunc(["I jump"], (args) => "jumped");
+                self.scope.addFunc(["I jump"], () => "jumped");
                 let subEval = self.makeSub();
                 let result = subEval.eval(args.body);
                 gravity = subEval.scope.get('gravity');
@@ -189,8 +188,8 @@ describe('BackTalker function calls', () => {
     });
 
     it('can call void functions without hanging', (done) => {
-        var spyFunc = addSpyToScope(scope);
-        var result = Immediate.wrap(evaluator.evalString("spy on 3 4")).then(() => {
+        addSpyToScope(scope, () => undefined);
+        Immediate.wrap(evaluator.evalString("spy on 3 4")).then(() => {
             done();
         });
     });

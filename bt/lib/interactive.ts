@@ -26,7 +26,7 @@ export class SourceInfoCompiler extends VM.Compiler {
         super.push(i, code);
 
         if (this.ranges.length == 0) {
-            this.ranges.push(new CodeRange(0, 1, code))
+            this.ranges.push(new CodeRange(0, 1, code));
             return;
         }
 

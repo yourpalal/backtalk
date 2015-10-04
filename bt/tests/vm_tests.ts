@@ -1,8 +1,8 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
+import 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 import * as VM from '../lib/vm';
 
 
@@ -33,7 +33,7 @@ describe('The BackTalker VM', () => {
         vm = new VM.VM(program, evaluator, expresserSpy);
         vm.resume();
         return expresserSpy.promise;
-    }
+    };
 
     beforeEach(() => {
         scope = new BT.Scope();
@@ -47,23 +47,22 @@ describe('The BackTalker VM', () => {
         VM.Instructions.Add,
         VM.Instructions.Express
         ).then(() => {
-        expressed.calledOnce.should.be.ok;
-        expressed.calledWith(5).should.be.ok;
-    }));
+            expressed.calledOnce.should.be.ok;
+            expressed.calledWith(5).should.be.ok;
+        }));
 
     it('can call a function', () => execute(
-        new VM.Instructions.Push(3),
-        new VM.Instructions.Push(2),
-        new VM.Instructions.CallFunc("spy on $ $"),
-        VM.Instructions.Express
+            new VM.Instructions.Push(3),
+            new VM.Instructions.Push(2),
+            new VM.Instructions.CallFunc("spy on $ $"),
+            VM.Instructions.Express
         ).then(() => {
-
-        expressed.calledOnce.should.be.ok;
-        spyFunc.calledOnce.should.be.ok;
-        var params = spyFunc.firstCall.args[0];
-        params.named.should.have.property("a", 3);
-        params.named.should.have.property("b", 2);
-    }));
+            expressed.calledOnce.should.be.ok;
+            spyFunc.calledOnce.should.be.ok;
+            var params = spyFunc.firstCall.args[0];
+            params.named.should.have.property("a", 3);
+            params.named.should.have.property("b", 2);
+        }));
 });
 
 describe('The BackTalker Compiler', () => {

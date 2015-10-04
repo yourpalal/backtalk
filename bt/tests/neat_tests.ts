@@ -1,8 +1,7 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
-import * as sinon from 'sinon';
+import 'should';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 
 
 describe('BackTalker can', () => {
@@ -20,7 +19,7 @@ describe('BackTalker can', () => {
 
             let low = args.named.low,
                 high = args.named.high,
-                name = args.named.name,
+                name = args.named.name.name,
                 i = 0,
                 results = new Array(high - low - 1);
 
@@ -30,7 +29,7 @@ describe('BackTalker can', () => {
                         return resolve(results);
                     }
 
-                    self.scope.set("i", i);
+                    self.scope.set(name, i);
                     BT.Immediate.wrap(self.makeSub().eval(args.body)).then((value) => {
                         results[i] = value;
                         i++;

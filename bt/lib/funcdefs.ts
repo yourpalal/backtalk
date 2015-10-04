@@ -2,7 +2,7 @@ import {Vivify} from "./vars";
 import {FuncParam, FuncParams} from './functions';
 
 export interface FuncParameterizer {
-    (passed: any[]): FuncParams
+    (passed: any[]): FuncParams;
 }
 
 export class FuncDef {
@@ -54,21 +54,21 @@ export class FuncDefCollection {
     }
 
     fork(choice: Choice): FuncDefCollection {
-        var original_defs: FuncDefCollection = this,
-            new_defs: FuncDefCollection = new FuncDefCollection();
+        var originalDefs: FuncDefCollection = this,
+            newDefs: FuncDefCollection = new FuncDefCollection();
 
         choice.options.forEach((bits: SimpleFuncDefPart[], i: number) => {
-            var next_defs = original_defs;
+            var nextDefs = originalDefs;
             bits.forEach((piece) => {
-                next_defs = next_defs.concat(piece);
+                nextDefs = nextDefs.concat(piece);
             });
             if (choice.param) {
-                next_defs = next_defs.withArg(choice.param.withValue(i));
+                nextDefs = nextDefs.withArg(choice.param.withValue(i));
             }
-            new_defs = new_defs.join(next_defs);
+            newDefs = newDefs.join(nextDefs);
         });
 
-        return new_defs;
+        return newDefs;
     }
 
     withArg(param: FuncParam): FuncDefCollection {

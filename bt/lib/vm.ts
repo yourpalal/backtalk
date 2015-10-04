@@ -2,7 +2,6 @@ import {Evaluator} from "./evaluator";
 export * from "./expressers";
 import {Expresser, ConsoleExpresser} from "./expressers";
 import {FuncResult} from "./functions";
-import {FuncDef} from "./funcdefs";
 import * as AST from "./parser/ast";
 
 
@@ -70,7 +69,7 @@ export module Instructions {
         }
     }
 
-    export var PushZero = new Push(0);
+    export var pushZero = new Push(0);
 
     export class Express {
         static execute(vm: VM, evaluator: Evaluator) {
@@ -236,7 +235,7 @@ export class Compiler extends AST.BaseVisitor {
     }
 
     visitUnaryMinus(node: AST.UnaryMinus) {
-        this.push(Instructions.PushZero, node.code);
+        this.push(Instructions.pushZero, node.code);
         node.acceptForChildren(this);
         this.push(Instructions.Sub, node.code);
     }

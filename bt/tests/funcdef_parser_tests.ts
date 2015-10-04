@@ -1,9 +1,9 @@
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="./custom_assertions.d.ts" />
 
-import * as should from 'should';
+import 'should';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 import {FuncParams} from '../lib/functions';
 import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/funcdefs';
 
@@ -50,8 +50,8 @@ describe('a funcdef', () => {
             var result = parseFD('foo');
             result.should.be.an.instanceOf(Seq);
 
-            result.should.have.property('pieces')
-            result.pieces.should.have.lengthOf(1)
+            result.should.have.property('pieces');
+            result.pieces.should.have.lengthOf(1);
 
             result.pieces[0]
                 .should.be.an.instanceOf(SimpleFuncDefPart)
@@ -62,8 +62,8 @@ describe('a funcdef', () => {
             var result = parseFD('$:foo');
             result.should.be.an.instanceOf(Seq);
 
-            result.should.have.property('pieces')
-            result.pieces.should.have.lengthOf(1)
+            result.should.have.property('pieces');
+            result.pieces.should.have.lengthOf(1);
 
             result.pieces[0]
                 .should.be.an.instanceOf(SimpleFuncDefPart)

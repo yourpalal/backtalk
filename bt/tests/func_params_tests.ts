@@ -1,5 +1,5 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
+import 'should';
 
 import {FuncParam, FuncParams} from "../lib/functions";
 import {BadTypeError} from "../lib/errors";

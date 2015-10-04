@@ -4,28 +4,28 @@
 import * as argparser from 'argparser';
 import * as readline from 'readline';
 
-import * as BT from '../lib';
+import * as BT from '../lib/index';
 import {Shell} from '../lib/shell';
 
 
 class REPLParser extends BT.Parser {
-    print_parse: boolean = false;
-    print_ast: boolean = false;
+    printParse: boolean = false;
+    printAst: boolean = false;
 
     constructor() {
-        super()
+        super();
     }
 
-    inspect(parse_tree) {
-        if (this.print_parse) {
-            REPLParser.print_parse_tree(parse_tree);
+    inspect(parseTree) {
+        if (this.printParse) {
+            REPLParser.print_parse_tree(parseTree);
         }
     }
 
     parse(source: string, chunkName: string = "unknown"): BT.AST.Visitable {
         let ast = super.parse(source, chunkName);
 
-        if (this.print_ast) {
+        if (this.printAst) {
             console.log(JSON.stringify(ast, REPLParser.json_replacer, 2));
         }
         return ast;
@@ -33,7 +33,7 @@ class REPLParser extends BT.Parser {
 
     static json_replacer(k: string, v: any) {
         if (k === "code") {
-            return undefined
+            return undefined;
         }
         return v;
     }
@@ -90,10 +90,10 @@ class REPL {
         });
 
         this.parser = new REPLParser();
-        this.parser.print_ast = argparser.nonvals("ast").parse().ast
+        this.parser.printAst = argparser.nonvals("ast").parse().ast;
 
-        this.evaluator = new BT.Evaluator(),
-        this.scope = this.evaluator.scope,
+        this.evaluator = new BT.Evaluator();
+        this.scope = this.evaluator.scope;
         this.shell = new REPLShell(this);
 
         this.init_scope();
@@ -109,9 +109,9 @@ class REPL {
         this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args) => {
             let on = args.choose('on', [true, false, false]);
             if (args.named['what'] == 0) {
-                this.parser.print_ast = on;
+                this.parser.printAst = on;
             } else {
-                this.parser.print_parse = on;
+                this.parser.printParse = on;
             }
         });
 

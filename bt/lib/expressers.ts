@@ -1,9 +1,8 @@
-import {FuncResult, Immediate} from './functions';
-
 export interface Expresser {
     express(result: any);
     finish();
 }
+
 
 export class StackExpresser implements Expresser {
     constructor(private frame: { push(any): void }) {
@@ -16,6 +15,7 @@ export class StackExpresser implements Expresser {
     finish() {
     }
 }
+
 
 export class ResultExpresser implements Expresser {
     public result: any;
@@ -35,6 +35,7 @@ export class ResultExpresser implements Expresser {
         this.result = this.interim;
     }
 }
+
 
 export class ConsoleExpresser implements Expresser {
     express(current: any) {

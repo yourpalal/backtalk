@@ -1,5 +1,5 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
+import 'should';
 
 import {Trie} from '../lib/trie';
 

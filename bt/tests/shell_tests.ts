@@ -1,8 +1,8 @@
 /// <reference path="../typings/tsd.d.ts" />
-import * as should from 'should';
+import 'should';
 import * as sinon from 'sinon';
 
-import * as BT from '../lib/';
+import * as BT from '../lib/index';
 import {Shell} from '../lib/shell';
 
 
@@ -33,7 +33,7 @@ describe('The BackTalker Shell', () => {
     });
 
     it('can have multiline expressions, which are ended via a blank line', () => {
-        let spy = addSpyToScope(scope);
+        addSpyToScope(scope);
         shell.processLine("spy:");
         shell.multiline.should.be.ok;
         shell.processLine(" spy on 1");

@@ -1,10 +1,27 @@
+import {BaseError} from './errors';
 import {FuncDef, FuncDefCollection, FuncParameterizer} from "./funcdefs";
 import {FuncParams, FuncResult} from "./functions";
+import {Visitable} from './parser/ast';
 import {Trie} from "./trie";
 import {AutoVar, Vivify} from "./vars";
 import {Evaluator} from "./evaluator";
 
 /** @module scope */
+
+/**
+ * @class FunctionNameError
+ * @description thrown when a function is called but does not exist in
+ *   the current scope.
+ */
+export class FunctionNameError extends BaseError {
+    constructor(name) {
+        super(`function "${name}" called but undefined`);
+    }
+
+    toString(): string {
+        return this.msg;
+    }
+}
 
 export interface Func {
     (p: FuncParams, e: Evaluator): FuncResult|void;
@@ -17,6 +34,43 @@ export class FuncHandle {
     constructor(public name: string, public impl: Func, funcdef: FuncDef) {
         this.vivification = funcdef.vivify;
         this.parameterize = funcdef.makeParameterizer();
+    }
+
+    call(args: any[], evaluator: Evaluator, body: Visitable = null): FuncResult {
+        args = this.vivifyArgs(args);
+        let params = this.parameterize(args);
+        params.body = body;
+        return this.impl.call(evaluator, params, evaluator);
+    }
+
+    vivifyArgs(args: any[]): any[] {
+        for (var i = 0; i < this.vivification.length; i++) {
+            var viv = this.vivification[i];
+            var isAuto = (args[i] instanceof AutoVar);
+
+            if (viv === Vivify.ALWAYS) {
+                if (isAuto) {
+                    continue;
+                } else {
+                    throw Error(`value used in place of variable in call to '${this.name}'`);
+                }
+            }
+
+            if (!isAuto) {
+                continue;
+            }
+
+            if (args[i].defined) {
+                args[i] = args[i].value;
+                continue;
+            }
+
+            if (viv === Vivify.NEVER) {
+                throw Error(`undefined variable $${args[i].name} used in place of defined variable in call to '${this.name}'`);
+            }
+        }
+
+        return args;
     }
 }
 
@@ -77,6 +131,14 @@ export class Scope {
         return null;
     }
 
+    findFuncOrThrow(name: string): FuncHandle {
+        var func = this.findFunc(name);
+        if (func === null || typeof func === 'undefined') {
+            throw new FunctionNameError(name);
+        }
+        return func;
+    }
+
     addFunc(patterns: string[], impl: Func) {
         patterns.map((pattern) => {
             var result = FuncDefCollection.fromString(pattern);
@@ -88,5 +150,6 @@ export class Scope {
                 this.funcs.put(name, new FuncHandle(name, impl, funcdef));
             });
         });
-    };
+    }
+
 }

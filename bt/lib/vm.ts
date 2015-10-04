@@ -54,6 +54,7 @@ export class VM {
     finish() {
         this.expresser.finish();
     }
+
 }
 
 export module Instructions {
@@ -110,9 +111,9 @@ export module Instructions {
         }
 
         execute(vm: VM, evaluator: Evaluator) {
-            var func = evaluator.findFuncOrThrow(this.name),
+            var func = evaluator.scope.findFuncOrThrow(this.name),
                 args = vm.yoink(func.vivification.length),
-                result = evaluator.simpleCall(func, args);
+                result = func.call(args, evaluator);
 
             CallFunc.handleFuncResult(vm, evaluator, result);
         }
@@ -135,9 +136,9 @@ export module Instructions {
         }
 
         execute(vm: VM, evaluator: Evaluator) {
-            var func = evaluator.findFuncOrThrow(this.name),
+            var func = evaluator.scope.findFuncOrThrow(this.name),
                 args = vm.yoink(func.vivification.length),
-                result = evaluator.hangingCall(func, this.body, args);
+                result = func.call(args, evaluator, this.body);
 
             CallFunc.handleFuncResult(vm, evaluator, result);
         }

@@ -1,5 +1,5 @@
-export {Evaluator, FunctionNameError, evalBT as eval} from "./evaluator";
-export {Scope} from "./scope";
+export {Evaluator, evalBT as eval} from "./evaluator";
+export {FunctionNameError, Scope} from "./scope";
 export import StdLib = require("./standard_lib");
 export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";

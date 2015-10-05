@@ -3,6 +3,14 @@ export interface Expresser {
     finish();
 }
 
+export class DoNothingExpresser implements Expresser {
+    express() {
+    }
+
+    finish() {
+    }
+}
+
 
 export class StackExpresser implements Expresser {
     constructor(private frame: { push(any): void }) {

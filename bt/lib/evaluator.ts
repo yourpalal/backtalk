@@ -1,3 +1,4 @@
+import {DoNothingExpresser} from "./expressers";
 import {FuncResult} from "./functions";
 import {Scope} from "./scope";
 import * as stdLib from "./standard_lib";
@@ -61,7 +62,31 @@ export class Evaluator {
     }
 
     makeSub(): Evaluator {
-        return new Evaluator(new Scope(this.scope));
+        let evaluator = new Evaluator(new Scope(this.scope));
+        evaluator.compiled = this.compiled;
+        return evaluator;
     }
 
+    private compiled: { [name: string]: VM.Instructions.Instruction[]} = {};
+
+    compile(src: string, name: string) {
+        name =  '/' + name;
+        this.compiled[name] = VM.Compiler.compile(parser.parse(src, name));
+    }
+
+    hasCompiled(name: string) {
+        return `/${name}` in this.compiled;
+    }
+
+    runForResult(name: string): FuncResult {
+        let expresser = new VM.ResultExpresser();
+        this.run(name, expresser);
+        return expresser.result;
+    }
+
+    run(name: string, expresser: VM.Expresser = new DoNothingExpresser()): void {
+        name =  '/' + name;
+        let vm = new VM.VM(this.compiled[name], this, expresser);
+        vm.resume();
+    }
 }

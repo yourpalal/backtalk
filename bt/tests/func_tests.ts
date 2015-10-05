@@ -34,6 +34,10 @@ describe('BackTalker function calls', () => {
         it("which can include parenthesized function calls as parameters", () => {
             BT.parse("I love this (not)");
         });
+
+        it("which can include parenthesized math as parameters", () => {
+            BT.parse("wow (3 + 3)");
+        });
     });
 
     it("can retrieve arguments by name", () => {

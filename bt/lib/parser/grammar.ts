@@ -11,6 +11,7 @@ class FuncCallNameMaker extends AST.BaseVisitor {
     visitLiteral() { return "$"; }
     visitFuncCall() { return "$"; }
     visitHangingCall() { return "$"; }
+    visitBinOpNode() { return "$"; }
 }
 
 class FuncCallMaker {
@@ -21,7 +22,7 @@ class FuncCallMaker {
     }
 
     addPart(part: AST.Visitable) {
-        this.parts.push(part)
+        this.parts.push(part);
     }
 
     build(): { name: string; args: AST.FuncArg[] } {

@@ -80,8 +80,8 @@ export class FuncHandle {
  *  visible within child scopes. Function names are handled specially.
  */
 export class Scope {
-    names: { [key: string]: any };
-    env: { [key: string]: any };
+    names: any;
+    env: any;
     funcs: Trie<FuncHandle>;
 
     constructor(public parent: Scope = null) {

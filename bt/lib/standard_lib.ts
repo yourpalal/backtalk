@@ -2,7 +2,17 @@ import {Evaluator} from "./evaluator";
 import {FuncParams, Immediate} from "./functions";
 import {StackExpresser} from "./expressers";
 
-var parts = [
+export interface StdEnv {
+    stdout: ConsoleWriter;
+}
+
+export class ConsoleWriter {
+    write(...args: any[]) {
+        (console as any).log(...args);
+    }
+}
+
+var funcs = [
     { // assignment
         patterns: ['with $!!:ref as $:val', 'with $!!:ref as:'],
         impl: function(args: FuncParams, self: Evaluator) {
@@ -38,16 +48,17 @@ var parts = [
     { // printer
         patterns: ['print $:arg'],
         impl: function(args: FuncParams, self: Evaluator) {
-            console.log(args.named.arg);
+            let env = self.scope.env as StdEnv;
+            env.stdout.write(args.named.arg);
 
             return args.named.arg;
         }
     }
-
 ];
 
 export function inScope(scope) {
-    parts.forEach(function(f) {
+    scope.env.stdout = new ConsoleWriter();
+    funcs.forEach(function(f) {
         scope.addFunc(f.patterns, f.impl);
     });
     return scope;

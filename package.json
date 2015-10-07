@@ -38,5 +38,6 @@
   "dependencies": {
     "argparser": "^0.2.2",
     "promise": "^7.0.4"
-  }
+  },
+  "typings":  "./build/js/lib/index.d.ts"
 }

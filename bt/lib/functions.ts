@@ -92,6 +92,10 @@ export class TooEagerError extends BaseError {
 }
 
 
+export interface Thenable<T> {
+    then(onFulfilled?: (t: T) => any, onRejected?: (err: any) => any): any;
+}
+
 export class Immediate<T> implements FuncResult {
     constructor(private value: T) {
     }

@@ -1,12 +1,16 @@
 grammar BackTalk
     compound    <-          blanks:(BLANK*) ls:line rs:(blanks:BLANK+ line)*  <CompoundNode>
     line        <-          lead:SPACE? ex:expression SPACE? comment? <LineNode>
-    expression  <-          sum / product / number / string / func_call / paren_expr / ref
+    expression  <-          sum / product / bool_exp / number / bool / string / func_call / paren_expr / ref
 
     sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   <SumNode>
 
     prod_quo    <-          product / arith_value
     product     <-          ls:arith_value parts:(SPACE? op:("*" / "/") SPACE? rs:arith_value)+ <ProductNode>
+
+
+    bool_exp    <-          initial_not:("not" SPACE)? ls:bool_val parts:(SPACE? op:("and" / "or") not:(SPACE "not")? SPACE rs:bool_val)* <BoolNode>
+    bool_val    <-          bool / ref / paren_expr
 
     arith_value <-          number / ref / paren_expr
     paren_expr  <-          "(" SPACE? ex:expression SPACE? ")" <ParenNode>
@@ -14,12 +18,13 @@ grammar BackTalk
 
     comment     <-          "--" [^\n]* <Comment>
 
-    func_call   <-          bare parts:(SPACE (ref / bare / sum / product / number / string / paren_expr) )* colon:(SPACE? ":" SPACE?)? <FuncCallNode>
+    func_call   <-          bare parts:(SPACE (ref / bool / bare / sum / product / number / string / paren_expr) )* colon:(SPACE? ":" SPACE?)? <FuncCallNode>
 
     ref         <-          "$" id:[a-zA-z_]+ <RefNode>
-    bare        <-          [a-zA-z]+ <BareNode>
+    bare        <-          !"true" !"false" [a-zA-z]+ <BareNode>
 
     BLANK       <-          SPACE? "\n"
     SPACE       <-          [ ]+ <SPACE>
     string      <-          "\"" [^"]* "\"" <StringLiteral>
     number      <-          [0-9]+ ("." [0-9]+)? <NumberLiteral>
+    bool        <-          ("true" / "false") <BooleanLiteral>

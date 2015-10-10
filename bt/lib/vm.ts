@@ -78,6 +78,27 @@ export module Instructions {
         }
     }
 
+    export class And {
+        static execute(vm: VM, evaluator: Evaluator) {
+            let right = vm.pop();
+            let left = vm.pop();
+            vm.push(left && right);
+        }
+    }
+
+    export class Or {
+        static execute(vm: VM, evaluator: Evaluator) {
+            var right = vm.pop();
+            vm.push(vm.pop() || right);
+        }
+    }
+
+    export class Not {
+        static execute(vm: VM, evaluator: Evaluator) {
+            vm.push(!vm.pop());
+        }
+    }
+
     export class Add {
         static execute(vm: VM, evaluator: Evaluator) {
             var right = vm.pop();
@@ -209,6 +230,27 @@ export class Compiler extends AST.BaseVisitor {
 
     visitBinOpNode(node: AST.BinOpNode) {
         node.acceptForChildren(this);
+    }
+
+    visitNotOp(node: AST.NotOp) {
+        node.acceptForChildren(this);
+        this.push(Instructions.Not, node.code);
+    }
+
+    visitAndOp(node: AST.AndOp) {
+        node.acceptForChildren(this);
+        if (node.not) {
+            this.push(Instructions.Not, node.code);
+        }
+        this.push(Instructions.And, node.code);
+    }
+
+    visitOrOp(node: AST.OrOp) {
+        node.acceptForChildren(this);
+        if (node.not) {
+            this.push(Instructions.Not, node.code);
+        }
+        this.push(Instructions.Or, node.code);
     }
 
     visitAddOp(node: AST.AddOp) {

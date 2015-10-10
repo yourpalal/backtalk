@@ -10,6 +10,9 @@ export class Code {
 export interface Visitor {
     visitAddOp(v: AddOp, ...args: any[]): any;
     visitSubOp(v: SubOp, ...args: any[]): any;
+    visitOrOp(v: OrOp, ...args: any[]): any;
+    visitAndOp(v: AndOp, ...args: any[]): any;
+    visitNotOp(v: NotOp, ...args: any[]): any;
     visitDivideOp(v: DivideOp, ...args: any[]): any;
     visitMultOp(v: MultOp, ...args: any[]): any;
     visitBinOpNode(v: BinOpNode, ...args: any[]): any;
@@ -24,6 +27,9 @@ export interface Visitor {
 }
 
 export class BaseVisitor implements Visitor {
+    visitAndOp(v: AndOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+    visitOrOp(v: OrOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+    visitNotOp(v: NotOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitAddOp(v: AddOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitSubOp(v: SubOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitDivideOp(v: DivideOp, ...args: any[]): any { return this.visitVisitable(v, ...args); }
@@ -53,51 +59,50 @@ export class ASTItem {
     public code: Code = null;
 }
 
-export class AddOp extends ASTItem implements Visitable {
-    constructor(public right: BinOp) { super(); }
+export abstract class BinOpBase extends ASTItem {
+    constructor(public right: BinOp) {
+        super();
+    }
+
     accept(visitor: Visitor, ...args: any[]): any {
-        return visitor.visitAddOp.apply(visitor, [this].concat(args));
+        return this.getVisitMethod(visitor).apply(visitor, [this].concat(args));
     }
 
     acceptForChildren(v: Visitor, ...args: any[]): any {
         return this.right.accept(v, ...args);
     }
+
+    abstract getVisitMethod(visitor: Visitor): Function;
 }
 
-export class SubOp extends ASTItem implements Visitable {
-    constructor(public right: BinOp) { super(); }
-    accept(visitor: Visitor, ...args: any[]): any {
-        return visitor.visitSubOp.apply(visitor, [this].concat(args));
-    }
-
-    acceptForChildren(v: Visitor, ...args: any[]): any {
-        return this.right.accept(v, ...args);
-    }
+export class AddOp extends BinOpBase implements Visitable {
+    getVisitMethod(visitor: Visitor): Function { return visitor.visitAddOp; }
 }
 
-export class DivideOp extends ASTItem implements Visitable {
-    constructor(public right: BinOp) { super(); }
-    accept(visitor: Visitor, ...args: any[]): any {
-        return visitor.visitDivideOp.apply(visitor, [this].concat(args));
-    }
 
-    acceptForChildren(v: Visitor, ...args: any[]): any {
-        return this.right.accept(v, ...args);
-    }
+export class SubOp extends BinOpBase implements Visitable {
+    getVisitMethod(visitor: Visitor): Function { return visitor.visitSubOp; }
 }
 
-export class MultOp extends ASTItem implements Visitable {
-    constructor(public right: BinOp) { super(); }
-    accept(visitor: Visitor, ...args: any[]): any {
-        return visitor.visitMultOp.apply(visitor, [this].concat(args));
-    }
-
-    acceptForChildren(v: Visitor, ...args: any[]): any {
-        return this.right.accept(v, ...args);
-    }
+export class DivideOp extends BinOpBase implements Visitable {
+    getVisitMethod(visitor: Visitor): Function { return visitor.visitDivideOp; }
 }
 
-export type BinOp = AddOp | SubOp | DivideOp | MultOp;
+export class MultOp extends BinOpBase implements Visitable {
+    getVisitMethod(visitor: Visitor): Function { return visitor.visitMultOp; }
+}
+
+export class AndOp extends BinOpBase implements Visitable {
+    constructor(public not: boolean, right: BinOp) { super(right); }
+    getVisitMethod(visitor: Visitor): Function { return visitor.visitAndOp; }
+}
+
+export class OrOp extends BinOpBase implements Visitable {
+    constructor(public not: boolean, right: BinOp) { super(right); }
+    getVisitMethod(visitor: Visitor): Function { return visitor.visitOrOp; }
+}
+
+export type BinOp = AddOp | SubOp | DivideOp | MultOp | OrOp | AndOp;
 
 export class BinOpNode extends ASTItem implements Visitable {
     constructor(public left: any, public ops: BinOp[]) { super(); }
@@ -111,8 +116,22 @@ export class BinOpNode extends ASTItem implements Visitable {
     }
 }
 
+export class NotOp extends ASTItem implements Visitable {
+    constructor(public val: BinOp) {
+        super();
+    }
+
+    accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitNotOp(this, ...args);
+    }
+
+    acceptForChildren(visitor: Visitor, ...args: any[]): any {
+        return this.val.accept(visitor, ...args);
+    }
+}
+
 export class Literal extends ASTItem implements Visitable {
-    constructor(public val: string|number) { super(); }
+    constructor(public val: string|number|boolean) { super(); }
     accept(visitor: Visitor, ...args: any[]): any {
         return visitor.visitLiteral.apply(visitor, [this].concat(args));
     }

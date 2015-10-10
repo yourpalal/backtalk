@@ -139,6 +139,18 @@ class LineCollector extends AST.BaseVisitor {
     visitVisitable(a: AST.Visitable): any { return a; }
 }
 
+module grammarParserBooleanLiteral {
+    export var isa = 'BooleanLiteral';
+
+    export function transform() {
+        if (this.textValue == "true") {
+            return new AST.Literal(true);
+        }
+        return new AST.Literal(false);
+    }
+}
+grammar.Parser.BooleanLiteral = grammarParserBooleanLiteral;
+
 module grammarParserNumberLiteral {
     export var isa = 'NumberLiteral';
 
@@ -175,6 +187,31 @@ function make_bin_op_parser(name, ops) {
 
 make_bin_op_parser('SumNode', { '+': AST.AddOp, '-': AST.SubOp });
 make_bin_op_parser('ProductNode', { '*': AST.MultOp, '/': AST.DivideOp });
+
+module grammarParserBoolNode {
+    export var isa = 'BoolNode';
+
+    var ops = {
+        or: AST.OrOp,
+        and: AST.AndOp
+    };
+
+    export function transform() {
+        let negateFirst = this.initial_not.textValue != "";
+        var rights = this.parts.elements.map((v) => {
+            let not = v.not.textValue != "";
+            return new (ops[v.op.textValue])(not, v.rs.transform());
+        });
+
+        let left = this.ls.transform();
+        if (negateFirst) {
+            left = new AST.NotOp(left);
+        }
+
+        return new AST.BinOpNode(left, rights);
+    }
+}
+grammar.Parser.BoolNode = grammarParserBoolNode;
 
 module grammarParserParenNode {
     export var isa = 'ParenNode';

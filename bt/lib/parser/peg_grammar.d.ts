@@ -11,6 +11,7 @@ declare module grammar {
     }
 
     module Parser {
+        export var BooleanLiteral: ParserNode;
         export var NumberLiteral: ParserNode;
         export var StringLiteral: ParserNode;
 
@@ -28,6 +29,7 @@ declare module grammar {
         export var Comment: ParserNode;
         export var SPACE: ParserNode;
         export var ArithValueNode: ParserNode;
+        export var BoolNode: ParserNode;
     }
 }
 

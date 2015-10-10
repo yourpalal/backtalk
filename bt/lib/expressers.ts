@@ -53,3 +53,20 @@ export class ConsoleExpresser implements Expresser {
     finish() {
     }
 }
+
+export class StateMachineExpresser<T extends Expresser> implements Expresser {
+    constructor(public state: T = null) {
+    }
+
+    setState(state: T) {
+        this.state = state;
+    }
+
+    express(current: any) {
+        this.state.express(current);
+    }
+
+    finish() {
+        this.state.finish();
+    }
+}

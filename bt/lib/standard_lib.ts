@@ -1,6 +1,6 @@
 import {Evaluator} from "./evaluator";
 import {FuncParams, Immediate} from "./functions";
-import {StackExpresser} from "./expressers";
+import {Expresser, StackExpresser, StateMachineExpresser} from "./expressers";
 
 export interface StdEnv {
     stdout: ConsoleWriter;
@@ -9,6 +9,50 @@ export interface StdEnv {
 export class ConsoleWriter {
     write(...args: any[]) {
         (console as any).log(...args);
+    }
+}
+
+interface WhenState extends Expresser {
+    running: boolean;
+    result: any;
+}
+
+class WhenGuardingExpresser implements WhenState {
+    running: boolean = false;
+    result: boolean = false;
+
+    constructor(private parent: StateMachineExpresser<WhenState>) {
+    }
+
+    express(result: any) {
+        console.log('gaddang', result);
+        if (result) {
+            this.parent.setState(new WhenRunningExpresser());
+        }
+    }
+
+    finish() {
+    }
+}
+
+class WhenRunningExpresser implements Expresser {
+    running: boolean = true;
+    result: any;
+    resolve: (any) => any;
+
+    constructor() {
+        this.result = new Promise<any>((r) => this.resolve = r);
+    }
+
+    express(result: any) {
+        if (this.running) {
+            this.running = false;
+            this.resolve(result);
+            this.result = result;
+        }
+    }
+
+    finish() {
     }
 }
 
@@ -52,6 +96,24 @@ var funcs = [
             env.stdout.write(args.named.arg);
 
             return args.named.arg;
+        }
+    },
+    { // conditional execution
+        patterns: ['when :'],
+        impl: function(args: FuncParams, self: Evaluator) {
+            let sub = self.makeSub();
+            let expresser = new StateMachineExpresser<WhenState>();
+            expresser.setState(new WhenGuardingExpresser(expresser));
+
+            sub.scope.addFunc(['then :'], function(a: FuncParams): any {
+                if (expresser.state.running) {
+                    return sub.eval(a.body);
+                }
+                return false;
+            });
+            sub.evalExpressions(args.body, expresser);
+
+            return expresser.state.result;
         }
     }
 ];

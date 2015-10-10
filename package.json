@@ -1,6 +1,6 @@
 {
   "name": "backtalk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An embeddable scripting language for non-programmers.",
   "main": "build/js/lib/index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "prepublish": "gulp dist",
     "start": "node build/js/bin/repl.js",
     "test": "gulp test",
-	"watchtests": "NODE_ENV=test `npm bin`/mocha build/js/tests/*.js --reporter dot --watch --require source-map-support/register"
+    "watchtests": "NODE_ENV=test `npm bin`/mocha build/js/tests/*.js --reporter dot --watch --require source-map-support/register"
   },
   "repository": {
     "type": "git",
@@ -42,5 +42,5 @@
     "argparser": "^0.2.2",
     "promise": "^7.0.4"
   },
-  "typings":  "./build/js/lib/index.d.ts"
+  "typings": "./build/js/lib/index.d.ts"
 }

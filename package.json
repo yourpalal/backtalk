@@ -4,8 +4,11 @@
   "description": "An embeddable scripting language for non-programmers.",
   "main": "build/js/lib/index.js",
   "scripts": {
+    "clean": "rm -rf build/",
+    "prepublish": "gulp dist",
+    "start": "node build/js/bin/repl.js",
     "test": "gulp test",
-    "start": "node build/js/bin/repl.js"
+	"watchtests": "NODE_ENV=test `npm bin`/mocha build/js/tests/*.js --reporter dot --watch --require source-map-support/register"
   },
   "repository": {
     "type": "git",

@@ -1,5 +1,3 @@
 node_modules/
-gen/
 *.swp
-dist/
-build/
+examples/

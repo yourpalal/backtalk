@@ -1,5 +1,13 @@
+import {BaseError} from "./errors";
 import {Vivify} from "./vars";
 import {FuncParam, FuncParams} from './functions';
+
+export class IllegalFuncdefError extends BaseError {
+    constructor(msg: string) {
+        super(msg);
+    }
+}
+
 
 export interface FuncParameterizer {
     (passed: any[]): FuncParams;
@@ -80,19 +88,27 @@ export class FuncDefCollection {
 
 type FuncDefPart = SimpleFuncDefPart | Choice | Seq;
 
+// FUNCDEF_PATTERN is a regexp that matches funcdefs
+const FUNCDEF_PIECE_PATTERN = new RegExp([
+    /<[a-zA-Z |$!:]+>(:[a-zA-Z]+)?/.source,
+        // <[a-zA-Z |$!]+> matches choices like this: <foo bar | baz $!:cool>
+        //     this doesn't need to be perfect, as we will send it to parse() later.
+        // (:[a-zA-Z]+)? matches the tag that can come after a choice
+    /[a-zA-Z]+/.source,
+        // [a-zA-Z]+ matches bare words
+    /\$\!?\!?(:[a-zA-Z]+)?/.source,
+    /:$/.source,
+        // \$\!?\!? matches vars (and they can be tagged like choices)
+].join("|"), "g");
+const FUNCDEF_PATTERN = new RegExp(`^(${FUNCDEF_PIECE_PATTERN.source}|\\s*)*:?$`);
+
+
 export function parse(pattern: string): Seq {
-    // regexp explanation:
-    // the strategy is to match each piece that we are interested in, instead of
-    // spliting via whitespace or something like that.
-    //
-    // <[a-zA-Z |$!]+> matches choices like this: <foo bar | baz $!:cool>
-    //     this doesn't need to be perfect, as we will send it to parse() later.
-    // (:[a-zA-Z]+)? matches the tag that can come after a choice
-    // [a-zA-Z]+ matches bare words
-    // \$\!?\!? matches vars (and they can be tagged like choices)
-    // :$ matches ":" at the end of the pattern
-    var pieces = pattern.match(/<[a-zA-Z |$!:]+>(:[a-zA-Z]+)?|[a-zA-Z]+|\$\!?\!?(:[a-zA-Z]+)?|\:$/g)
-        .map((piece) => {
+    if (pattern.match(FUNCDEF_PATTERN) == null) {
+        throw new IllegalFuncdefError("funcdef cannot be parsed");
+    }
+    let match = pattern.match(FUNCDEF_PIECE_PATTERN) || [];
+    let pieces = match.map((piece) => {
         if (piece.indexOf('<') == 0) {
             return new Choice(piece);
         } else if (piece.charAt(0) === '$') {
@@ -145,11 +161,11 @@ export class Choice {
 
     // raw ~ <some stuff|like this|wow>:cool
     constructor(raw: string) {
-        var end = raw.lastIndexOf(">");
-        var bits = raw.substr(1, end - 1).split('|');
+        let end = raw.lastIndexOf(">");
+        let bits = raw.substr(1, end - 1).split('|');
 
         // check for empty part
-        var emptyPart = false;
+        let emptyPart = false;
         if (bits[0] == "") {
             emptyPart = true;
             bits.shift();
@@ -158,16 +174,16 @@ export class Choice {
         // check for choice param
         this.param = null;
         if (end != raw.length && raw[end + 1] === ":") {
-            var name = raw.slice(end + 2);
+            let name = raw.slice(end + 2);
             this.param = FuncParam.forChoice(name);
         }
 
         // verify and extract the SimpleFuncDefParts
         this.options = bits.map((b: string) => {
-            var s: Seq = parse(b);
+            let s: Seq = parse(b);
             s.pieces.forEach((p) => {
                 if (p instanceof Choice) {
-                    throw new Error("Cannot have nested choices in function pattern");
+                    throw new IllegalFuncdefError("Cannot have nested choices in function pattern");
                 }
             });
             return <SimpleFuncDefPart[]>(s.pieces);

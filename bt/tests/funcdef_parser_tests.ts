@@ -4,6 +4,7 @@
 import 'should';
 
 import * as BT from '../lib/index';
+import {IllegalFuncdefError} from '../lib/funcdefs';
 import {FuncParams} from '../lib/functions';
 import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/funcdefs';
 
@@ -133,6 +134,14 @@ describe('a funcdef', () => {
     it('can contain simple choices like <foo|bar>', () => {
         FuncDefCollection.fromString('<foo|bar>').should
             .haveSignatures('foo', 'bar');
+    });
+
+    it('cannot contain nested choices like <foo|<baz|bar>>', () => {
+        (() => FuncDefCollection.fromString('<foo|<baz|bar>>')).should.throw(IllegalFuncdefError);
+    });
+
+    it('throws an error on bad funcdefs', () => {
+        (() => FuncDefCollection.fromString(': WOW')).should.throw(IllegalFuncdefError);
     });
 
     it('can have multiple named choices like <foo|bar>:foobar <foo|baz>:foobaz', () => {

@@ -4,7 +4,7 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/index';
 
-let condition_src = `
+let conditionSrc = `
 when:
     $x and $y
     then:
@@ -30,13 +30,13 @@ describe('The BackTalker StdLib', () => {
             bt.scope.set('x', true);
             bt.scope.set('y', true);
 
-            bt.evalString(condition_src).should.eql(1);
+            bt.evalString(conditionSrc).should.eql(1);
 
             bt.scope.set('x', false);
-            bt.evalString(condition_src).should.eql(2);
+            bt.evalString(conditionSrc).should.eql(2);
 
             bt.scope.set('y', false);
-            bt.evalString(condition_src).should.eql(false);
+            bt.evalString(conditionSrc).should.eql(false);
         });
     });
 });

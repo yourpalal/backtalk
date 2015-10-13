@@ -102,7 +102,7 @@ export function parse(pattern: string): Seq {
         }
     });
     return new Seq(pieces);
-};
+}
 
 export class Seq {
     constructor(public pieces: (Choice | SimpleFuncDefPart)[]) {

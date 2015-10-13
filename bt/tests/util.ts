@@ -2,7 +2,7 @@
 import * as sinon from 'sinon';
 import 'should';
 
-import {FuncParams, FuncResult} from "../lib/functions";
+import {FuncParams} from "../lib/functions";
 import {Evaluator} from "../lib/evaluator";
 import {Scope} from "../lib/scope";
 

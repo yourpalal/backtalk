@@ -25,7 +25,6 @@ class WhenGuardingExpresser implements WhenState {
     }
 
     express(result: any) {
-        console.log('gaddang', result);
         if (result) {
             this.parent.setState(new WhenRunningExpresser());
         }

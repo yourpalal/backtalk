@@ -200,7 +200,7 @@ describe('BackTalker function calls', () => {
 
     it('can call void functions without hanging', (done) => {
         addSpyToScope(scope, () => undefined);
-        Immediate.wrap(evaluator.evalString("spy on 3 4")).then(() => {
+        Immediate.resolve(evaluator.evalString("spy on 3 4")).then(() => {
             done();
         });
     });

@@ -30,7 +30,7 @@ describe('BackTalker can', () => {
                     }
 
                     self.scope.set(name, i);
-                    BT.Immediate.wrap(self.makeSub().eval(args.body)).then((value) => {
+                    BT.Immediate.resolve(self.makeSub().eval(args.body)).then((value) => {
                         results[i] = value;
                         i++;
                         step();

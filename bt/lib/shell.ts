@@ -51,7 +51,7 @@ export class Shell {
 
     eval(source: string) {
         this.waiting = true;
-        Immediate.wrap(this.evaluator.evalString(source)).then((val) => {
+        Immediate.resolve(this.evaluator.evalString(source)).then((val) => {
             this.resume();
         });
     }

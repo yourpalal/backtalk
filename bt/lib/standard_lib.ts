@@ -65,7 +65,7 @@ var funcs = [
                 val = self.makeSub().eval(args.body);
             }
 
-            return Immediate.wrap(val).then((value) => {
+            return Immediate.resolve(val).then((value) => {
                 self.scope.set(args.named.ref.name, value);
                 return value;
             });

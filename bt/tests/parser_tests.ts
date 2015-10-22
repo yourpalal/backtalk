@@ -32,7 +32,7 @@ describe("The BackTalker parser", () => {
         (<AST.CompoundExpression>parsed).parts[0].code.chunk.should.equal(name);
     });
 
-    describe("groups lines into hanging call bodies by leading whitespace", () => {
+    it("groups lines into hanging call bodies by leading whitespace", () => {
         var parsed = <AST.CompoundExpression>BT.parse(`
             with $a as:
              "in the block"

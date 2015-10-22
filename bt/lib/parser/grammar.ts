@@ -35,27 +35,6 @@ class FuncCallMaker {
 }
 
 
-class LineNumSetter extends AST.BaseVisitor {
-    private code: AST.Code;
-
-    constructor(num: number) {
-        super();
-        this.code = new AST.Code(num);
-    }
-
-    visitVisitable(v: AST.Visitable): any {
-        v.code = this.code;
-        v.acceptForChildren(this);
-    }
-
-    visitHangingCall(v: AST.HangingCall, ...args: any[]): any {
-        v.code = this.code;
-        // ignore v.body, which may not be set yet, and will be on separate lines anyway!
-        v.acceptForArgs(this);
-    }
-}
-
-
 // LineCollector collects lines based on indentation into
 // Syntax.CompoundExpression instances. As it does this,
 // hanging calls have their body property set to a CompoundExpression
@@ -85,61 +64,35 @@ class LineNumSetter extends AST.BaseVisitor {
 //
 // Useful insight: the stack of LineCollectors creating each other will
 // mirror the call stack of the program when it is run.
-class Line {
-    indent: number;
-    ex: AST.Visitable;
-
-    constructor(num: number, line: any) {
-        let {lead, ex} = line;
-        this.indent = lead.text.length;
-        this.ex = ex;
-
-        // recursively set line numbers
-        this.ex.accept(new LineNumSetter(num));
-    }
-}
-
-class LineCollector extends AST.BaseVisitor {
-    // i is the index of the line we are processing
-    constructor(public lines: Line[], public i: number, public indent: number) {
-        super();
+export class Line {
+    constructor(public indent: number, public expression: AST.Visitable) {
     }
 
-    visitHangingCall(func: AST.HangingCall): any {
-        var c = new LineCollector(this.lines, this.i + 1, this.lines[this.i].indent + 1);
-        func.body = c.collect();
-        if (func.body.parts.length == 0) {
-            throw new MissingBodyError(func.code);
+    isEmpty(): boolean {
+        return this.expression == null;
+    }
+
+    accept(v: AST.Visitor) {
+        if (this.expression) {
+            return this.expression.accept(v);
         }
-
-        this.i = c.i;
-        // we start up where the other collector left off
-        // (this.i is the last line they included), and in the next iteration of
-        // this.collect, we will be processing the first line they did not include.
-        return func;
+        return null;
     }
-
-    collect(): AST.CompoundExpression {
-        var parts: AST.Visitable[] = [];
-
-        for (; this.i < this.lines.length; this.i++) {
-            if (this.lines[this.i].indent < this.indent) {
-                this.i--;
-                break;
-            }
-
-            parts.push(this.lines[this.i].ex.accept(this));
-        }
-
-        return new AST.CompoundExpression(parts);
-    }
-
-    visitVisitable(a: AST.Visitable): any { return a; }
 }
 
 export type ParseResult = ParserNode<AST.Visitable>|AST.Visitable;
 
 export module grammarActions {
+    export function makeLine(input: string, start: number, end: number, elements: ParseResult[]) {
+        let [indent, expression] = elements;
+
+        // empty lines do not have an expression, so it stays as a canopy thing
+        if ('elements' in expression) {
+            return new Line(0, null);
+        }
+        return new Line((indent as ParserNode<any>).text.length, expression as AST.Visitable);
+    }
+
     export function makeBool(input: string, start: number, end: number, elements: ParseResult[]) {
         if (input[start] == "t") {
             return new AST.Literal(true);
@@ -209,23 +162,6 @@ export module grammarActions {
 
     export function makeBare(input: string, start: number, end: number, elements: AST.Visitable[]) {
         return new AST.BareWord(input.substring(start, end));
-    }
-
-    export function makeCompound(input: string, start: number, end: number, elements: any[]) {
-        // line numbering: starts from 1
-        // the first line is from ls, second and up are from rs
-        let [firstBlanks, ls, rs] = elements;
-        let lineNum = 1 + firstBlanks.elements.length;
-
-        let lines: Line[] = rs.elements.map((l) => {
-            let {blanks, line} = l;
-            lineNum += blanks.elements.length;
-            return new Line(lineNum, line);
-        });
-        lines.unshift(new Line(1 + firstBlanks.elements.length, ls));
-
-        var collector = new LineCollector(lines, 0, 0);
-        return collector.collect();
     }
 
     export function makeFuncArg(input: string, start: number, end: number, elements: any[]) {

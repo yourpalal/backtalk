@@ -1,6 +1,5 @@
 grammar BackTalk
-    compound    <-          blanks:(BLANK*) ls:line rs:(blanks:BLANK+ line)* BLANK*  %makeCompound
-    line        <-          lead:SPACE? ex:expression SPACE? comment?
+    line        <-          lead:SPACE? ex:expression? SPACE? comment? %makeLine
     expression  <-          sum / product / bool_exp / number / string / func_call / paren_expr / ref
 
     sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   %makeBinOpNode
@@ -22,7 +21,6 @@ grammar BackTalk
     ref         <-          "$" id:[a-zA-z_]+ %makeRef
     bare        <-          !"true" !"false" [a-zA-z]+ %makeBare
 
-    BLANK       <-          SPACE? "\n"
     SPACE       <-          [ ]+
     string      <-          "\"" [^"]* "\"" %makeString
     number      <-          [0-9]+ ("." [0-9]+)? %makeNumber

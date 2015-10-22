@@ -168,13 +168,15 @@ export module grammarActions {
         return new AST.BinOpNode(ls, rs);
     }
 
+    const BIN_OPS = {
+        '+': AST.AddOp,
+        '-': AST.SubOp,
+        '/': AST.DivideOp,
+        '*': AST.MultOp
+    };
+
     export function makeBinOp(op: string, rs: AST.Visitable) {
-        return new ({
-            '+': AST.AddOp,
-            '-': AST.SubOp,
-            '/': AST.DivideOp,
-            '*': AST.MultOp
-        }[op])(rs);
+        return new (BIN_OPS[op])(rs);
     }
 
     const BOOL_OPS = {

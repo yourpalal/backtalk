@@ -1,7 +1,8 @@
 import {BaseError} from "../errors";
 import * as AST from "./ast";
 
-import * as grammar from "./grammar";
+import {grammarActions} from "./grammar";
+import * as grammar from "./peg_grammar";
 
 var parser: Parser = null;
 
@@ -35,18 +36,16 @@ export class MissingBodyError extends BaseError {
 }
 
 export class Parser {
-    inspect(p: grammar.ParserNode): void {
-    }
-
     parse(source: string, chunkName: string = "unnamed"): AST.Visitable {
         try {
-            var parseTree = grammar.parse(source);
+            var ast = grammar.parse<AST.Visitable>(source, {actions: grammarActions});
         } catch (e) {
+            if (e instanceof MissingBodyError) {
+                throw e;
+            }
             throw new ParseError(e);
         }
 
-        this.inspect(parseTree);
-        let ast = <AST.Visitable>parseTree.transform();
         ast.accept(new ChunkNamer(chunkName));
         return ast;
     }

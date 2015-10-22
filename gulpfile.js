@@ -16,7 +16,7 @@ var gulp = require("gulp"),
     canopy = require('canopy'),
     through = require('through2'),
 
-    mocha = require('gulp-mocha')
+    mocha = require('gulp-mocha'),
 
     path = require('path')
 ;
@@ -54,7 +54,9 @@ gulp.task("canopy", function(end) {
   return gulp.src(GRAMMAR_FILE)
     .pipe(buffer())
     .pipe(through.obj(function (file, encoding, cb) {
-      file.contents = Buffer(canopy.compile(file.contents.toString(encoding)));
+      var compiled = canopy.compile(file.contents.toString(encoding),
+                        canopy.Builders.JavaScript.create("grammar.peg"));
+      file.contents = Buffer(compiled[Object.keys(compiled)[0]]);
       this.push(file);
       cb();
     }))

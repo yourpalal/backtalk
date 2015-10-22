@@ -1,8 +1,6 @@
 import * as AST from "./ast";
 import {MissingBodyError} from "./parser";
-import * as grammar from "./peg_grammar";
-
-export = grammar;
+import {ParserNode} from "./peg_grammar";
 
 class FuncCallNameMaker extends AST.BaseVisitor {
     visitBareWord(bare: AST.BareWord) { return bare.bare; }
@@ -92,9 +90,9 @@ class Line {
     ex: AST.Visitable;
 
     constructor(num: number, line: any) {
-        line = line.line || line; // we may have a LineNode or a (BREAK line)
-        this.indent = line.lead.textValue.length;
-        this.ex = line.ex.transform();
+        let {lead, ex} = line;
+        this.indent = lead.text.length;
+        this.ex = ex;
 
         // recursively set line numbers
         this.ex.accept(new LineNumSetter(num));
@@ -139,153 +137,115 @@ class LineCollector extends AST.BaseVisitor {
     visitVisitable(a: AST.Visitable): any { return a; }
 }
 
-module grammarParserBooleanLiteral {
-    export var isa = 'BooleanLiteral';
+export type ParseResult = ParserNode<AST.Visitable>|AST.Visitable;
 
-    export function transform() {
-        if (this.textValue == "true") {
+export module grammarActions {
+    export function makeBool(input: string, start: number, end: number, elements: ParseResult[]) {
+        if (input[start] == "t") {
             return new AST.Literal(true);
         }
         return new AST.Literal(false);
     }
-}
-grammar.Parser.BooleanLiteral = grammarParserBooleanLiteral;
 
-module grammarParserNumberLiteral {
-    export var isa = 'NumberLiteral';
-
-    export function transform() {
-        return new AST.Literal(Number(this.textValue));
+    export function makeNumber(input: string, start: number, end: number, elements: AST.Visitable[]) {
+        return new AST.Literal(Number(input.substring(start, end)));
     }
-}
-grammar.Parser.NumberLiteral = grammarParserNumberLiteral;
 
-module grammarParserStringLiteral {
-    export var isa = 'StringLiteral';
-
-    export function transform() {
-        return new AST.Literal(this.elements[1].textValue);
+    export function makeString(input: string, start: number, end: number, elements: AST.Visitable[]) {
+        // +-1 for quotes
+        return new AST.Literal(input.substring(start + 1, end - 1));
     }
-}
-grammar.Parser.StringLiteral = grammarParserStringLiteral;
 
+    export function makeParenNode(input: string, start: number, end: number, elements: AST.Visitable[]) {
+        return elements[2]; // skip ( and spaces
+    }
 
-function make_bin_op_parser(name, ops) {
-    grammar.Parser[name] = {
-        isa: name,
-        transform: function() {
-            // example: 3+4+5+6
-            // ls:3 , elements[1][0] = {op:'+',rs: '4'}
-            var rights = this.parts.elements.map((v) => {
-                return new (ops[v.op.textValue])(v.rs.transform());
-            });
+    export function makeBinOpNode(input: string, start: number, end: number, elements: ParseResult[]) {
+        let ls = elements[0] as AST.Visitable;
+        let parts = elements[1] as ParserNode<any>;
 
-            return new AST.BinOpNode(this.ls.transform(), rights);
-        }
-    };
-};
+        let rs = parts.elements.map((p) => makeBinOp(p.op.text, p.rs));
+        return new AST.BinOpNode(ls, rs);
+    }
 
-make_bin_op_parser('SumNode', { '+': AST.AddOp, '-': AST.SubOp });
-make_bin_op_parser('ProductNode', { '*': AST.MultOp, '/': AST.DivideOp });
+    export function makeBinOp(op: string, rs: AST.Visitable) {
+        return new ({
+            '+': AST.AddOp,
+            '-': AST.SubOp,
+            '/': AST.DivideOp,
+            '*': AST.MultOp
+        }[op])(rs);
+    }
 
-module grammarParserBoolNode {
-    export var isa = 'BoolNode';
-
-    var ops = {
+    const BOOL_OPS = {
         or: AST.OrOp,
         and: AST.AndOp
     };
 
-    export function transform() {
-        let negateFirst = this.initial_not.textValue != "";
-        var rights = this.parts.elements.map((v) => {
-            let not = v.not.textValue != "";
-            return new (ops[v.op.textValue])(not, v.rs.transform());
+    export function makeBoolNode(input: string, start: number, end: number, elements: any[]) {
+        let initialNot = elements[0];
+        let ls = elements[1] as AST.Visitable;
+        let parts = elements[2].elements;
+
+        let negateFirst = initialNot.text != "";
+        var rights = parts.map((v) => {
+            let not = v.not.text != "";
+            return new (BOOL_OPS[v.op.text])(not, v.rs);
         });
 
-        let left = this.ls.transform();
+        let left = ls;
         if (negateFirst) {
-            left = new AST.NotOp(left);
+            left = new AST.NotOp(ls);
         }
 
         return new AST.BinOpNode(left, rights);
     }
-}
-grammar.Parser.BoolNode = grammarParserBoolNode;
 
-module grammarParserParenNode {
-    export var isa = 'ParenNode';
-    export function transform() {
-        return this.ex.transform();
+    export function makeRef(input: string, start: number, end: number, elements: ParserNode<any>[]) {
+        return new AST.Ref(elements[1].text);
     }
-}
-grammar.Parser.ParenNode = grammarParserParenNode;
 
-
-module grammarParserRefNode {
-    export var isa = 'RefNode';
-    export function transform() {
-        return new AST.Ref(this.id.textValue);
+    export function makeBare(input: string, start: number, end: number, elements: AST.Visitable[]) {
+        return new AST.BareWord(input.substring(start, end));
     }
-}
-grammar.Parser.RefNode = grammarParserRefNode;
 
-module grammarParserBareNode {
-    export var isa = 'BareNode';
-    export function transform() {
-        return new AST.BareWord(this.textValue);
-    }
-};
-grammar.Parser.BareNode = grammarParserBareNode;
-
-module grammarParserCompoundNode {
-    export var isa = 'CompoundNode';
-    export function transform() {
+    export function makeCompound(input: string, start: number, end: number, elements: any[]) {
         // line numbering: starts from 1
-        // the first line is from this.ls, second and up are from this.rs
-        var lineNum = 1 + this.blanks.elements.length;
-        var lines: Line[] = this.rs.elements.map((line) => {
-            lineNum += line.blanks.elements.length;
+        // the first line is from ls, second and up are from rs
+        let [firstBlanks, ls, rs] = elements;
+        let lineNum = 1 + firstBlanks.elements.length;
+
+        let lines: Line[] = rs.elements.map((l) => {
+            let {blanks, line} = l;
+            lineNum += blanks.elements.length;
             return new Line(lineNum, line);
         });
-        lines.unshift(new Line(1 + this.blanks.elements.length, this.ls));
+        lines.unshift(new Line(1 + firstBlanks.elements.length, ls));
 
         var collector = new LineCollector(lines, 0, 0);
         return collector.collect();
     }
-}
-grammar.Parser.CompoundNode = grammarParserCompoundNode;
 
-module grammarParserFuncCallNode {
-    export var isa = 'FuncCallNode';
-    export function transform() {
-        var builder = new FuncCallMaker();
+    export function makeFuncArg(input: string, start: number, end: number, elements: any[]) {
+        return elements[1]; // ignore SPACE
+    }
 
-        builder.addPart(this.elements[0].transform());
+    export function makeFuncCall(input: string, start: number, end: number, elements: any[]) {
+        let builder = new FuncCallMaker();
 
-        this.parts.elements.map((v) => {
-            builder.addPart(v.elements[1].transform());
+        let first = elements[0] as AST.Visitable;
+        let parts = elements[1].elements as AST.Visitable[];
+        let colon = elements[2] as any;
+
+        builder.addPart(first);
+        parts.map((e) => {
+            builder.addPart(e);
         });
 
-        var callParts = builder.build();
-        if (this.colon.textValue !== '') {
+        let callParts = builder.build();
+        if (colon.elements.length > 0) {
             return new AST.HangingCall(callParts.name + ' :', callParts.args);
         }
         return new AST.FuncCall(callParts.name, callParts.args);
     }
 }
-grammar.Parser.FuncCallNode = grammarParserFuncCallNode;
-
-
-class SimpleParserNode implements grammar.ParserNode {
-    constructor(public isa: string) { }
-    transform(): any {
-        console.log('throwing transform exception for: ', this);
-        throw new Error("Called transform on a " + this.isa);
-    }
-}
-
-grammar.Parser.LineNode = new SimpleParserNode('LineNode');
-grammar.Parser.Expression = new SimpleParserNode('Expression');
-grammar.Parser.Comment = new SimpleParserNode('Comment');
-grammar.Parser.SPACE = new SimpleParserNode('SPACE');

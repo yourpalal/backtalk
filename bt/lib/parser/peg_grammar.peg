@@ -1,30 +1,29 @@
 grammar BackTalk
-    compound    <-          blanks:(BLANK*) ls:line rs:(blanks:BLANK+ line)* BLANK*  <CompoundNode>
-    line        <-          lead:SPACE? ex:expression SPACE? comment? <LineNode>
-    expression  <-          sum / product / bool_exp / number / bool / string / func_call / paren_expr / ref
+    compound    <-          blanks:(BLANK*) ls:line rs:(blanks:BLANK+ line)* BLANK*  %makeCompound
+    line        <-          lead:SPACE? ex:expression SPACE? comment?
+    expression  <-          sum / product / bool_exp / number / string / func_call / paren_expr / ref
 
-    sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   <SumNode>
+    sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   %makeBinOpNode
 
     prod_quo    <-          product / arith_value
-    product     <-          ls:arith_value parts:(SPACE? op:("*" / "/") SPACE? rs:arith_value)+ <ProductNode>
+    product     <-          ls:arith_value parts:(SPACE? op:("*" / "/") SPACE? rs:arith_value)+ %makeBinOpNode
 
-
-    bool_exp    <-          initial_not:("not" SPACE)? ls:bool_val parts:(SPACE? op:("and" / "or") not:(SPACE "not")? SPACE rs:bool_val)* <BoolNode>
+    bool_exp    <-          initial_not:("not" SPACE)? ls:bool_val parts:(SPACE? op:("and" / "or") not:(SPACE "not")? SPACE rs:bool_val)* %makeBoolNode
     bool_val    <-          bool / ref / paren_expr
 
     arith_value <-          number / ref / paren_expr
-    paren_expr  <-          "(" SPACE? ex:expression SPACE? ")" <ParenNode>
+    paren_expr  <-          "(" SPACE? ex:expression SPACE? ")" %makeParenNode
 
 
-    comment     <-          "--" [^\n]* <Comment>
+    comment     <-          "--" [^\n]*
 
-    func_call   <-          bare parts:(SPACE (ref / bool / bare / sum / product / number / string / paren_expr) )* colon:(SPACE? ":" SPACE?)? <FuncCallNode>
-
-    ref         <-          "$" id:[a-zA-z_]+ <RefNode>
-    bare        <-          !"true" !"false" [a-zA-z]+ <BareNode>
+    func_call   <-          bare func_arg* colon:(SPACE? ":" SPACE?)? %makeFuncCall
+    func_arg    <-          SPACE (ref / bool / bare / sum / product / number / string / paren_expr) %makeFuncArg
+    ref         <-          "$" id:[a-zA-z_]+ %makeRef
+    bare        <-          !"true" !"false" [a-zA-z]+ %makeBare
 
     BLANK       <-          SPACE? "\n"
-    SPACE       <-          [ ]+ <SPACE>
-    string      <-          "\"" [^"]* "\"" <StringLiteral>
-    number      <-          [0-9]+ ("." [0-9]+)? <NumberLiteral>
-    bool        <-          ("true" / "false") <BooleanLiteral>
+    SPACE       <-          [ ]+
+    string      <-          "\"" [^"]* "\"" %makeString
+    number      <-          [0-9]+ ("." [0-9]+)? %makeNumber
+    bool        <-          "true" %makeBool / "false"  %makeBool

@@ -117,7 +117,7 @@ export class BinOpNode extends ASTItem implements Visitable {
 }
 
 export class NotOp extends ASTItem implements Visitable {
-    constructor(public val: BinOp) {
+    constructor(public val: Visitable) {
         super();
     }
 

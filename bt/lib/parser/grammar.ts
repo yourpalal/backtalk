@@ -1,5 +1,4 @@
 import * as AST from "./ast";
-import {MissingBodyError} from "./parser";
 import {ParserNode} from "./peg_grammar";
 
 class FuncCallNameMaker extends AST.BaseVisitor {
@@ -77,6 +76,10 @@ export class Line {
             return this.expression.accept(v);
         }
         return null;
+    }
+
+    static makeEmpty(): Line {
+        return new Line(0, null);
     }
 }
 

@@ -16,16 +16,19 @@ export function parse(source: string, chunkName?: string): AST.Visitable {
     return parser.parse(source, chunkName);
 }
 
-export class ParseError extends BaseError {
-    public inner: any;
+export class LineParseError {
+    constructor(public inner: Error, public line: number) {
+    }
+}
 
-    constructor(err) {
-        super(`ParseError: ${err.message}`);
-        this.inner = err;
+export class ParseError extends BaseError {
+    constructor(public errors: LineParseError[]) {
+        super(`ParseError: on lines ${errors.map(e => e.line).join(", ")}`);
     }
 
     toString() {
-        return this.inner;
+        let messages = this.errors.map(e => `${e.line}: ${e.inner.toString()}`);
+        return `parse errors:\n ${messages.join("\n")}`;
     }
 }
 
@@ -80,14 +83,25 @@ class LineCollector extends AST.BaseVisitor {
 export class Parser {
     parse(source: string, chunkName: string = "unnamed"): AST.Visitable {
         let codeSetter = new CodeSetter(new AST.Code(1, chunkName));
+        let errors: LineParseError[] = [];
+
         let lines = this.split(source)
-            .map((l) => {
-                let line = this.parseLine(l);
+            .map((l, i) => {
+                try {
+                    var line = this.parseLine(l);
+                } catch(e) {
+                    errors.push(new LineParseError(e, i + 1));
+                    return Line.makeEmpty();
+                }
                 line.accept(codeSetter);
                 codeSetter.incrementLine();
                 return line;
             })
             .filter((l) => !l.isEmpty());
+
+        if (errors.length > 0) {
+            throw new ParseError(errors);
+        }
 
         return LineCollector.transform(lines);
     }
@@ -97,12 +111,7 @@ export class Parser {
     }
 
     private parseLine(source: string): Line {
-        try {
-            return grammar.parse<Line|AST.Visitable>(source, {actions: grammarActions}) as Line;
-        } catch (e) {
-            console.log(`failed to parse ...${source}...`);
-            throw new ParseError(e);
-        }
+        return grammar.parse<Line|AST.Visitable>(source, {actions: grammarActions}) as Line;
     }
 }
 

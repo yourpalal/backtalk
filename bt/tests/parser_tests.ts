@@ -3,7 +3,7 @@ import 'should';
 
 import * as BT from '../lib/index';
 import * as AST from '../lib/parser/ast';
-import {MissingBodyError} from '../lib/parser/parser';
+import {MissingBodyError, ParseError} from '../lib/parser/parser';
 
 
 describe("The BackTalker parser", () => {
@@ -51,5 +51,24 @@ describe("The BackTalker parser", () => {
             print 2`);
 
         attempt.should.throw(MissingBodyError);
+    });
+
+    it("can catch multiple syntax errors in the same chunk", () => {
+        try {
+            () => <AST.CompoundExpression>BT.parse(`
+            _GE - ;
+            g-w9
+            `);
+        } catch (e) {
+            e.should.be.instanceOf(ParseError);
+            let pe = e as ParseError;
+            pe.errors.should.have.length(2);
+            pe.errors[0].line.should.eql(2);
+            pe.errors[0].line.should.eql(3);
+        }
+    });
+
+    it("throws ParseError when it can't parse something", () => {
+        (() => BT.parse("gowug987sd0f098")).should.throw(ParseError);
     });
 });

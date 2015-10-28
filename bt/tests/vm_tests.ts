@@ -68,7 +68,7 @@ describe('The BackTalker VM', () => {
 describe('The BackTalker Compiler', () => {
     describe('turns ASTs into instructions', () => {
         it('can compile math', () => {
-            var result = VM.Compiler.compile(BT.parse("3 + 4"));
+            var result = VM.Compiler.compile(BT.parseOrThrow("3 + 4"));
             result.should.eql([
                 new VM.Instructions.Push(3),
                 new VM.Instructions.Push(4),
@@ -76,7 +76,7 @@ describe('The BackTalker Compiler', () => {
                 VM.Instructions.Express
             ]);
 
-            result = VM.Compiler.compile(BT.parse("3 / 4"));
+            result = VM.Compiler.compile(BT.parseOrThrow("3 / 4"));
             result.should.eql([
                 new VM.Instructions.Push(3),
                 new VM.Instructions.Push(4),
@@ -86,7 +86,7 @@ describe('The BackTalker Compiler', () => {
         });
 
         it('can compile func calls', () => {
-            var result = VM.Compiler.compile(BT.parse("spy on $foo $bar 3"));
+            var result = VM.Compiler.compile(BT.parseOrThrow("spy on $foo $bar 3"));
             result.should.eql([
                 new VM.Instructions.GetVivifiable("foo"),
                 new VM.Instructions.GetVivifiable("bar"),
@@ -95,7 +95,7 @@ describe('The BackTalker Compiler', () => {
                 VM.Instructions.Express
             ]);
 
-            result = VM.Compiler.compile(BT.parse("spy on"));
+            result = VM.Compiler.compile(BT.parseOrThrow("spy on"));
             result.should.eql([
                 new VM.Instructions.CallFunc("spy on"),
                 VM.Instructions.Express

@@ -21,7 +21,7 @@ import * as VM from "./vm";
 export function evalBT(source: string | AST.Visitable, scope?: Scope): FuncResult {
     var parsed;
     if (typeof (source) === 'string') {
-        parsed = parser.parse(<string>source, null);
+        parsed = parser.parseOrThrow(<string>source, null);
     } else {
         parsed = source;
     }
@@ -46,7 +46,7 @@ export class Evaluator {
     }
 
     evalString(source: string): FuncResult {
-        return this.eval(parser.parse(source));
+        return this.eval(parser.parseOrThrow(source));
     }
 
     eval(node: AST.Visitable): FuncResult {
@@ -71,7 +71,7 @@ export class Evaluator {
 
     compile(src: string, name: string) {
         name =  '/' + name;
-        this.compiled[name] = VM.Compiler.compile(parser.parse(src, name));
+        this.compiled[name] = VM.Compiler.compile(parser.parseOrThrow(src, name));
     }
 
     hasCompiled(name: string) {

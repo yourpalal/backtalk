@@ -5,7 +5,7 @@ export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";
 export {FuncParams, FuncResult, Immediate} from "./functions";
 
-export {parse, Parser} from "./parser/parser";
+export {parse, parseOrThrow, Parser, ParseError, ParseResult} from "./parser/parser";
 export import AST = require("./parser/ast");
 
 /**

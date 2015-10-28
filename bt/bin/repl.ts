@@ -22,13 +22,13 @@ class REPLParser extends BT.Parser {
         }
     }
 
-    parse(source: string, chunkName: string = "unknown"): BT.AST.Visitable {
-        let ast = super.parse(source, chunkName);
+    parse(source: string, chunkName: string = "unknown"): BT.ParseResult {
+        let result = super.parse(source, chunkName).throwErrors();
 
         if (this.printAst) {
-            console.log(JSON.stringify(ast, REPLParser.json_replacer, 2));
+            console.log(JSON.stringify(result.ast, REPLParser.json_replacer, 2));
         }
-        return ast;
+        return result;
     }
 
     static json_replacer(k: string, v: any) {
@@ -51,7 +51,7 @@ class REPLShell extends Shell {
 
     eval(source: string) {
         try {
-            let ast = this.repl.parser.parse(source);
+            let {ast} = this.repl.parser.parse(source);
 
             this.waiting = true;
             Promise.resolve(this.evaluator.eval(ast)).then((val) => {

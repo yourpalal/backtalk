@@ -21,22 +21,22 @@ describe('BackTalker function calls', () => {
     });
 
     describe("are comprised of bare words and expressions", () => {
-        BT.parse("like this");
+        BT.parseOrThrow("like this");
 
         it("which can include number literals as parameters", () => {
-            BT.parse("like this 1");
+            BT.parseOrThrow("like this 1");
         });
 
         it("which can include strings literals as parameters", () => {
-            BT.parse('this is like "great"');
+            BT.parseOrThrow('this is like "great"');
         });
 
         it("which can include parenthesized function calls as parameters", () => {
-            BT.parse("I love this (not)");
+            BT.parseOrThrow("I love this (not)");
         });
 
         it("which can include parenthesized math as parameters", () => {
-            BT.parse("wow (3 + 3)");
+            BT.parseOrThrow("wow (3 + 3)");
         });
     });
 

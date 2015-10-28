@@ -23,7 +23,7 @@ describe('The BackTalker InteractiveEvaluator', () => {
             spy on "3"`;
 
         let compiler = new SourceInfoCompiler();
-        BT.parse(code).accept(compiler);
+        BT.parseOrThrow(code).accept(compiler);
 
         compiler.ranges.map((range) => range.count)
             .reduce((a, b) => a + b)
@@ -37,7 +37,7 @@ describe('The BackTalker InteractiveEvaluator', () => {
 
         var lineSpy = sinon.spy((line: number) => line);
         evaluator.on('line-changed', lineSpy);
-        evaluator.eval(BT.parse(code)).then(() => {
+        evaluator.eval(BT.parseOrThrow(code)).then(() => {
             lineSpy.called.should.be.ok;
             lineSpy.firstCall.args[0].lineNumber.should.equal(1);
             lineSpy.firstCall.calledBefore(spyFunc.firstCall).should.be.ok;
@@ -61,7 +61,7 @@ describe('The BackTalker InteractiveEvaluator', () => {
 
         var lineSpy = sinon.spy((line: number) => line);
         evaluator.on('line-changed', lineSpy);
-        evaluator.eval(BT.parse(code)).then(() => {
+        evaluator.eval(BT.parseOrThrow(code)).then(() => {
             lineSpy.called.should.be.ok;
             lineSpy.firstCall.args[0].lineNumber.should.equal(1);
             lineSpy.firstCall.calledBefore(spyFunc.firstCall).should.be.ok;
@@ -83,7 +83,7 @@ describe('The BackTalker InteractiveEvaluator', () => {
             spy async on "2"
             spy async on "3"`;
 
-        let ast = BT.parse(source);
+        let ast = BT.parseOrThrow(source);
         evaluator.breakpoints.add(new BT.AST.Code(2, ast.code.chunk));
 
         let lineSpy = sinon.spy((line: number) => line);
@@ -108,7 +108,7 @@ describe('The BackTalker InteractiveEvaluator', () => {
             spy on "2"
             spy on "3"`;
 
-        let ast = BT.parse(source);
+        let ast = BT.parseOrThrow(source);
         evaluator.breakpoints.add(new BT.AST.Code(2, ast.code.chunk));
 
         let lineSpy = sinon.spy((line: number) => line);

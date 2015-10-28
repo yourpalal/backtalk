@@ -11,9 +11,13 @@ var parser: Parser = null;
  * @param [inspector] - optional function which is called with the raw Canopy AST
  * before it's turned into a backtalk AST.
  */
-export function parse(source: string, chunkName?: string): AST.Visitable {
+export function parse(source: string, chunkName?: string): ParseResult {
     parser = parser || new Parser();
     return parser.parse(source, chunkName);
+}
+
+export function parseOrThrow(source: string, chunkName?: string): AST.CompoundExpression {
+    return parse(source, chunkName).throwErrors().ast;
 }
 
 export class LineParseError {
@@ -80,8 +84,22 @@ class LineCollector extends AST.BaseVisitor {
     }
 }
 
+
+export class ParseResult {
+    constructor(public ast: AST.CompoundExpression, public errors: LineParseError[]) {
+    }
+
+    throwErrors(): ParseResult {
+        if (this.errors && this.errors.length  > 0) {
+            throw new ParseError(this.errors);
+        }
+        return this;
+    }
+}
+
+
 export class Parser {
-    parse(source: string, chunkName: string = "unnamed"): AST.Visitable {
+    parse(source: string, chunkName: string = "unnamed"): ParseResult {
         let codeSetter = new CodeSetter(new AST.Code(1, chunkName));
         let errors: LineParseError[] = [];
 
@@ -91,7 +109,7 @@ export class Parser {
                     var line = this.parseLine(l);
                 } catch(e) {
                     errors.push(new LineParseError(e, i + 1));
-                    return Line.makeEmpty();
+                    return Line.makeError();
                 }
                 line.accept(codeSetter);
                 codeSetter.incrementLine();
@@ -99,11 +117,7 @@ export class Parser {
             })
             .filter((l) => !l.isEmpty());
 
-        if (errors.length > 0) {
-            throw new ParseError(errors);
-        }
-
-        return LineCollector.transform(lines);
+        return new ParseResult(LineCollector.transform(lines), errors);
     }
 
     private split(source: string): string[] {

@@ -78,8 +78,8 @@ export class Line {
         return null;
     }
 
-    static makeEmpty(): Line {
-        return new Line(0, null);
+    static makeError(): Line {
+        return new Line(0, new AST.SyntaxError());
     }
 }
 

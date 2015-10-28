@@ -20,6 +20,7 @@ export interface Visitor {
     visitBareWord(v: BareWord, ...args: any[]): any;
     visitUnaryMinus(v: UnaryMinus, ...args: any[]): any;
     visitRef(v: Ref, ...args: any[]): any;
+    visitSyntaxError(v: SyntaxError, ...args: any[]): any;
     visitCompoundExpression(v: CompoundExpression, ...args: any[]): any;
     visitFuncArg(v: FuncArg, ...args: any[]): any;
     visitHangingCall(v: HangingCall, ...args: any[]): any;
@@ -40,6 +41,7 @@ export class BaseVisitor implements Visitor {
     visitUnaryMinus(v: UnaryMinus, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitRef(v: Ref, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitFuncArg(v: FuncArg, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+    visitSyntaxError(v: SyntaxError, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitCompoundExpression(v: CompoundExpression, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitHangingCall(v: HangingCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitFuncCall(v: FuncCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
@@ -159,6 +161,16 @@ export class UnaryMinus extends ASTItem implements Visitable {
     }
 }
 
+export class SyntaxError extends ASTItem implements Visitable {
+    constructor() { super(); }
+    accept(visitor: Visitor, ...args: any[]): any {
+        return visitor.visitSyntaxError.apply(visitor, [this].concat(args));
+    }
+
+    acceptForChildren(visitor: Visitor, ...args: any[]): any {
+        return undefined;
+    }
+}
 export class Ref extends ASTItem implements Visitable {
     constructor(public name: any) { super(); }
     accept(visitor: Visitor, ...args: any[]): any {

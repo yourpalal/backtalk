@@ -108,6 +108,9 @@ export class Parser {
                 try {
                     var line = this.parseLine(l);
                 } catch(e) {
+                    if (!(e instanceof SyntaxError)) {
+                        throw e;
+                    }
                     errors.push(new LineParseError(e, i + 1));
                     return Line.makeError();
                 }

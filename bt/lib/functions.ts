@@ -1,4 +1,4 @@
-import {BadTypeError, BaseError} from './errors';
+import {BadTypeError, BaseError, MissingValueError} from './errors';
 import {Visitable as ASTVisitable} from './parser/ast';
 
 export class FuncParams {
@@ -61,6 +61,17 @@ export class FuncParams {
     getString(name: string): string {
         if (!this.hasString(name)) {
             throw new BadTypeError(this.named[name], 'string');
+        }
+        return this.named[name];
+    }
+
+    hasObject(name: string): boolean {
+        return this.has(name) && (this.named[name] !== null) && (this.named[name] !== undefined);
+    }
+
+    getObject(name: string): string {
+        if (!this.hasObject(name)) {
+            throw new MissingValueError(this.named[name]);
         }
         return this.named[name];
     }

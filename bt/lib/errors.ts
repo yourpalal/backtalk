@@ -18,3 +18,15 @@ export class BadTypeError extends BaseError {
         super(`Expected type of ${expected}, but got ${typeof value}, ${value} instead`);
     }
 }
+
+export class MissingValueError extends BaseError {
+    constructor(public value: any) {
+        super(`Expected value, but found ${value}`);
+    }
+}
+
+export class MissingPropertyError extends BaseError {
+    constructor(obj: any, public name: string) {
+        super(`property ${name} does not exist on ${obj}`);
+    }
+}

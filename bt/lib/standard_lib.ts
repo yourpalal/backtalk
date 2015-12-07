@@ -1,5 +1,6 @@
 import {Evaluator} from "./evaluator";
 import {FuncParams, Immediate} from "./functions";
+import * as secure from "./secure";
 import {Expresser, StackExpresser, StateMachineExpresser} from "./expressers";
 
 export interface StdEnv {
@@ -86,6 +87,15 @@ var funcs = [
         impl: function(args: FuncParams, self: Evaluator) {
             var count = args.getNumber("count");
             return args.named.list[count - 1];
+        }
+    },
+    { // property accessor
+        patterns: ['property $:name of $:obj'],
+        impl: function(args: FuncParams, self: Evaluator) {
+            var name = args.getString("name");
+            var obj = args.getObject("obj");
+
+            return secure.getProperty(obj, name);
         }
     },
     { // printer

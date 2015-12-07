@@ -1,9 +1,11 @@
 export {Evaluator, evalBT as eval} from "./evaluator";
 export {FunctionNameError, Scope} from "./scope";
+export import secure = require("./secure");
 export import StdLib = require("./standard_lib");
 export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";
 export {FuncParams, FuncResult, Immediate} from "./functions";
+
 
 export {parse, parseOrThrow, Parser, ParseError, ParseResult} from "./parser/parser";
 export import AST = require("./parser/ast");

@@ -174,11 +174,17 @@ export module grammarActions {
     export function makeFuncCall(input: string, start: number, end: number, elements: any[]) {
         let builder = new FuncCallMaker();
 
-        let first = elements[0] as AST.Visitable;
+        let first = elements[0];
         let parts = elements[1].elements as AST.Visitable[];
         let colon = elements[2] as any;
 
-        builder.addPart(first);
+        if (first instanceof AST.ASTItem) {
+            builder.addPart(first); // bare word
+        } else {
+            builder.addPart(first.ref);
+            builder.addPart(first.bare); // bare word
+        }
+
         parts.map((e) => {
             builder.addPart(e);
         });

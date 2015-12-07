@@ -1,7 +1,6 @@
 grammar BackTalk
     line        <-          lead:SPACE? ex:expression? SPACE? comment? %makeLine
-    expression  <-          sum / product / bool_exp / number / string / func_call / paren_expr / ref
-
+    expression  <-          func_call / sum / product / bool_exp / number / string / paren_expr
     sum         <-          ls:prod_quo parts:(SPACE? op:("+" / "-") SPACE? rs:prod_quo)+   %makeBinOpNode
 
     prod_quo    <-          product / arith_value
@@ -16,7 +15,7 @@ grammar BackTalk
 
     comment     <-          "--" [^\n]*
 
-    func_call   <-          bare func_arg* colon:(SPACE? ":" SPACE?)? %makeFuncCall
+    func_call   <-          ((ref SPACE bare) / bare) func_arg* colon:(SPACE? ":" SPACE?)? %makeFuncCall
     func_arg    <-          SPACE (ref / bool / bare / sum / product / number / string / paren_expr) %makeFuncArg
     ref         <-          "$" id:[a-zA-z_]+ %makeRef
     bare        <-          !"true" !"false" [a-zA-z]+ %makeBare

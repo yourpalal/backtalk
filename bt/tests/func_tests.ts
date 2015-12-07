@@ -38,6 +38,11 @@ describe('BackTalker function calls', () => {
         it("which can include parenthesized math as parameters", () => {
             BT.parseOrThrow("wow (3 + 3)");
         });
+
+        it("can start with a $ref if the next part is a bare word", () => {
+            scope.addFunc(["$:name is cool"], (args, self) => args.get("name"));
+            evaluator.evalString("with $x as 5\n$x is cool").should.eql(5);
+        });
     });
 
     it("can retrieve arguments by name", () => {

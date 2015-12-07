@@ -7,7 +7,7 @@ grammar BackTalk
     prod_quo    <-          product / arith_value
     product     <-          ls:arith_value parts:(SPACE? op:("*" / "/") SPACE? rs:arith_value)+ %makeBinOpNode
 
-    bool_exp    <-          initial_not:("not" SPACE)? ls:bool_val parts:(SPACE? op:("and" / "or") not:(SPACE "not")? SPACE rs:bool_val)* %makeBoolNode
+    bool_exp    <-          initial_not:("!" SPACE)? ls:bool_val parts:(SPACE? op:("&" / "|") not:(SPACE? "!")? SPACE rs:bool_val)* %makeBoolNode
     bool_val    <-          bool / ref / paren_expr
 
     arith_value <-          number / ref / paren_expr

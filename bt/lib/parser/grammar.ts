@@ -136,8 +136,8 @@ export module grammarActions {
     }
 
     const BOOL_OPS = {
-        or: AST.OrOp,
-        and: AST.AndOp
+        '|': AST.OrOp,
+        '&': AST.AndOp
     };
 
     export function makeBoolNode(input: string, start: number, end: number, elements: any[]) {

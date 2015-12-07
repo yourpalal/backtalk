@@ -7,10 +7,10 @@ import {IllegalPropertyError} from '../lib/secure';
 
 let conditionSrc = `
 when:
-    $x and $y
+    $x & $y
     then:
         1
-    $x or $y
+    $x | $y
     then:
         2
 `;

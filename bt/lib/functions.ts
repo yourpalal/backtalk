@@ -1,6 +1,7 @@
 import {BadTypeError, BaseError, MissingValueError} from './errors';
 import {Visitable as ASTVisitable} from './parser/ast';
 
+
 export class FuncParams {
     named: any;
     body: ASTVisitable = null;

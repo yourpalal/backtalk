@@ -1,10 +1,11 @@
 import {BaseError} from './errors';
 import {FuncDef, FuncDefCollection, FuncParameterizer} from "./funcdefs";
-import {FuncParams, FuncResult} from "./functions";
+import {FuncResult} from "./functions";
 import {Visitable} from './parser/ast';
 import {Trie} from "./trie";
 import {AutoVar, Vivify} from "./vars";
 import {Evaluator} from "./evaluator";
+import {Func, FuncMeta} from "./library";
 
 /** @module scope */
 
@@ -23,15 +24,11 @@ export class FunctionNameError extends BaseError {
     }
 }
 
-export interface Func {
-    (p: FuncParams, e: Evaluator): FuncResult|void;
-}
-
 export class FuncHandle {
     public vivification: Vivify[];
     public parameterize: FuncParameterizer;
 
-    constructor(public name: string, public impl: Func, funcdef: FuncDef) {
+    constructor(public name: string, public impl: Func, funcdef: FuncDef, public meta: FuncMeta) {
         this.vivification = funcdef.vivify;
         this.parameterize = funcdef.makeParameterizer();
     }
@@ -40,7 +37,7 @@ export class FuncHandle {
         args = this.vivifyArgs(args);
         let params = this.parameterize(args);
         params.body = body;
-        return this.impl.call(evaluator, params, evaluator);
+        return this.impl.call(evaluator, params, evaluator, this.meta);
     }
 
     vivifyArgs(args: any[]): any[] {
@@ -142,7 +139,7 @@ export class Scope {
         return func;
     }
 
-    addFunc(patterns: string[], impl: Func) {
+    addFunc(patterns: string[], impl: Func, meta?: FuncMeta) {
         patterns.map((pattern) => {
             var result = FuncDefCollection.fromString(pattern);
 
@@ -150,7 +147,7 @@ export class Scope {
             // that will append the dynamic parts of the pattern as arguments
             result.defs.forEach((funcdef) => {
                 var name = funcdef.tokens.join(" ");
-                this.funcs.put(name, new FuncHandle(name, impl, funcdef));
+                this.funcs.put(name, new FuncHandle(name, impl, funcdef, meta));
             });
         });
     }

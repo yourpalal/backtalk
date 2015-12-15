@@ -5,6 +5,7 @@ export import StdLib = require("./standard_lib");
 export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";
 export {FuncParams, FuncResult, Immediate} from "./functions";
+export {Library} from "./library";
 
 
 export {parse, parseOrThrow, Parser, ParseError, ParseResult} from "./parser/parser";

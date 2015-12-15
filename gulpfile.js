@@ -32,7 +32,7 @@ var project = typescript.createProject({
     module: 'commonjs',
     noEmitOnError: true,
     removeComments: false,
-    declaration: true,
+    declaration: true
 });
 
 var dieAfterFinish = function(message) {

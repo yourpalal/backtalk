@@ -18,6 +18,34 @@ describe('BackTalker function calls', () => {
         scope = evaluator.scope;
     });
 
+    it("can add a reference to a scope", () => {
+        var lib = BT.Library.create()
+            .ref("bar", 3)
+            .done();
+
+        lib.addToScope(scope);
+        scope.get("bar").should.eql(3);
+    });
+
+    it("can add a function to calculate a reference in addToScope", () => {
+        var lib = BT.Library.create()
+            .ref("bar", () => 3)
+            .done();
+
+        lib.addToScope(scope);
+        scope.get("bar").should.eql(3);
+    });
+
+    it("can add a reference via addToScope", () => {
+        var lib = BT.Library.create()
+            .done();
+
+        lib.addToScope(scope, {}, {
+            bar: 3
+        });
+        scope.get("bar").should.eql(3);
+    });
+
     it("can add a function to a scope", () => {
         var lib = BT.Library.create()
             .func("foo", ["foo <bar|baz>:barbaz"])

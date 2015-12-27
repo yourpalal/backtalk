@@ -43,6 +43,10 @@ export class FuncAdder<Parent> {
         return this.parent.func(name, patterns);
     }
 
+    ref(name: string, val: any): LibraryBuilder<Parent> {
+        return this.parent.ref(name, val);
+    };
+
     done(): Parent {
         return this.parent.done();
     }
@@ -71,6 +75,11 @@ export class LibraryBuilder<Parent> {
         };
         return new FuncAdder(this, name, this.library.funcs[name].meta);
     }
+
+    ref(name: string, val: any): this {
+        this.library.refs[name] = val;
+        return  this;
+    }
 }
 
 export class Library {
@@ -88,7 +97,13 @@ export class Library {
         [name: string]: {meta: FuncMeta, impl: Func, patterns: string[]};
     } = {};
 
-    addToScope(scope: Scope, funcImpls: {[name: string]: Func} = {}) {
+    refs: {
+        [name: string]: any
+    } = {};
+
+    addToScope(scope: Scope, funcImpls: {[name: string]: Func} = {},
+        refs: {[name: string]: any} = {}) {
+
         for (var name in this.funcs) {
             if (!this.funcs.hasOwnProperty(name)) { continue; }
 
@@ -97,6 +112,22 @@ export class Library {
 
             if (impl) {
                 scope.addFunc(patterns, impl, meta);
+            }
+        }
+
+        for (name in refs) {
+            if (!refs.hasOwnProperty(name)) { continue; }
+            scope.set(name, refs[name]);
+        }
+
+        for (name in this.refs) {
+            if (!this.refs.hasOwnProperty(name)) { continue; }
+            if (refs.hasOwnProperty(name)) { continue; } // don't override refs arg
+
+            if ((typeof this.refs[name]) == "function") {
+                scope.set(name, this.refs[name]());
+            } else {
+                scope.set(name, this.refs[name]);
             }
         }
     }

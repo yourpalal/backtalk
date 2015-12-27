@@ -3,14 +3,14 @@ import 'should';
 
 import * as BT from '../lib/index';
 import {BaseError} from '../lib/errors';
-import {FuncParams} from '../lib/functions';
+import {CommandParams} from '../lib/commands';
 
 
 class TestError extends BaseError {
 }
 
 
-describe('BackTalker function calls', () => {
+describe('BackTalker Libraries', () => {
     var scope: BT.Scope, evaluator: BT.Evaluator;
 
     beforeEach(() => {
@@ -46,29 +46,29 @@ describe('BackTalker function calls', () => {
         scope.get("bar").should.eql(3);
     });
 
-    it("can add a function to a scope", () => {
+    it("can add a command to a scope", () => {
         var lib = BT.Library.create()
-            .func("foo", ["foo <bar|baz>:barbaz"])
+            .command("foo", ["foo <bar|baz>:barbaz"])
                 .help('Returns either 1 or 2')
-                .impl((args: FuncParams, self: BT.Evaluator) => {
+                .impl((args: CommandParams, self: BT.Evaluator) => {
                     return args.getNumber("barbaz") + 1;
                 })
             .done()
         ;
 
         lib.addToScope(scope);
-        scope.findFunc("foo bar").should.be.ok;
+        scope.findCommand("foo bar").should.be.ok;
         evaluator.evalString("foo bar").should.eql(1);
     });
 
-    it("can add hanging functions to a scope", () => {
+    it("can add hanging commands to a scope", () => {
         BT.Library.create()
-            .func("bar", ["bar:"])
+            .command("bar", ["bar:"])
                 .help("runs the body with the variable $bar")
                 .callsBody(BT.Library.ONCE)
                 .impl(() => "wow")
                 .includes()
-                    .func("foo", ["foo"])
+                    .command("foo", ["foo"])
                     .help("returns 'bar'")
                     .impl(() => "bar")
                 .done()
@@ -76,15 +76,15 @@ describe('BackTalker function calls', () => {
             .addToScope(scope)
         ;
 
-        scope.findFunc("bar :").should.be.ok;
+        scope.findCommand("bar :").should.be.ok;
     });
 
-    it("can set function implementations during addToScope", () => {
+    it("can set command implementations during addToScope", () => {
         BT.Library.create()
-            .func("bar", ["bar"])
+            .command("bar", ["bar"])
                 .impl(() => "wow")
-            .func("baz", ["baz"])
-            .func("boop", ["boop"])
+            .command("baz", ["baz"])
+            .command("boop", ["boop"])
             .done()
             .addToScope(scope, {
                 bar: () => "bar",
@@ -93,17 +93,17 @@ describe('BackTalker function calls', () => {
 
         evaluator.evalString("bar").should.eql("bar");
         evaluator.evalString("baz").should.eql("baz");
-        (scope.findFunc("boop") === null).should.be.ok;
+        (scope.findCommand("boop") === null).should.be.ok;
     });
 
     it("adds metadata to the scope", () => {
         let help = "runs the body with the variable $bar";
         BT.Library.create()
-            .func("bar", ["bar :"])
+            .command("bar", ["bar :"])
                 .help(help)
                 .impl(() => "wow")
             .done()
             .addToScope(scope);
-        scope.findFunc("bar :").meta.help.should.be.exactly(help);
+        scope.findCommand("bar :").meta.help.should.be.exactly(help);
     });
 });

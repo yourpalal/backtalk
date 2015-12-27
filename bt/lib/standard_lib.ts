@@ -1,6 +1,6 @@
 import {Evaluator} from "./evaluator";
-import {FuncParams, Immediate} from "./functions";
-import {Library, FuncMeta} from "./library";
+import {CommandParams, Immediate} from "./commands";
+import {Library, CommandMeta} from "./library";
 import * as secure from "./secure";
 import {StackExpresser} from "./expressers";
 
@@ -15,10 +15,10 @@ export class ConsoleWriter {
 }
 
 export var library = Library.create()
-.func("with_as", ['with $!!:ref as $:val', 'with $!!:ref as:'])
+.command("with_as", ['with $!!:ref as $:val', 'with $!!:ref as:'])
     .help("sets a variable to the given value")
     .callsBody(Library.ONCE)
-    .impl((args: FuncParams, self: Evaluator) => {
+    .impl((args: CommandParams, self: Evaluator) => {
         let val = args.named.val;
 
         if (args.body) {
@@ -31,10 +31,10 @@ export var library = Library.create()
         });
     })
 
-.func("list_of", ['list of:'])
+.command("list_of", ['list of:'])
     .callsBody(Library.ONCE)
     .help("returns a list of the result of each expression in the body")
-    .impl((args: FuncParams, self: Evaluator) => {
+    .impl((args: CommandParams, self: Evaluator) => {
         // StackExpresser calls 'push' on each result
         var list = [];
         self.evalExpressions(args.body, new StackExpresser(list));
@@ -42,32 +42,32 @@ export var library = Library.create()
         return list;
     })
 
-.func("item_of", ['item $:count of $:list'])
+.command("item_of", ['item $:count of $:list'])
     .help("gets an item from the list.")
-    .impl((args: FuncParams, self: Evaluator) => {
+    .impl((args: CommandParams, self: Evaluator) => {
         var count = args.getNumber("count");
         return args.named.list[count - 1];
     })
 
-.func("property_of", ['property $:name of $:obj'])
+.command("property_of", ['property $:name of $:obj'])
     .help("gets a named property of an object")
-    .impl((args: FuncParams, self: Evaluator) => {
+    .impl((args: CommandParams, self: Evaluator) => {
         var name = args.getString("name");
         var obj = args.getObject("obj");
 
         return secure.getProperty(obj, name);
     })
 
-.func("print", ['print $:arg'])
+.command("print", ['print $:arg'])
     .help("prints the provided value")
-    .impl((args: FuncParams, self: Evaluator) => {
+    .impl((args: CommandParams, self: Evaluator) => {
         let env = self.scope.env as StdEnv;
         env.stdout.write(args.named.arg);
 
         return args.named.arg;
     })
 
-.func("if", ['if :'])
+.command("if", ['if :'])
     .callsBody(Library.ONCE)
     .help(`Supports conditional execution. The first case to evaluate
         to true will have its body run.
@@ -83,21 +83,21 @@ export var library = Library.create()
                 print "c"
             `)
     .includes()
-        .func("in case", ["in case $:guard then:"])
+        .command("in case", ["in case $:guard then:"])
             .callsBody(Library.ONCE)
             .help("runs the provided body only if the case matches, and it is the first case to do so.")
-        .func("otherwise", ["otherwise:"])
+        .command("otherwise", ["otherwise:"])
             .callsBody(Library.ONCE)
             .help("runs the provided body only if no cases match")
         .done()
-    .impl((args: FuncParams, self: Evaluator, meta: FuncMeta) => {
+    .impl((args: CommandParams, self: Evaluator, meta: CommandMeta) => {
         let sub = self.makeSub();
         let running = true;
         let result: any = null;
         let otherwise = null;
 
         meta.includes.addToScope(sub.scope, {
-            "in case": (a: FuncParams) => {
+            "in case": (a: CommandParams) => {
                 if (!running) {
                     return false;
                 }
@@ -112,7 +112,7 @@ export var library = Library.create()
                     return result;
                 });
             },
-            "otherwise": (a: FuncParams) => {
+            "otherwise": (a: CommandParams) => {
                 otherwise = a.body;
             }
         });

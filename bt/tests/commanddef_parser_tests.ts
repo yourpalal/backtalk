@@ -4,23 +4,23 @@
 import 'should';
 
 import * as BT from '../lib/index';
-import {IllegalFuncdefError} from '../lib/funcdefs';
-import {FuncParams} from '../lib/functions';
-import {Choice, FuncDefCollection, Seq, SimpleFuncDefPart, parse as parseFD} from '../lib/funcdefs';
+import {IllegalCommandDefError} from '../lib/commanddefs';
+import {CommandParams} from '../lib/commands';
+import {Choice, CommandDefCollection, Seq, SimpleCommandDefPart, parse as parseFD} from '../lib/commanddefs';
 
 
-describe('a funcdef collection', () => {
+describe('a commanddef collection', () => {
     it('can be forked by choices', () => {
-        var funcs = new FuncDefCollection();
+        var commands = new CommandDefCollection();
 
-        funcs = funcs.fork(new Choice("<foo|bar>:foobar"));
-        funcs.should.haveSignatures('foo', 'bar');
+        commands = commands.fork(new Choice("<foo|bar>:foobar"));
+        commands.should.haveSignatures('foo', 'bar');
 
-        funcs = funcs.fork(new Choice("<foo|baz>:foobaz"));
-        funcs.should.haveSignatures('foo foo', 'bar foo', 'foo baz', 'bar baz');
+        commands = commands.fork(new Choice("<foo|baz>:foobaz"));
+        commands.should.haveSignatures('foo foo', 'bar foo', 'foo baz', 'bar baz');
 
-        funcs = funcs.fork(new Choice("<foo bar|baz>:foobarz"));
-        funcs.should.haveSignatures(
+        commands = commands.fork(new Choice("<foo bar|baz>:foobarz"));
+        commands.should.haveSignatures(
             'foo foo foo bar',
             'bar foo foo bar',
             'foo baz foo bar',
@@ -33,19 +33,19 @@ describe('a funcdef collection', () => {
     });
 
     it('can be concatenated with new pieces', () => {
-        var funcs = new FuncDefCollection();
+        var commands = new CommandDefCollection();
 
-        funcs = funcs.concat(SimpleFuncDefPart.makeBare("foo"));
-        funcs.defs.should.have.length(1);
+        commands = commands.concat(SimpleCommandDefPart.makeBare("foo"));
+        commands.defs.should.have.length(1);
 
-        funcs = funcs.concat(SimpleFuncDefPart.makeBare("bar"));
-        funcs.defs.should.have.length(1);
+        commands = commands.concat(SimpleCommandDefPart.makeBare("bar"));
+        commands.defs.should.have.length(1);
 
-        funcs.defs[0].should.haveSignature("foo bar");
+        commands.defs[0].should.haveSignature("foo bar");
     });
 });
 
-describe('a funcdef', () => {
+describe('a commanddef', () => {
     describe('is parsed by a system that', () => {
         it('can recognize barewords like foo', () => {
             var result = parseFD('foo');
@@ -55,7 +55,7 @@ describe('a funcdef', () => {
             result.pieces.should.have.lengthOf(1);
 
             result.pieces[0]
-                .should.be.an.instanceOf(SimpleFuncDefPart)
+                .should.be.an.instanceOf(SimpleCommandDefPart)
                 .with.property('token', 'foo');
         });
 
@@ -67,7 +67,7 @@ describe('a funcdef', () => {
             result.pieces.should.have.lengthOf(1);
 
             result.pieces[0]
-                .should.be.an.instanceOf(SimpleFuncDefPart)
+                .should.be.an.instanceOf(SimpleCommandDefPart)
                 .with.property('token', '$');
 
             result.pieces[0].param.should.beVarParam('foo');
@@ -101,20 +101,20 @@ describe('a funcdef', () => {
     });
 
     it('can contain a single bareword', () => {
-        var result = FuncDefCollection.fromString('wow');
+        var result = CommandDefCollection.fromString('wow');
         result.defs.should.have.lengthOf(1);
         result.defs[0].should.haveSignature('wow');
     });
 
     it('can contain two barewords', () => {
-        var result = FuncDefCollection.fromString('oh no');
+        var result = CommandDefCollection.fromString('oh no');
 
         result.defs.should.have.length(1);
         result.defs[0].should.haveSignature('oh no');
     });
 
     it('can contain variables', () => {
-        var result = FuncDefCollection.fromString('$!');
+        var result = CommandDefCollection.fromString('$!');
         result.defs.should.have.length(1);
 
         result.defs[0].should.haveSignature('$');
@@ -122,7 +122,7 @@ describe('a funcdef', () => {
     });
 
     it('can name variables', () => {
-        var result = FuncDefCollection.fromString('$!:cool');
+        var result = CommandDefCollection.fromString('$!:cool');
         result.defs.should.have.length(1);
 
         var def = result.defs[0];
@@ -132,16 +132,16 @@ describe('a funcdef', () => {
     });
 
     it('can contain simple choices like <foo|bar>', () => {
-        FuncDefCollection.fromString('<foo|bar>').should
+        CommandDefCollection.fromString('<foo|bar>').should
             .haveSignatures('foo', 'bar');
     });
 
     it('cannot contain nested choices like <foo|<baz|bar>>', () => {
-        (() => FuncDefCollection.fromString('<foo|<baz|bar>>')).should.throw(IllegalFuncdefError);
+        (() => CommandDefCollection.fromString('<foo|<baz|bar>>')).should.throw(IllegalCommandDefError);
     });
 
-    it('throws an error on bad funcdefs', () => {
-        (() => FuncDefCollection.fromString(': WOW')).should.throw(IllegalFuncdefError);
+    it('throws an error on bad commanddefs', () => {
+        (() => CommandDefCollection.fromString(': WOW')).should.throw(IllegalCommandDefError);
     });
 
     it('can have multiple named choices like <foo|bar>:foobar <foo|baz>:foobaz', () => {
@@ -160,14 +160,14 @@ describe('a funcdef', () => {
             ['baz']
             );
 
-        var result = FuncDefCollection.fromString('<foo|bar>:foobar <foo|baz>:foobaz');
+        var result = CommandDefCollection.fromString('<foo|bar>:foobar <foo|baz>:foobaz');
         result.should.haveSignatures('foo foo', 'bar foo', 'foo baz', 'bar baz');
         result.defs[0].should.haveChoiceParam(0, 'foobar', 0);
         result.defs[0].should.haveChoiceParam(1, 'foobaz', 0);
     });
 
     it('can name choices like <foo|bar>:foobar', () => {
-        var result = FuncDefCollection.fromString('<foo|bar>:foobar');
+        var result = CommandDefCollection.fromString('<foo|bar>:foobar');
         result.should.haveSignatures('foo', 'bar');
 
         result.defs[0].params.should.have.length(1);
@@ -176,29 +176,29 @@ describe('a funcdef', () => {
     });
 
     it('can contain big choices like <foo faa|bar>', () => {
-        var result = FuncDefCollection.fromString('<foo faa|bar>');
+        var result = CommandDefCollection.fromString('<foo faa|bar>');
         result.should.haveSignatures("foo faa", "bar");
     });
 
     it('can contain $ in choices like <bar|$:barvar>', () => {
-        var result = FuncDefCollection.fromString("foo <bar|$:barvar>");
+        var result = CommandDefCollection.fromString("foo <bar|$:barvar>");
         result.should.haveSignatures('foo bar', 'foo $');
         result.defs[1].should.haveVarParam(0, 'barvar');
 
         // foo bar
-        var params = new FuncParams(["barvalue"], result.defs[0].params);
+        var params = new CommandParams(["barvalue"], result.defs[0].params);
         params.has('barvar').should.not.be.ok;
 
         // foo $:barvar
-        params = new FuncParams(["barvalue"], result.defs[1].params);
+        params = new CommandParams(["barvalue"], result.defs[1].params);
         params.should.have.namedParam('barvar', "barvalue");
     });
 
     it('can finish with a colon to match hanging invocations', () => {
-        FuncDefCollection.fromString('foo :').should.haveSignatures('foo :');
+        CommandDefCollection.fromString('foo :').should.haveSignatures('foo :');
     });
 
     it('can optionally match hanging invocations via <|:>', () => {
-        FuncDefCollection.fromString('foo <|:>').should.haveSignatures('foo', 'foo :');
+        CommandDefCollection.fromString('foo <|:>').should.haveSignatures('foo', 'foo :');
     });
 });

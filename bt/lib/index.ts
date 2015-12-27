@@ -1,10 +1,10 @@
 export {Evaluator, evalBT as eval} from "./evaluator";
-export {FunctionNameError, Scope} from "./scope";
+export {CommandNameError, Scope} from "./scope";
 export import secure = require("./secure");
 export import StdLib = require("./standard_lib");
 export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";
-export {FuncParams, FuncResult, Immediate} from "./functions";
+export {CommandParams, CommandResult, Immediate} from "./commands";
 export {Library} from "./library";
 
 
@@ -17,7 +17,7 @@ export import AST = require("./parser/ast");
  *  for all of backtalk.
  *
  * @borrows evaluator.Evaluator as Evaluator
- * @borrows evaluator.FunctionNameError as FunctionNameError
+ * @borrows evaluator.CommandNameError as CommandNameError
  * @borrows evaluator.evalBT as eval
  * @borrows scope.Scope as Scope
  * @borrows syntax as Syntax

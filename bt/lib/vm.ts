@@ -1,7 +1,7 @@
 import {Evaluator} from "./evaluator";
 export * from "./expressers";
 import {Expresser, ConsoleExpresser} from "./expressers";
-import {FuncResult} from "./functions";
+import {CommandResult} from "./commands";
 import * as AST from "./parser/ast";
 
 
@@ -127,19 +127,19 @@ export module Instructions {
         }
     }
 
-    export class CallFunc {
+    export class CallCommand {
         constructor(private name: string) {
         }
 
         execute(vm: VM, evaluator: Evaluator) {
-            var func = evaluator.scope.findFuncOrThrow(this.name),
+            var func = evaluator.scope.findCommandOrThrow(this.name),
                 args = vm.yoink(func.vivification.length),
                 result = func.call(args, evaluator);
 
-            CallFunc.handleFuncResult(vm, evaluator, result);
+            CallCommand.handleCommandResult(vm, evaluator, result);
         }
 
-        static handleFuncResult(vm: VM, evaluator: Evaluator, result: FuncResult) {
+        static handleCommandResult(vm: VM, evaluator: Evaluator, result: CommandResult) {
             if (result === undefined || result === null || result.then === undefined) {
                 return vm.push(result);
             }
@@ -157,11 +157,11 @@ export module Instructions {
         }
 
         execute(vm: VM, evaluator: Evaluator) {
-            var func = evaluator.scope.findFuncOrThrow(this.name),
+            var func = evaluator.scope.findCommandOrThrow(this.name),
                 args = vm.yoink(func.vivification.length),
                 result = func.call(args, evaluator, this.body);
 
-            CallFunc.handleFuncResult(vm, evaluator, result);
+            CallCommand.handleCommandResult(vm, evaluator, result);
         }
     }
 
@@ -189,7 +189,7 @@ class ArgsCompiler extends AST.BaseVisitor {
 
     visitVisitable(a: AST.Visitable): any { return a.accept(this.compiler); }
 
-    visitFuncArg(node: AST.FuncArg) {
+    visitCommandArg(node: AST.CommandArg) {
         node.body.accept(this);
     }
 
@@ -223,9 +223,9 @@ export class Compiler extends AST.BaseVisitor {
         this.push(new Instructions.CallHanging(node.name, node.body), node.code);
     }
 
-    visitFuncCall(node: AST.FuncCall) {
+    visitCommand(node: AST.CommandCall) {
         node.acceptForChildren(this);
-        this.push(new Instructions.CallFunc(node.name), node.code);
+        this.push(new Instructions.CallCommand(node.name), node.code);
     }
 
     visitBinOpNode(node: AST.BinOpNode) {
@@ -283,7 +283,7 @@ export class Compiler extends AST.BaseVisitor {
         this.push(Instructions.Sub, node.code);
     }
 
-    visitFuncArg(node: AST.FuncArg) {
+    visitCommandArg(node: AST.CommandArg) {
         node.acceptForChildren(this.argsCompiler);
     }
 

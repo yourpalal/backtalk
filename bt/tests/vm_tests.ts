@@ -51,10 +51,10 @@ describe('The BackTalker VM', () => {
             expressed.calledWith(5).should.be.ok;
         }));
 
-    it('can call a function', () => execute(
+    it('can call a command', () => execute(
             new VM.Instructions.Push(3),
             new VM.Instructions.Push(2),
-            new VM.Instructions.CallFunc("spy on $ $"),
+            new VM.Instructions.CallCommand("spy on $ $"),
             VM.Instructions.Express
         ).then(() => {
             expressed.calledOnce.should.be.ok;
@@ -85,19 +85,19 @@ describe('The BackTalker Compiler', () => {
             ]);
         });
 
-        it('can compile func calls', () => {
+        it('can compile command calls', () => {
             var result = VM.Compiler.compile(BT.parseOrThrow("spy on $foo $bar 3"));
             result.should.eql([
                 new VM.Instructions.GetVivifiable("foo"),
                 new VM.Instructions.GetVivifiable("bar"),
                 new VM.Instructions.Push(3),
-                new VM.Instructions.CallFunc("spy on $ $ $"),
+                new VM.Instructions.CallCommand("spy on $ $ $"),
                 VM.Instructions.Express
             ]);
 
             result = VM.Compiler.compile(BT.parseOrThrow("spy on"));
             result.should.eql([
-                new VM.Instructions.CallFunc("spy on"),
+                new VM.Instructions.CallCommand("spy on"),
                 VM.Instructions.Express
             ]);
         });

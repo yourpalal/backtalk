@@ -100,13 +100,13 @@ class REPL {
     }
 
     init_scope() {
-        this.scope.addFunc(['q'], () => {
+        this.scope.addCommand(['q'], () => {
             console.log('goodbye!');
             this.rl.close();
             process.exit();
         });
 
-        this.scope.addFunc(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args) => {
+        this.scope.addCommand(["repl <debug|stop debug|no debug>:on <ast|parse>:what"], (args) => {
             let on = args.choose('on', [true, false, false]);
             if (args.named['what'] == 0) {
                 this.parser.printAst = on;
@@ -115,11 +115,11 @@ class REPL {
             }
         });
 
-        this.scope.addFunc(["repl ls", "help"], (args) => {
-            this.scope.funcs.each((k, v) => console.log(k));
+        this.scope.addCommand(["repl ls", "help"], (args) => {
+            this.scope.commands.each((k, v) => console.log(k));
         });
 
-        this.scope.addFunc(["repl scope"], (args) => {
+        this.scope.addCommand(["repl scope"], (args) => {
             console.log(this.scope.names);
         });
     }

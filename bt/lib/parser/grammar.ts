@@ -1,17 +1,17 @@
 import * as AST from "./ast";
 import {ParserNode} from "./peg_grammar";
 
-class FuncCallNameMaker extends AST.BaseVisitor {
+class CommandNameMaker extends AST.BaseVisitor {
     visitBareWord(bare: AST.BareWord) { return bare.bare; }
     visitExpression() { return "$"; }
     visitRef() { return "$"; }
     visitLiteral() { return "$"; }
-    visitFuncCall() { return "$"; }
+    visitCommand() { return "$"; }
     visitHangingCall() { return "$"; }
     visitBinOpNode() { return "$"; }
 }
 
-class FuncCallMaker {
+class CommandCallMaker {
     public parts: AST.Visitable[];
 
     constructor() {
@@ -22,11 +22,11 @@ class FuncCallMaker {
         this.parts.push(part);
     }
 
-    build(): { name: string; args: AST.FuncArg[] } {
-        var args: AST.FuncArg[] = [],
+    build(): { name: string; args: AST.CommandArg[] } {
+        var args: AST.CommandArg[] = [],
             name = this.parts.map((p) => {
-                var result = <string>p.accept(new FuncCallNameMaker());
-                if (result === "$") { args.push(new AST.FuncArg(p)); }
+                var result = <string>p.accept(new CommandNameMaker());
+                if (result === "$") { args.push(new AST.CommandArg(p)); }
                 return result;
             }).join(" ");
         return { name: name, args: args };
@@ -47,15 +47,15 @@ class FuncCallMaker {
 // will go from
 // CompoundExpression
 //   HangingCall
-//   FuncCall
-//   FuncCall
+//   CommandCall
+//   CommandCall
 //
 // to
 // CompoundExpression
 //   HangingCall
 //     CompoundExpression
-//       FuncCall
-//       FuncCall
+//       CommandCall
+//       CommandCall
 //
 // LineCollector works by going through the lines of a compound expression
 // using the visitor pattern to recognize hanging calls. If a hanging call
@@ -167,12 +167,12 @@ export module grammarActions {
         return new AST.BareWord(input.substring(start, end));
     }
 
-    export function makeFuncArg(input: string, start: number, end: number, elements: any[]) {
+    export function makeCommandArg(input: string, start: number, end: number, elements: any[]) {
         return elements[1]; // ignore SPACE
     }
 
-    export function makeFuncCall(input: string, start: number, end: number, elements: any[]) {
-        let builder = new FuncCallMaker();
+    export function makeCommandCall(input: string, start: number, end: number, elements: any[]) {
+        let builder = new CommandCallMaker();
 
         let first = elements[0];
         let parts = elements[1].elements as AST.Visitable[];
@@ -193,6 +193,6 @@ export module grammarActions {
         if (colon.elements.length > 0) {
             return new AST.HangingCall(callParts.name + ' :', callParts.args);
         }
-        return new AST.FuncCall(callParts.name, callParts.args);
+        return new AST.CommandCall(callParts.name, callParts.args);
     }
 }

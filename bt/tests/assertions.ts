@@ -1,18 +1,18 @@
 /// <reference path="../typings/tsd.d.ts" />
 import * as should from 'should';
 
-import {FuncParam, FuncParams} from '../lib/functions';
-import {FuncDef, Choice} from '../lib/funcdefs';
+import {CommandParam, CommandParams} from '../lib/commands';
+import {CommandDef, Choice} from '../lib/commanddefs';
 
 
 should.Assertion.add('haveChoiceParam', function(i: number, name: string, value: number) {
     this.params = {
-        operator: 'have the FuncParam',
+        operator: 'have the CommandParam',
         expected: name,
         showDiff: false
     };
 
-    this.obj.should.be.an.instanceOf(FuncDef);
+    this.obj.should.be.an.instanceOf(CommandDef);
     this.obj.params[i].name.should.equal(name);
     this.obj.params[i].fromVar.should.not.be.ok;
     this.obj.params[i].value.should.equal(value);
@@ -21,13 +21,13 @@ should.Assertion.add('haveChoiceParam', function(i: number, name: string, value:
 
 should.Assertion.add('beVarParam', function(name: string) {
     this.params = {
-        operator: 'be the FuncParam',
+        operator: 'be the CommandParam',
         expected: { name: name, fromVar: true },
         actual: this.obj,
         showDiff: true,
     };
 
-    this.is.an.instanceOf(FuncParam);
+    this.is.an.instanceOf(CommandParam);
     let obj = this.obj;
     obj.should.have.property('name', name);
     obj.should.have.property('fromVar', true);
@@ -35,12 +35,12 @@ should.Assertion.add('beVarParam', function(name: string) {
 
 should.Assertion.add('haveVarParam', function(i: number, name: string) {
     this.params = {
-        operator: 'have the FuncParam',
+        operator: 'have the CommandParam',
         expected: name,
         showDiff: false
     };
 
-    this.obj.should.be.an.instanceOf(FuncDef);
+    this.obj.should.be.an.instanceOf(CommandDef);
     this.obj.params[i].should.beVarParam(name);
 });
 
@@ -94,6 +94,6 @@ should.Assertion.add('namedParam', function(name: string, value: any) {
         expected: 'name -> ' + value
     };
 
-    this.be.instanceOf(FuncParams);
+    this.be.instanceOf(CommandParams);
     this.obj.named.should.have.property(name, value);
 });

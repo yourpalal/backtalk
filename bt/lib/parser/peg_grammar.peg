@@ -15,8 +15,8 @@ grammar BackTalk
 
     comment     <-          "--" [^\n]*
 
-    func_call   <-          ((ref SPACE bare) / bare) func_arg* colon:(SPACE? ":" SPACE?)? %makeFuncCall
-    func_arg    <-          SPACE (ref / bool / bare / sum / product / number / string / paren_expr) %makeFuncArg
+    func_call   <-          ((ref SPACE bare) / bare) func_arg* colon:(SPACE? ":" SPACE?)? %makeCommandCall
+    func_arg    <-          SPACE (ref / bool / bare / sum / product / number / string / paren_expr) %makeCommandArg
     ref         <-          "$" id:[a-zA-z_]+ %makeRef
     bare        <-          !"true" !"false" [a-zA-z]+ %makeBare
 

@@ -53,7 +53,7 @@ describe('When doing boolean arithmetic', () => {
         btEval('(true & false) | (true & true)').should.equal(true);
     });
 
-    it('can be used as an argument to a func, but only in parens', () => {
+    it('can be used as an argument to a command, but only in parens', () => {
         btEval('print (true &! false)');
         (() => btEval('print true &! false')).should.throw();
     });

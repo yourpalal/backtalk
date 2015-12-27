@@ -4,7 +4,7 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/index';
 import {BaseError} from '../lib/errors';
-import {FuncParams, Immediate} from '../lib/functions';
+import {CommandParams, Immediate} from '../lib/commands';
 import {addSpyToScope} from './util';
 
 
@@ -12,7 +12,7 @@ class TestError extends BaseError {
 }
 
 
-describe('BackTalker function calls', () => {
+describe('BackTalker commands', () => {
     var scope: BT.Scope, evaluator: BT.Evaluator;
 
     beforeEach(() => {
@@ -31,7 +31,7 @@ describe('BackTalker function calls', () => {
             BT.parseOrThrow('this is like "great"');
         });
 
-        it("which can include parenthesized function calls as parameters", () => {
+        it("which can include parenthesized commands as parameters", () => {
             BT.parseOrThrow("I love this (not)");
         });
 
@@ -40,14 +40,14 @@ describe('BackTalker function calls', () => {
         });
 
         it("can start with a $ref if the next part is a bare word", () => {
-            scope.addFunc(["$:name is cool"], (args, self) => args.get("name"));
+            scope.addCommand(["$:name is cool"], (args, self) => args.get("name"));
             evaluator.evalString("with $x as 5\n$x is cool").should.eql(5);
         });
     });
 
     it("can retrieve arguments by name", () => {
         var spyFunc = addSpyToScope(scope);
-        var result = evaluator.evalString("spy on 3 4") as FuncParams;
+        var result = evaluator.evalString("spy on 3 4") as CommandParams;
         result.named.should.have.property("a", 3);
         result.named.should.have.property("b", 4);
         spyFunc.calledOnce.should.be.ok;
@@ -59,14 +59,14 @@ describe('BackTalker function calls', () => {
         evaluator.evalString("spy").should.not.be.ok;
     });
 
-    it("can call a function with no arguments", () => {
+    it("can call a command with no arguments", () => {
         var func = addSpyToScope(scope, (a) => "cool");
 
         evaluator.evalString("spy").should.equal("cool");
         func.calledOnce.should.be.ok;
     });
 
-    it("can call a function with arguments", () => {
+    it("can call a command with arguments", () => {
         var func = addSpyToScope(scope, (a) => a.passed[0]);
 
         scope.set("cake", "yum!");
@@ -74,7 +74,7 @@ describe('BackTalker function calls', () => {
         func.calledOnce.should.be.ok;
     });
 
-    it("can call a function compoundly", () => {
+    it("can call a command compoundly", () => {
         var func = addSpyToScope(scope, (a) => a.passed[0]);
         scope.set("cake", "yum!");
         evaluator.evalString("spy on $cake\nspy on $cake").should.equal("yum!");
@@ -83,7 +83,7 @@ describe('BackTalker function calls', () => {
 
     it("can name choices and find which was used", () => {
         var func = sinon.spy((a) => a.named.target);
-        scope.addFunc(["bake <cake|pie>:target"], func);
+        scope.addCommand(["bake <cake|pie>:target"], func);
 
         evaluator.evalString("bake cake").should.equal(0);
         evaluator.evalString("bake pie").should.equal(1);
@@ -93,14 +93,14 @@ describe('BackTalker function calls', () => {
 
     describe("can save you typing with patterns", () => {
         it("can allow choices of barewords like <foo|bar>", () => {
-            scope.addFunc(["bake <cake|pie> $"], (a) => a.passed[0]);
+            scope.addCommand(["bake <cake|pie> $"], (a) => a.passed[0]);
 
             evaluator.evalString('bake cake "?"').should.equal("?");
             evaluator.evalString('bake pie "?"').should.equal("?");
         });
 
         it("can allow spaces in <|> like <foo or|foo and>", () => {
-            scope.addFunc(["bake <cake and|pie or > $"], (a) => a.passed[0]);
+            scope.addCommand(["bake <cake and|pie or > $"], (a) => a.passed[0]);
 
             evaluator.evalString('bake cake and "pie"').should.equal("pie");
             evaluator.evalString('bake pie or "cake"').should.equal("cake");
@@ -114,7 +114,7 @@ describe('BackTalker function calls', () => {
 
     it('can allow for auto-vivified variables', () => {
         var func = sinon.spy((args) => args.passed[0]);
-        scope.addFunc(["on the planet $!"], func);
+        scope.addCommand(["on the planet $!"], func);
 
         var result = evaluator.evalString("on the planet $earth") as BT.AutoVar;
         result.should.be.instanceOf(BT.AutoVar);
@@ -126,7 +126,7 @@ describe('BackTalker function calls', () => {
     });
 
     it('can disallow autovivification', () => {
-        scope.addFunc(["no"], () => false);
+        scope.addCommand(["no"], () => false);
         should.throws(() => {
             evaluator.evalString('no $vivification');
         }, Error);
@@ -135,8 +135,8 @@ describe('BackTalker function calls', () => {
     it('can allow for hanging calls by ending with :', () => {
         let hangingSpy = sinon.spy((args) => "hanging");
         let noHangingSpy = sinon.spy((args) => "simple");
-        scope.addFunc(["test func :"], hangingSpy);
-        scope.addFunc(["test func"], noHangingSpy);
+        scope.addCommand(["test func :"], hangingSpy);
+        scope.addCommand(["test func"], noHangingSpy);
 
         evaluator.evalString("test func").should.equal("simple");
         evaluator.evalString("test func:\n   5").should.equal("hanging");
@@ -145,7 +145,7 @@ describe('BackTalker function calls', () => {
     it('can tell if it is making a block by checking args.body', () => {
         var body = false;
 
-        scope.addFunc(["cool <|:>"], (args, self: BT.Evaluator) => {
+        scope.addCommand(["cool <|:>"], (args, self: BT.Evaluator) => {
             body = args.body !== null;
             if (body) {
                 return self.makeSub().eval(args.body);
@@ -173,14 +173,14 @@ describe('BackTalker function calls', () => {
                 planet = args.passed[0];
                 bodySyntax = args.body;
 
-                self.scope.addFunc(["I jump"], () => "jumped");
+                self.scope.addCommand(["I jump"], () => "jumped");
                 let subEval = self.makeSub();
                 let result = subEval.eval(args.body);
                 gravity = subEval.scope.get('gravity');
                 return result;
             });
 
-        scope.addFunc(["on the planet $ :"], func);
+        scope.addCommand(["on the planet $ :"], func);
 
         var code = ['on the planet "sarkon":',
             '   with $gravity as 3 -- m/s/s',
@@ -196,14 +196,14 @@ describe('BackTalker function calls', () => {
         bodySyntax.should.be.an.instanceOf(BT.AST.CompoundExpression);
     });
 
-    it('can communicate with other functions by modifying scope.env', () => {
-        scope.addFunc(["set the secret"], (args, self) => self.scope.env['secret'] = "wow");
-        scope.addFunc(["get the secret"], (args, self) => self.scope.env['secret']);
+    it('can communicate with other commands by modifying scope.env', () => {
+        scope.addCommand(["set the secret"], (args, self) => self.scope.env['secret'] = "wow");
+        scope.addCommand(["get the secret"], (args, self) => self.scope.env['secret']);
 
         evaluator.evalString("set the secret\nget the secret").should.eql("wow");
     });
 
-    it('can call void functions without hanging', (done) => {
+    it('can call void commands without hanging', (done) => {
         addSpyToScope(scope, () => undefined);
         Immediate.resolve(evaluator.evalString("spy on 3 4")).then(() => {
             done();

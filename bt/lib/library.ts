@@ -1,19 +1,19 @@
 import {Scope} from './scope';
-import {FuncParams, FuncResult} from './functions';
+import {CommandParams, CommandResult} from './commands';
 import {Evaluator} from './evaluator';
 
 
-export interface Func {
-    (p: FuncParams, e: Evaluator, d: FuncMeta): FuncResult|void;
+export interface Command {
+    (p: CommandParams, e: Evaluator, d: CommandMeta): CommandResult|void;
 }
 
 
-export class FuncAdder<Parent> {
+export class CommandAdder<Parent> {
     public library: Library;
 
     constructor(private parent: LibraryBuilder<Parent>,
         private name: string,
-        private meta: FuncMeta) {
+        private meta: CommandMeta) {
 
         this.library = parent.library;
     }
@@ -23,12 +23,12 @@ export class FuncAdder<Parent> {
         return this;
     }
 
-    impl(val: Func): this {
+    impl(val: Command): this {
         this.library.funcs[this.name].impl = val;
         return this;
     }
 
-    callsBody(usage: FuncBodyUsage): this {
+    callsBody(usage: CommandBodyUsage): this {
         this.meta.callsBody = usage;
         return this;
     }
@@ -39,8 +39,8 @@ export class FuncAdder<Parent> {
 
     // these methods really act on the LibraryBuilder, but
     // it is annoying to call .parent.func or .parent.done
-    func(name: string, patterns: string[]): FuncAdder<Parent> {
-        return this.parent.func(name, patterns);
+    command(name: string, patterns: string[]): CommandAdder<Parent> {
+        return this.parent.command(name, patterns);
     }
 
     ref(name: string, val: any): LibraryBuilder<Parent> {
@@ -52,7 +52,7 @@ export class FuncAdder<Parent> {
     }
 }
 
-export enum FuncBodyUsage {
+export enum CommandBodyUsage {
     ONCE,
     REPEATEDLY,
     LATER
@@ -67,13 +67,13 @@ export class LibraryBuilder<Parent> {
         return this.parent;
     }
 
-    func(name: string, patterns: string[]): FuncAdder<Parent> {
+    command(name: string, patterns: string[]): CommandAdder<Parent> {
         this.library.funcs[name] = {
-            meta: new FuncMeta(),
+            meta: new CommandMeta(),
             impl: null,
             patterns: patterns
         };
-        return new FuncAdder(this, name, this.library.funcs[name].meta);
+        return new CommandAdder(this, name, this.library.funcs[name].meta);
     }
 
     ref(name: string, val: any): this {
@@ -84,9 +84,9 @@ export class LibraryBuilder<Parent> {
 
 export class Library {
     // export these for convenience
-    static ONCE = FuncBodyUsage.ONCE;
-    static REPEATEDLY = FuncBodyUsage.REPEATEDLY;
-    static LATER = FuncBodyUsage.LATER;
+    static ONCE = CommandBodyUsage.ONCE;
+    static REPEATEDLY = CommandBodyUsage.REPEATEDLY;
+    static LATER = CommandBodyUsage.LATER;
 
     static create(): LibraryBuilder<Library> {
         var lib = new Library();
@@ -94,14 +94,14 @@ export class Library {
     }
 
     funcs: {
-        [name: string]: {meta: FuncMeta, impl: Func, patterns: string[]};
+        [name: string]: {meta: CommandMeta, impl: Command, patterns: string[]};
     } = {};
 
     refs: {
         [name: string]: any
     } = {};
 
-    addToScope(scope: Scope, funcImpls: {[name: string]: Func} = {},
+    addToScope(scope: Scope, funcImpls: {[name: string]: Command} = {},
         refs: {[name: string]: any} = {}) {
 
         for (var name in this.funcs) {
@@ -111,7 +111,7 @@ export class Library {
             impl = funcImpls[name] || impl;
 
             if (impl) {
-                scope.addFunc(patterns, impl, meta);
+                scope.addCommand(patterns, impl, meta);
             }
         }
 
@@ -138,8 +138,8 @@ export class RefDoc {
     }
 }
 
-export class FuncMeta {
-    callsBody: FuncBodyUsage;
+export class CommandMeta {
+    callsBody: CommandBodyUsage;
     help: string;
 
     includes: Library = new Library();

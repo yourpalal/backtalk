@@ -25,7 +25,7 @@ Drawing.Context = function() {
 
 
 Drawing.makeObjectContext = function(object, scope) {
-    scope.addFunc(['a <bit|pixel>:which <left of|right of|above|below>:direction center',
+    scope.addCommand(['a <bit|pixel>:which <left of|right of|above|below>:direction center',
                    'at $:count <pixel|pixels> <left of|right of|above|below>:direction center'],
         function(args) {
             var count = args.choose("which", [5, 1], args.get("count"));

@@ -22,9 +22,9 @@ export interface Visitor {
     visitRef(v: Ref, ...args: any[]): any;
     visitSyntaxError(v: SyntaxError, ...args: any[]): any;
     visitCompoundExpression(v: CompoundExpression, ...args: any[]): any;
-    visitFuncArg(v: FuncArg, ...args: any[]): any;
+    visitCommandArg(v: CommandArg, ...args: any[]): any;
     visitHangingCall(v: HangingCall, ...args: any[]): any;
-    visitFuncCall(v: FuncCall, ...args: any[]): any;
+    visitCommand(v: CommandCall, ...args: any[]): any;
 }
 
 export class BaseVisitor implements Visitor {
@@ -40,11 +40,11 @@ export class BaseVisitor implements Visitor {
     visitBareWord(v: BareWord, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitUnaryMinus(v: UnaryMinus, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitRef(v: Ref, ...args: any[]): any { return this.visitVisitable(v, ...args); }
-    visitFuncArg(v: FuncArg, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+    visitCommandArg(v: CommandArg, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitSyntaxError(v: SyntaxError, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitCompoundExpression(v: CompoundExpression, ...args: any[]): any { return this.visitVisitable(v, ...args); }
     visitHangingCall(v: HangingCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
-    visitFuncCall(v: FuncCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
+    visitCommand(v: CommandCall, ...args: any[]): any { return this.visitVisitable(v, ...args); }
 
     protected visitVisitable(v: Visitable, ...args: any[]): any {
         throw new Error(`visit ${v.constructor['name']} not implemented`);
@@ -195,11 +195,11 @@ export class CompoundExpression extends ASTItem implements Visitable {
     }
 }
 
-export class FuncArg extends ASTItem implements Visitable {
+export class CommandArg extends ASTItem implements Visitable {
     constructor(public body: Visitable) { super(); }
 
     accept(visitor: Visitor, ...args: any[]): any {
-        return visitor.visitFuncArg.apply(visitor, [this].concat(args));
+        return visitor.visitCommandArg.apply(visitor, [this].concat(args));
     }
 
     acceptForChildren(v: Visitor, ...args: any[]): any {
@@ -210,7 +210,7 @@ export class FuncArg extends ASTItem implements Visitable {
 export class HangingCall extends ASTItem implements Visitable {
     public body: CompoundExpression;
 
-    constructor(public name: string, public args: FuncArg[]) { super(); }
+    constructor(public name: string, public args: CommandArg[]) { super(); }
     accept(visitor: Visitor, ...args: any[]): any {
         return visitor.visitHangingCall.apply(visitor, [this].concat(args));
     }
@@ -225,10 +225,10 @@ export class HangingCall extends ASTItem implements Visitable {
     }
 }
 
-export class FuncCall extends ASTItem implements Visitable {
-    constructor(public name: string, public args: FuncArg[]) { super(); }
+export class CommandCall extends ASTItem implements Visitable {
+    constructor(public name: string, public args: CommandArg[]) { super(); }
     accept(visitor: Visitor, ...args: any[]): any {
-        return visitor.visitFuncCall.apply(visitor, [this].concat(args));
+        return visitor.visitCommand.apply(visitor, [this].concat(args));
     }
 
     acceptForChildren(v: Visitor, ...args: any[]): any {

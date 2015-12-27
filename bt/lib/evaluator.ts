@@ -1,5 +1,5 @@
 import {DoNothingExpresser} from "./expressers";
-import {FuncResult} from "./functions";
+import {CommandResult} from "./commands";
 import {Scope} from "./scope";
 import * as stdLib from "./standard_lib";
 import * as AST from "./parser/ast";
@@ -16,9 +16,9 @@ import * as VM from "./vm";
 /**
  * @function evalBT
  * @description Evaluates a string or AST within a scope.
- * @returns {FuncResult} result of the backtalk code.
+ * @returns {CommandResult} result of the backtalk code.
  */
-export function evalBT(source: string | AST.Visitable, scope?: Scope): FuncResult {
+export function evalBT(source: string | AST.Visitable, scope?: Scope): CommandResult {
     var parsed;
     if (typeof (source) === 'string') {
         parsed = parser.parseOrThrow(<string>source, null);
@@ -45,11 +45,11 @@ export class Evaluator {
         stdLib.inScope(this.scope);
     }
 
-    evalString(source: string): FuncResult {
+    evalString(source: string): CommandResult {
         return this.eval(parser.parseOrThrow(source));
     }
 
-    eval(node: AST.Visitable): FuncResult {
+    eval(node: AST.Visitable): CommandResult {
         let expresser = new VM.ResultExpresser();
         this.evalExpressions(node, expresser);
         return expresser.result;
@@ -78,7 +78,7 @@ export class Evaluator {
         return `/${name}` in this.compiled;
     }
 
-    runForResult(name: string): FuncResult {
+    runForResult(name: string): CommandResult {
         let expresser = new VM.ResultExpresser();
         this.run(name, expresser);
         return expresser.result;

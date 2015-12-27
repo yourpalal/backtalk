@@ -59,7 +59,7 @@ describe('The BackTalker Shell', () => {
             done();
         });
 
-        scope.addFunc(["test async"], (args) => {
+        scope.addCommand(["test async"], (args) => {
             return new Promise((r) => {
                 resolve = r;
             });

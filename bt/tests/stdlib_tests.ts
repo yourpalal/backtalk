@@ -29,7 +29,7 @@ describe('The BackTalker StdLib', () => {
         bt.scope.env.stdout.write.calledWith(3).should.be.ok;
     });
 
-    describe('provides a if: function that replaces if/else', () => {
+    describe('provides a if: command that replaces if/else', () => {
         it('can check a condition and do something if needed', () => {
             let bt = new BT.Evaluator();
             bt.scope.set('x', true);
@@ -72,7 +72,7 @@ describe('The BackTalker StdLib', () => {
         });
     });
 
-    it('provides a function for getting array items', () => {
+    it('provides a command for getting array items', () => {
         let bt = new BT.Evaluator();
         bt.scope.set("x", [3,5,1]);
         bt.evalString("item 1 of $x").should.eql(3);
@@ -81,7 +81,7 @@ describe('The BackTalker StdLib', () => {
         (bt.evalString("item 4 of $x") === undefined).should.be.ok;
     });
 
-    it('provides a function for getting properties', () => {
+    it('provides a command for getting properties', () => {
         let bt = new BT.Evaluator();
         bt.scope.set("x", {"neat": 1, "cool": 2});
         bt.evalString('property "neat" of $x').should.eql(1);

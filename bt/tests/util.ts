@@ -2,7 +2,7 @@
 import * as sinon from 'sinon';
 import 'should';
 
-import {FuncParams} from "../lib/functions";
+import {CommandParams} from "../lib/commands";
 import {Evaluator} from "../lib/evaluator";
 import {Scope} from "../lib/scope";
 
@@ -15,18 +15,18 @@ export function soon<T>(v: T): Promise<T> {
     });
 }
 
-function ident(a: FuncParams) {
+function ident(a: CommandParams) {
     return a;
 }
 
 
-function identAsync(a: FuncParams) {
+function identAsync(a: CommandParams) {
     return Promise.resolve(a);
 }
 
 
 export function addSpyToScope(scope: Scope, hook: Function = ident) {
-    var spyFunc = sinon.spy((a: FuncParams, self: Evaluator) => {
+    var spyFunc = sinon.spy((a: CommandParams, self: Evaluator) => {
         if (a.body) {
             return self.makeSub().eval(a.body);
         } else {
@@ -35,14 +35,14 @@ export function addSpyToScope(scope: Scope, hook: Function = ident) {
     });
 
     let pattern = ["spy <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d> <|:>"];
-    scope.addFunc(pattern, spyFunc);
+    scope.addCommand(pattern, spyFunc);
 
     return spyFunc;
 }
 
 
 export function addAsyncSpyToScope(scope: Scope, hook: Function = identAsync) {
-    var spyFunc = sinon.spy((a: FuncParams, self: Evaluator) => {
+    var spyFunc = sinon.spy((a: CommandParams, self: Evaluator) => {
         return new Promise((resolve, reject) => {
             if (a.body) {
                 setTimeout(() => resolve(self.makeSub().eval(a.body)), 0);
@@ -53,7 +53,7 @@ export function addAsyncSpyToScope(scope: Scope, hook: Function = identAsync) {
     });
 
     let pattern = ["spy async <|on $:a|on $:a $:b|on $:a $:b $:c|on $:a $:b $:c $:d> <|:>"];
-    scope.addFunc(pattern, spyFunc);
+    scope.addCommand(pattern, spyFunc);
 
     return spyFunc;
 }

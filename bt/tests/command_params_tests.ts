@@ -1,24 +1,24 @@
 /// <reference path="../typings/tsd.d.ts" />
 import 'should';
 
-import {FuncParam, FuncParams} from "../lib/functions";
+import {CommandParam, CommandParams} from "../lib/commands";
 import {BadTypeError} from "../lib/errors";
 
 
-describe('the BackTalker func params obj', () => {
-    var params: FuncParams, spec: FuncParam[];
+describe('the BackTalker command params obj', () => {
+    var params: CommandParams, spec: CommandParam[];
     before(() => {
         spec = [
-            FuncParam.forVar("int"),
-            FuncParam.forVar("string"),
-            FuncParam.forVar("null"),
-            FuncParam.forVar("undefined"),
-            FuncParam.forVar("obj"),
-            FuncParam.forChoice("choice").withValue(0),
-            FuncParam.forChoice("baz").withValue(1)
+            CommandParam.forVar("int"),
+            CommandParam.forVar("string"),
+            CommandParam.forVar("null"),
+            CommandParam.forVar("undefined"),
+            CommandParam.forVar("obj"),
+            CommandParam.forChoice("choice").withValue(0),
+            CommandParam.forChoice("baz").withValue(1)
         ];
 
-        params = new FuncParams([0, "wow", null, undefined, {"neat": 1}], spec);
+        params = new CommandParams([0, "wow", null, undefined, {"neat": 1}], spec);
     });
 
     it('can check if parameters exist', () => {

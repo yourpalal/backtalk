@@ -2,11 +2,11 @@ import {BadTypeError, BaseError, MissingValueError} from './errors';
 import {Visitable as ASTVisitable} from './parser/ast';
 
 
-export class FuncParams {
+export class CommandParams {
     named: any;
     body: ASTVisitable = null;
 
-    constructor(public passed: any[], params: FuncParam[]) {
+    constructor(public passed: any[], params: CommandParam[]) {
         this.named = {};
         if (params === null) {
             return;
@@ -79,27 +79,27 @@ export class FuncParams {
 }
 
 
-export class FuncParam {
+export class CommandParam {
     constructor(public name: string, public value: any, public fromVar: boolean) {
     }
 
-    withValue(value: any): FuncParam {
-        return new FuncParam(this.name, value, this.fromVar);
+    withValue(value: any): CommandParam {
+        return new CommandParam(this.name, value, this.fromVar);
     }
 
     static forVar(name: string) {
-        return new FuncParam(name, null, true);
+        return new CommandParam(name, null, true);
     }
 
     static forChoice(name: string) {
-        return new FuncParam(name, 0, false);
+        return new CommandParam(name, 0, false);
     }
 }
 
 
 export class TooEagerError extends BaseError {
     constructor() {
-        super("Attempted to get FuncResult value before it was fulfilled");
+        super("Attempted to get CommandResult value before it was fulfilled");
     }
 }
 
@@ -113,7 +113,7 @@ export interface Executor<T> {
     (resolve: (v: T) => any, reject: (err: any) => any): void;
 }
 
-export class Immediate<T> implements FuncResult {
+export class Immediate<T> implements CommandResult {
     private value: T;
     private err: any;
 
@@ -134,7 +134,7 @@ export class Immediate<T> implements FuncResult {
         });
     }
 
-    static resolve<V>(value: Thenable<V>|FuncResult): Thenable<V> {
+    static resolve<V>(value: Thenable<V>|CommandResult): Thenable<V> {
         if (value !== undefined && value !== null && value.then !== undefined) {
             return <Thenable<V>>value;
         }
@@ -171,6 +171,6 @@ export class Immediate<T> implements FuncResult {
 }
 
 
-export interface FuncResult {
+export interface CommandResult {
     then?(onFulfilled: (any) => any, onRejected?: (any) => any): any;
 }

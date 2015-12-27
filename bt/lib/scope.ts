@@ -1,22 +1,22 @@
 import {BaseError} from './errors';
-import {FuncDef, FuncDefCollection, FuncParameterizer} from "./funcdefs";
-import {FuncResult} from "./functions";
+import {CommandDef, CommandDefCollection, CommandParameterizer} from "./commanddefs";
+import {CommandResult} from "./commands";
 import {Visitable} from './parser/ast';
 import {Trie} from "./trie";
 import {AutoVar, Vivify} from "./vars";
 import {Evaluator} from "./evaluator";
-import {Func, FuncMeta} from "./library";
+import {Command, CommandMeta} from "./library";
 
 /** @module scope */
 
 /**
- * @class FunctionNameError
+ * @class CommandNameError
  * @description thrown when a function is called but does not exist in
  *   the current scope.
  */
-export class FunctionNameError extends BaseError {
+export class CommandNameError extends BaseError {
     constructor(name) {
-        super(`function "${name}" called but undefined`);
+        super(`command "${name}" called but undefined`);
     }
 
     toString(): string {
@@ -24,16 +24,16 @@ export class FunctionNameError extends BaseError {
     }
 }
 
-export class FuncHandle {
+export class CommandHandle {
     public vivification: Vivify[];
-    public parameterize: FuncParameterizer;
+    public parameterize: CommandParameterizer;
 
-    constructor(public name: string, public impl: Func, funcdef: FuncDef, public meta: FuncMeta) {
-        this.vivification = funcdef.vivify;
-        this.parameterize = funcdef.makeParameterizer();
+    constructor(public name: string, public impl: Command, commanddef: CommandDef, public meta: CommandMeta) {
+        this.vivification = commanddef.vivify;
+        this.parameterize = commanddef.makeParameterizer();
     }
 
-    call(args: any[], evaluator: Evaluator, body: Visitable = null): FuncResult {
+    call(args: any[], evaluator: Evaluator, body: Visitable = null): CommandResult{
         args = this.vivifyArgs(args);
         let params = this.parameterize(args);
         params.body = body;
@@ -72,14 +72,14 @@ export class FuncHandle {
 }
 
 /** @class scope.Scope
- * @description Scope keeps track of variable and function names. It uses
+ * @description Scope keeps track of variable and command names. It uses
  *  prototype inheritance to make sure all variables from a parent scope are
  *  visible within child scopes. Function names are handled specially.
  */
 export class Scope {
     names: any;
     env: any;
-    funcs: Trie<FuncHandle>;
+    commands: Trie<CommandHandle>;
 
     constructor(public parent: Scope = null) {
         if (this.parent !== null) {
@@ -89,13 +89,13 @@ export class Scope {
             this.env =  <{ [key: string]: any }>new Object();
             this.names = <{ [key: string]: any }>new Object();
         }
-        this.funcs = new Trie<FuncHandle>();
+        this.commands = new Trie<CommandHandle>();
     }
 
     /**
      * @method scope.Scope#createSubScope
-     * @returns A new scope that has all functions and variables of this one, but
-     *  can add its own functions and variables as well.
+     * @returns A new scope that has all commands and variables of this one, but
+     *  can add its own commands and variables as well.
      */
     createSubScope(): Scope {
         return new Scope(this);
@@ -120,34 +120,34 @@ export class Scope {
         return new AutoVar(name, this, this.names[name]);
     }
 
-    findFunc(name: string): FuncHandle {
-        var f = this.funcs.get(name);
+    findCommand(name: string): CommandHandle {
+        var f = this.commands.get(name);
         if (f) {
             return f;
         }
         if (this.parent) {
-            return this.parent.findFunc(name);
+            return this.parent.findCommand(name);
         }
         return null;
     }
 
-    findFuncOrThrow(name: string): FuncHandle {
-        var func = this.findFunc(name);
+    findCommandOrThrow(name: string): CommandHandle {
+        var func = this.findCommand(name);
         if (func === null || typeof func === 'undefined') {
-            throw new FunctionNameError(name);
+            throw new CommandNameError(name);
         }
         return func;
     }
 
-    addFunc(patterns: string[], impl: Func, meta?: FuncMeta) {
+    addCommand(patterns: string[], impl: Command, meta?: CommandMeta) {
         patterns.map((pattern) => {
-            var result = FuncDefCollection.fromString(pattern);
+            var result = CommandDefCollection.fromString(pattern);
 
             // now we can register a wrapper for all of the specified functions
             // that will append the dynamic parts of the pattern as arguments
-            result.defs.forEach((funcdef) => {
-                var name = funcdef.tokens.join(" ");
-                this.funcs.put(name, new FuncHandle(name, impl, funcdef, meta));
+            result.defs.forEach((commanddef) => {
+                var name = commanddef.tokens.join(" ");
+                this.commands.put(name, new CommandHandle(name, impl, commanddef, meta));
             });
         });
     }

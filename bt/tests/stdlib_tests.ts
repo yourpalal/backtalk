@@ -4,6 +4,7 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/index';
 import {IllegalPropertyError} from '../lib/secure';
+import {soon} from "./util";
 
 let conditionSrc = `
 if:
@@ -49,6 +50,25 @@ describe('The BackTalker StdLib', () => {
             bt.scope.set('y', false);
 
             bt.evalString(otherwiseSrc).should.eql(3);
+        });
+
+        it('can handle async conditions', () => {
+            let bt = new BT.Evaluator();
+            bt.scope.set('x', soon(false));
+            bt.scope.set('y', soon(true));
+
+            let src = `
+            if:
+                in case $x then:
+                    1
+                in case $y then:
+                    2
+            `;
+
+            return Promise.resolve(bt.evalString(src))
+                .then((v) => {
+                    v.should.eql(2);
+                });
         });
     });
 

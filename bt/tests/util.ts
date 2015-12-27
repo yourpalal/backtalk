@@ -7,6 +7,14 @@ import {Evaluator} from "../lib/evaluator";
 import {Scope} from "../lib/scope";
 
 
+export function soon<T>(v: T): Promise<T> {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(v);
+        }, 100);
+    });
+}
+
 function ident(a: FuncParams) {
     return a;
 }

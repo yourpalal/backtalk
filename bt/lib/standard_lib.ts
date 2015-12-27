@@ -102,25 +102,26 @@ export var library = Library.create()
                     return false;
                 }
 
-                if (a.getObject("guard")) {
+                return Immediate.resolve(a.get("guard")).then((v) => {
+                    if (!v) {
+                        return false;
+                    }
+
                     running = false;
                     result = sub.eval(a.body);
-                }
+                    return result;
+                });
             },
             "otherwise": (a: FuncParams) => {
                 otherwise = a.body;
             }
         });
 
-        if (running && otherwise) {
-            return sub.eval(otherwise);
-        }
-
-        return Immediate.wrap(() => sub.eval(args.body))
+        return Immediate.resolve(sub.eval(args.body))
             .then(() => {
                 if (!running) {
                     return result;
-                } else if (otherwise) {
+                } else if (otherwise !== null) {
                     return sub.eval(otherwise);
                 } else {
                     return false;

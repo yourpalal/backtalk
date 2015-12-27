@@ -6,13 +6,16 @@ import * as BT from '../lib/index';
 import {IllegalPropertyError} from '../lib/secure';
 
 let conditionSrc = `
-when:
-    $x & $y
-    then:
+if:
+    in case ($x & $y) then:
         1
-    $x | $y
-    then:
+    in case ($x | $y) then:
         2
+`;
+
+let otherwiseSrc = conditionSrc + `
+    otherwise:
+        3
 `;
 
 describe('The BackTalker StdLib', () => {
@@ -25,7 +28,7 @@ describe('The BackTalker StdLib', () => {
         bt.scope.env.stdout.write.calledWith(3).should.be.ok;
     });
 
-    describe('provides a when function that replaces if/else', () => {
+    describe('provides a if: function that replaces if/else', () => {
         it('can check a condition and do something if needed', () => {
             let bt = new BT.Evaluator();
             bt.scope.set('x', true);
@@ -38,6 +41,14 @@ describe('The BackTalker StdLib', () => {
 
             bt.scope.set('y', false);
             bt.evalString(conditionSrc).should.eql(false);
+        });
+
+        it('can run an otherwise block if no other blocks are run', () => {
+            let bt = new BT.Evaluator();
+            bt.scope.set('x', false);
+            bt.scope.set('y', false);
+
+            bt.evalString(otherwiseSrc).should.eql(3);
         });
     });
 

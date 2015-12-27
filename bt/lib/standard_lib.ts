@@ -1,8 +1,8 @@
 import {Evaluator} from "./evaluator";
 import {FuncParams, Immediate} from "./functions";
-import {Library} from "./library";
+import {Library, FuncMeta} from "./library";
 import * as secure from "./secure";
-import {Expresser, StackExpresser, StateMachineExpresser} from "./expressers";
+import {StackExpresser} from "./expressers";
 
 export interface StdEnv {
     stdout: ConsoleWriter;
@@ -11,49 +11,6 @@ export interface StdEnv {
 export class ConsoleWriter {
     write(...args: any[]) {
         (console as any).log(...args);
-    }
-}
-
-interface WhenState extends Expresser {
-    running: boolean;
-    result: any;
-}
-
-class WhenGuardingExpresser implements WhenState {
-    running: boolean = false;
-    result: boolean = false;
-
-    constructor(private parent: StateMachineExpresser<WhenState>) {
-    }
-
-    express(result: any) {
-        if (result) {
-            this.parent.setState(new WhenRunningExpresser());
-        }
-    }
-
-    finish() {
-    }
-}
-
-class WhenRunningExpresser implements Expresser {
-    running: boolean = true;
-    result: any;
-    resolve: (any) => any;
-
-    constructor() {
-        this.result = new Promise<any>((r) => this.resolve = r);
-    }
-
-    express(result: any) {
-        if (this.running) {
-            this.running = false;
-            this.resolve(result);
-            this.result = result;
-        }
-    }
-
-    finish() {
     }
 }
 
@@ -110,38 +67,65 @@ export var library = Library.create()
         return args.named.arg;
     })
 
-.func("when", ['when :'])
-    .help(`Supports conditional execution. The first expression to evaluate
-        to true will have its then expression run.
+.func("if", ['if :'])
+    .callsBody(Library.ONCE)
+    .help(`Supports conditional execution. The first case to evaluate
+        to true will have its body run.
 
-        when:
-            $a
-            then:
+        if:
+            in case $a then:
                 print "a"
-            $b
-            then:
+            in case $b then:
                 print "b"
-            true:
+            in case ($a & $b) then:
+                print "ab"
+            otherwise:
                 print "c"
             `)
     .includes()
-        .func("then", ["then :"])
-            .help("runs the next statement only if the previous guard passed")
+        .func("in case", ["in case $:guard then:"])
+            .callsBody(Library.ONCE)
+            .help("runs the provided body only if the case matches, and it is the first case to do so.")
+        .func("otherwise", ["otherwise:"])
+            .callsBody(Library.ONCE)
+            .help("runs the provided body only if no cases match")
         .done()
-    .impl((args: FuncParams, self: Evaluator) => {
+    .impl((args: FuncParams, self: Evaluator, meta: FuncMeta) => {
         let sub = self.makeSub();
-        let expresser = new StateMachineExpresser<WhenState>();
-        expresser.setState(new WhenGuardingExpresser(expresser));
+        let running = true;
+        let result: any = null;
+        let otherwise = null;
 
-        sub.scope.addFunc(['then :'], function(a: FuncParams): any {
-            if (expresser.state.running) {
-                return sub.eval(a.body);
+        meta.includes.addToScope(sub.scope, {
+            "in case": (a: FuncParams) => {
+                if (!running) {
+                    return false;
+                }
+
+                if (a.getObject("guard")) {
+                    running = false;
+                    result = sub.eval(a.body);
+                }
+            },
+            "otherwise": (a: FuncParams) => {
+                otherwise = a.body;
             }
-            return false;
         });
-        sub.evalExpressions(args.body, expresser);
 
-        return expresser.state.result;
+        if (running && otherwise) {
+            return sub.eval(otherwise);
+        }
+
+        return Immediate.wrap(() => sub.eval(args.body))
+            .then(() => {
+                if (!running) {
+                    return result;
+                } else if (otherwise) {
+                    return sub.eval(otherwise);
+                } else {
+                    return false;
+                }
+            });
     })
     .library;
 

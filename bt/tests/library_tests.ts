@@ -51,6 +51,23 @@ describe('BackTalker function calls', () => {
         scope.findFunc("bar :").should.be.ok;
     });
 
+    it("can set function implementations during addToScope", () => {
+        BT.Library.create()
+            .func("bar", ["bar"])
+                .impl(() => "wow")
+            .func("baz", ["baz"])
+            .func("boop", ["boop"])
+            .done()
+            .addToScope(scope, {
+                bar: () => "bar",
+                baz: () => "baz"
+            });
+
+        evaluator.evalString("bar").should.eql("bar");
+        evaluator.evalString("baz").should.eql("baz");
+        (scope.findFunc("boop") === null).should.be.ok;
+    });
+
     it("adds metadata to the scope", () => {
         let help = "runs the body with the variable $bar";
         BT.Library.create()

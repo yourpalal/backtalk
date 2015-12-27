@@ -85,14 +85,16 @@ export class Library {
     }
 
     funcs: {
-        [name: string]: {meta: FuncMeta, impl: any, patterns: string[]};
+        [name: string]: {meta: FuncMeta, impl: Func, patterns: string[]};
     } = {};
 
-    addToScope(scope: Scope) {
+    addToScope(scope: Scope, funcImpls: {[name: string]: Func} = {}) {
         for (var name in this.funcs) {
             if (!this.funcs.hasOwnProperty(name)) { continue; }
 
             let {impl, patterns, meta} = this.funcs[name];
+            impl = funcImpls[name] || impl;
+
             if (impl) {
                 scope.addFunc(patterns, impl, meta);
             }

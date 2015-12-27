@@ -70,7 +70,7 @@ export class FuncParams {
         return this.has(name) && (this.named[name] !== null) && (this.named[name] !== undefined);
     }
 
-    getObject(name: string): string {
+    getObject(name: string): any {
         if (!this.hasObject(name)) {
             throw new MissingValueError(this.named[name]);
         }

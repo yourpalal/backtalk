@@ -1,6 +1,6 @@
 {
   "name": "backtalk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An embeddable scripting language for non-programmers.",
   "main": "build/js/lib/index.js",
   "scripts": {

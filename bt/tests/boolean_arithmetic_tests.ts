@@ -50,6 +50,7 @@ describe('When doing boolean arithmetic', () => {
 
     it('can deal with parens', () => {
         btEval('! (true & false)').should.equal(true);
+        btEval('! (false | true)').should.equal(false);
         btEval('(true & false) | (true & true)').should.equal(true);
     });
 

@@ -4,7 +4,8 @@ export import secure = require("./secure");
 export import StdLib = require("./standard_lib");
 export {AutoVar, Vivify} from "./vars";
 export {BaseError} from "./errors";
-export {CommandParams, CommandResult, Immediate} from "./commands";
+export {CommandParams, CommandResult} from "./commands";
+export {Immediate, Thenable} from "./immediate";
 export {Library} from "./library";
 
 

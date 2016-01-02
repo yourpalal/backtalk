@@ -1,5 +1,5 @@
 /// <reference path="../typings/tsd.d.ts" />
-import {Immediate} from '../lib/commands';
+import {Immediate} from '../lib/immediate';
 
 
 describe('the Immediate class', () => {

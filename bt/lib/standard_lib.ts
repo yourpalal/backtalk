@@ -1,6 +1,7 @@
 import {Evaluator} from "./evaluator";
-import {CommandParams, Immediate} from "./commands";
+import {CommandParams} from "./commands";
 import {Library, CommandMeta} from "./library";
+import {Immediate} from "./immediate";
 import * as secure from "./secure";
 import {StackExpresser} from "./expressers";
 

@@ -4,7 +4,8 @@ import * as sinon from 'sinon';
 
 import * as BT from '../lib/index';
 import {BaseError} from '../lib/errors';
-import {CommandParams, Immediate} from '../lib/commands';
+import {CommandParams} from '../lib/commands';
+import {Immediate} from '../lib/immediate';
 import {addSpyToScope} from './util';
 
 

@@ -1,5 +1,5 @@
 import {Evaluator} from "./evaluator";
-import {Immediate} from "./commands";
+import {Immediate} from "./immediate";
 
 /** @module shell */
 
